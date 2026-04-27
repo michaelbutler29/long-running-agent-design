@@ -1,6 +1,6 @@
 # Stack Alignment Diagnostic for Long-Running Agents
 
-A diagnostic framework for identifying misalignment between an agent's trained disposition, assigned role, tasks, and environment. Companion artifact to [The Reconciliation Tax](https://www.linkedin.com/pulse/PLACEHOLDER), Part One of the [Long-Running Agents series](https://www.linkedin.com/pulse/anatomy-long-running-agent-michael-butler-fg1se).
+A diagnostic framework for identifying misalignment between an agent's trained disposition, assigned role, tasks, and environment. Companion artifact to [The Reconciliation Tax](https://www.linkedin.com/pulse/reconciliation-tax-what-happens-when-agents-nature-fights-butler-kstge), Part One of the [Long-Running Agents series](https://www.linkedin.com/pulse/anatomy-long-running-agent-michael-butler-fg1se).
 
 ---
 

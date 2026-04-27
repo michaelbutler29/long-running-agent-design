@@ -9,7 +9,7 @@ A four-part series on designing long-running agents, exploring human nature as a
 | Part | Title | Artifact |
 |------|-------|----------|
 | Zero | [The Anatomy of a Long-Running Agent](https://www.linkedin.com/pulse/anatomy-long-running-agent-michael-butler-fg1se) | — |
-| One  | [The Reconciliation Tax](https://www.linkedin.com/pulse/PLACEHOLDER) | [Stack Alignment Diagnostic](stack-alignment-diagnostic.md) |
+| One  | [The Reconciliation Tax](https://www.linkedin.com/pulse/reconciliation-tax-what-happens-when-agents-nature-fights-butler-kstge) | [Stack Alignment Diagnostic](stack-alignment-diagnostic.md) |
 | Two  | Security as Policy | Coming soon |
 | Three | Skills and Growth | Coming soon |
 | Four | Designed Well-being | Coming soon |
