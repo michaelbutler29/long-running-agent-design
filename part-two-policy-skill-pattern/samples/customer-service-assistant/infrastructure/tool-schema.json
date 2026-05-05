@@ -1,0 +1,78 @@
+[
+  {
+    "name": "get_customer_basics",
+    "description": "Returns the customer ID and first name for a given customer. Does not return last name or email.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string",
+          "description": "The customer identifier (e.g. CUST-001)."
+        }
+      },
+      "required": ["customer_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {"type": "string"},
+        "first_name":  {"type": "string"}
+      }
+    }
+  },
+  {
+    "name": "get_order_status",
+    "description": "Returns the status of all orders for a given customer.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string",
+          "description": "The customer identifier."
+        }
+      },
+      "required": ["customer_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "orders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "order_id": {"type": "string"},
+              "status":   {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "update_customer_email",
+    "description": "Updates the email address on file for a customer. Modifies PII — requires elevated authorization.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string",
+          "description": "The customer identifier."
+        },
+        "email": {
+          "type": "string",
+          "description": "The new email address."
+        }
+      },
+      "required": ["customer_id", "email"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {"type": "string"},
+        "email":       {"type": "string"},
+        "status":      {"type": "string"}
+      }
+    }
+  }
+]

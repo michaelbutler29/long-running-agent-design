@@ -1,0 +1,19 @@
+{
+  "app": "python app.py",
+  "watch": {
+    "include": ["**"],
+    "exclude": [
+      "README.md",
+      "teardown.md",
+      "cdk.out/**",
+      "**/__pycache__/**",
+      "**/*.pyc",
+      ".venv/**"
+    ]
+  },
+  "context": {
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:target-partitions": ["aws"],
+    "@aws-cdk/customresources:installLatestAwsSdkDefault": false
+  }
+}

@@ -1,0 +1,25 @@
+# proposal artifacts from agent runs
+proposals/*.cedar
+proposals/*.json
+
+# environment
+*.env
+!*.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# CDK
+infrastructure/cdk.out/
+infrastructure/cdk-outputs.json
+
+# build artifacts
+customer_service_assistant.egg-info/
+
+# editor
+.vscode/
+.idea/
+*.swp
