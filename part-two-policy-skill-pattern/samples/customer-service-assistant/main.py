@@ -9,11 +9,17 @@ proposal directly to the judge and verifies the judge catches it on
 Criterion 5 (shape discipline).
 """
 
+import json
+import os
 from pathlib import Path
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
 from customer_service_agent import make_agent
+
+SAMPLE_ROOT = Path(__file__).parent
+OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
+STACK_NAME = "PolicySkillSampleStack"
 
 app = BedrockAgentCoreApp()
 
@@ -25,9 +31,19 @@ def invoke(payload: dict) -> dict:
     return {"result": str(result)}
 
 
-if __name__ == "__main__":
+def _load_config():
+    """Load .env for user preferences, then CDK outputs for infrastructure values."""
     from dotenv import load_dotenv
-    load_dotenv(Path(__file__).parent / ".env")
+    load_dotenv(SAMPLE_ROOT / ".env")
+
+    outputs = json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
+    os.environ.setdefault("AGENTCORE_GATEWAY_URL", outputs["GatewayUrl"])
+    os.environ.setdefault("AGENTCORE_GATEWAY_ARN", outputs["GatewayArn"])
+    os.environ.setdefault("AGENTCORE_POLICY_ENGINE_ID", outputs["PolicyEngineId"])
+
+
+if __name__ == "__main__":
+    _load_config()
 
     agent = make_agent()
 

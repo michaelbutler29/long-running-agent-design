@@ -38,23 +38,18 @@ cd ..
 
 This creates: 2 DynamoDB tables (seeded with sample data), 3 Lambda functions, an AgentCore Gateway with 3 targets, a Policy Engine in ENFORCE mode, and supporting IAM roles. See [`infrastructure/README.md`](infrastructure/README.md) for the full resource list.
 
-### 3. Configure environment
+### 3. Configure environment (optional)
 
-Copy the example and fill in from CDK outputs:
+Infrastructure values (`AGENTCORE_GATEWAY_URL`, `AGENTCORE_GATEWAY_ARN`, `AGENTCORE_POLICY_ENGINE_ID`) are loaded from `infrastructure/cdk-outputs.json` automatically. You only need a `.env` file if you want to override the defaults for region or model:
 
 ```bash
 cp .env.example .env
 ```
 
-The values come from `infrastructure/cdk-outputs.json`:
-
-| Variable | Source |
-|----------|--------|
-| `AGENTCORE_GATEWAY_URL` | `GatewayUrl` |
-| `AGENTCORE_GATEWAY_ARN` | `GatewayArn` |
-| `AGENTCORE_POLICY_ENGINE_ID` | `PolicyEngineId` |
-| `AWS_REGION` | `Region` (defaults to `us-east-1`) |
-| `BEDROCK_MODEL_ID` | Optional; defaults to `global.anthropic.claude-sonnet-4-6` |
+| Variable | Default |
+|----------|---------|
+| `AWS_REGION` | `us-east-1` |
+| `BEDROCK_MODEL_ID` | `global.anthropic.claude-sonnet-4-6` |
 
 ### 4. Seed the starting policy
 

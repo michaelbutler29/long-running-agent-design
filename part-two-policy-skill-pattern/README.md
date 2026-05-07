@@ -41,7 +41,7 @@ python -m venv .venv
 source .venv/bin/activate # PowerShell: .venv\Scripts\Activate.ps1
 pip install -e .
 cd infrastructure && cdk bootstrap aws://<account-id>/us-east-1 && cdk deploy --outputs-file cdk-outputs.json && cd ..
-cp .env.example .env  # then fill in values from infrastructure/cdk-outputs.json
+cp .env.example .env  # optional: override AWS_REGION or BEDROCK_MODEL_ID
 python seed_policy.py # populates a first, baseline policy in AgentCore Policy
 python main.py        # runs both approve scenarios
 python demo_reject.py # demonstrates the judge rejecting a broken proposal
