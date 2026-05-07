@@ -33,7 +33,7 @@ The separation is the point. The agent that benefits from a boundary expansion s
 
 - File structure, conformant to the Agent Skills open standard.
 - The two-part proposal format: every proposal pairs a Cedar fragment with a structured justification.
-- The six-criterion evaluation framework (Criterion 5's hard rule on permanent sensitive-write grants is non-negotiable).
+- The six-criterion evaluation framework.
 - The architectural separation: construction and evaluation must be independent.
 - The deny-all baseline. The enforcement environment is assumed to start from `forbid`; proposals are additive permits.
 - Cedar as the primary policy language.
@@ -46,7 +46,6 @@ The separation is the point. The agent that benefits from a boundary expansion s
 - Specific Cedar policy content. Templates show the shape, not the content.
 - Justification field semantics beyond the required fields.
 - The enforcement layer's dialect (AgentCore, OPA, custom).
-- Whether evaluation is HITL, LLM-as-judge, or hybrid.
 
 ---
 
@@ -74,8 +73,14 @@ Do **not** change:
 - The frontmatter shape in either `SKILL.md`. It must validate against the Agent Skills spec.
 - The directory layout. Progressive disclosure depends on it.
 - The two-part proposal contract. Every proposal is a Cedar fragment plus a structured justification.
-- The six-criterion framework. Add criteria; do not remove.
-- Criterion 5's hard rule. A permanent grant for a sensitive write must always be rejected.
+
+Recommendations (not requirements)
+The criteria framework starts at six sourced from the AWS Well-Architected Generative AI Lens. Add, remove, or replace criteria based on your organization's policy needs. A few worth keeping unless you have specific reason not to:
+- A criterion that examines sensitivity accuracy. Without it, the agent's sensitivity claims go unchecked and the evaluator has no basis for shape discipline rules.
+- A hard rule on permanent grants for sensitive writes. Time-bounded sensitive writes are recoverable through expiration; permanent ones aren't. The risk asymmetry justifies a hard rule unless your context genuinely doesn't include sensitive writes.
+- A criterion that requires authorization citability. A proposal that can't cite a policy basis is a proposal that depends on the agent's judgment alone, which defeats the curated-expertise claim.
+
+These are recommendations from the reference implementation. Your organization's policy framework should drive what you keep, change, or replace.
 
 ---
 
@@ -97,8 +102,8 @@ After forking, you need to wire the skills into your agent framework. The skills
 from strands import Agent
 from strands.vended_plugins.skills import AgentSkills
 
-# Doer agent — loads the policy-generator skill
-doer = Agent(
+# Actor agent — loads the policy-generator skill
+actor = Agent(
     plugins=[AgentSkills(skills="path/to/your-policy-generator-skill")],
     tools=[mcp_client, submit_proposal, refresh_gateway_tools, ...],
     ...
@@ -107,7 +112,7 @@ doer = Agent(
 # Judge agent — loads the policy-evaluation skill
 judge = Agent(
     plugins=[AgentSkills(skills="path/to/your-policy-evaluation-skill")],
-    tools=[incorporate_policy],
+    tools=[],
     ...
 )
 ```

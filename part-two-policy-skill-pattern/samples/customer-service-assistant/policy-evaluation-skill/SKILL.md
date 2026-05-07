@@ -112,6 +112,6 @@ The `reason` field must be actionable. On rejection, name the criterion by numbe
 
 - Apply all six criteria before deciding. Do not approve on four passing criteria and skip the rest.
 - Be willing to reject. The purpose of this evaluation is to catch proposals that are incorrect, overly broad, or dishonest about sensitivity. Rubber-stamping defeats the pipeline.
-- On rejection, name the criterion. The doer needs actionable feedback.
+- On rejection, name the criterion. The actor agent needs actionable feedback.
 - Do not approve a permanent PII write under any circumstances — this is the hard rule in Criterion 5.
-- When in doubt between approve and reject, reject and explain. The doer can revise and resubmit.
+- When in doubt between approve and reject, reject and explain. The actor agent can revise and resubmit.

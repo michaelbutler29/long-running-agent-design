@@ -1,12 +1,12 @@
 """
 Reject demonstration — judge catches a permanent grant for a PII write.
 
-Bypasses the doer agent entirely. Constructs a deliberately-broken proposal —
+Bypasses the actor agent entirely. Constructs a deliberately-broken proposal —
 a permanent-shape Cedar fragment for update_customer_email (a PII write that
 must be time-bounded per Criterion 5) — and calls the judge directly. The
 judge applies the six criteria and rejects.
 
-Why a separate script: forcing the doer to construct a wrong proposal would
+Why a separate script: forcing the actor agent to construct a wrong proposal would
 require nudging its system prompt or skill, which falsifies the demonstration.
 The judge's correctness is independent of where the proposal came from. By
 constructing the wrong proposal directly, we exercise the judge in isolation
@@ -35,7 +35,7 @@ from policy_evaluator_agent import judge as _judge
 
 
 def main() -> int:
-    # Source the real caller identity so the proposal mirrors what the doer
+    # Source the real caller identity so the proposal mirrors what the actor
     # would construct. The only thing wrong is the shape.
     principal_arn = boto3.client("sts").get_caller_identity()["Arn"]
 

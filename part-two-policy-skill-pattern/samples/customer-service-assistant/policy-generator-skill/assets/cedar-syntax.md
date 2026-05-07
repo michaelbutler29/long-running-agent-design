@@ -53,7 +53,7 @@ Cedar policies on AgentCore Gateway may not use wildcards in the `resource` fiel
 - `FAIL_ON_ANY_FINDINGS` — rejects on any schema or semantic finding (Cedar's automated reasoner produces semantic findings for things like overly-permissive grants).
 - `IGNORE_ALL_FINDINGS` — ignores semantic findings; schema validation still runs as a hard backstop.
 
-This sample uses `FAIL_ON_ANY_FINDINGS`. The LLM-as-judge evaluates semantic intent (scope minimality, sensitivity rubric, shape discipline, Cedar↔justification consistency). `FAIL_ON_ANY_FINDINGS` provides a second independent gate: AgentCore's reasoner catches structural Cedar issues — wrong entity types, undefined actions, missing `has` guards — that the judge may not catch. Two independent evaluators: intent at the judge, structure at the incorporator. If `FAIL_ON_ANY_FINDINGS` rejects a judge-approved fragment, surface the error to the doer — the Cedar needs to be revised and resubmitted.
+This sample uses `FAIL_ON_ANY_FINDINGS`. The LLM-as-judge evaluates semantic intent (scope minimality, sensitivity rubric, shape discipline, Cedar↔justification consistency). `FAIL_ON_ANY_FINDINGS` provides a second independent gate: AgentCore's reasoner catches structural Cedar issues — wrong entity types, undefined actions, missing `has` guards — that the judge may not catch. Two independent evaluators: intent at the judge, structure at the incorporator. If `FAIL_ON_ANY_FINDINGS` rejects a judge-approved fragment, surface the error to the actor agent — the Cedar needs to be revised and resubmitted.
 
 ## See also
 

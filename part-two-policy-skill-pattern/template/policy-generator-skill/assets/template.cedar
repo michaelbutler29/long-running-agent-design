@@ -4,7 +4,7 @@
 //
 // Required placeholders (AGENT-filled at proposal time):
 //   <PRINCIPAL_ID>      the agent or role gaining expanded permission
-//   <ACTION_*>          the specific actions permitted
+//   <ACTION>            the specific action permitted
 //   <RESOURCE_TYPE>     the entity type of the targeted resource
 //   <RESOURCE_ID>       the specific resource ID (or pattern)
 //
@@ -22,8 +22,8 @@
 
 permit (
   principal == Agent::"<PRINCIPAL_ID>",
-  action in [Action::"<ACTION_1>", Action::"<ACTION_2>"],
-  resource in <RESOURCE_TYPE>::"<RESOURCE_ID>"
+  action == Action::"<ACTION>",
+  resource == <RESOURCE_TYPE>::"<RESOURCE_ID>"
 )
 when {
   context.system.now <= datetime("<EXPIRATION_TIMESTAMP>")

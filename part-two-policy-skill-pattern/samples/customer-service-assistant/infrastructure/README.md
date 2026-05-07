@@ -47,7 +47,8 @@ cd infrastructure
 cdk deploy --outputs-file cdk-outputs.json
 ```
 
-`cdk-outputs.json` lands in this directory and is consumed by [main.py](../main.py), [policy_evaluator_agent/judge.py](../policy_evaluator_agent/judge.py), and [seed_policy.py](../seed_policy.py). It is gitignored.
+`cdk-outputs.json` lands in this directory and is consumed by [main.py](../main.py), [seed_policy.py](../seed_policy.py), and [cleanup.py](../cleanup.py). 
+It is gitignored.
 
 ## Cost
 

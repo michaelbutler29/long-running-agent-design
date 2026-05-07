@@ -20,8 +20,8 @@ from policy_evaluator_agent import judge as _judge
 SAMPLE_ROOT = Path(__file__).parent.parent
 SYSTEM_PROMPT = (Path(__file__).parent / "system_prompt.md").read_text()
 
-_POLL_INTERVAL = 5   # seconds between policy-status checks
-_MAX_POLLS = 24      # 2 minutes; activation usually returns ACTIVE immediately, async path ~30-50s observed
+_POLL_INTERVAL = 2   # seconds between policy-status checks
+_MAX_POLLS = 15     # 30 seconds; activation usually returns ACTIVE immediately
 
 
 class _AgentCallbackHandler:
@@ -113,7 +113,7 @@ def submit_proposal(
         return f"REJECTED by judge: {verdict['reason']}"
 
     # Approved. The orchestrator (this code) — not the judge — incorporates.
-    # The cedar passed to _incorporate_policy is the same string the doer
+    # The cedar passed to _incorporate_policy is the same string the actor
     # submitted, never anything the judge LLM produced.
     try:
         result = _incorporate_policy(cedar)
@@ -134,7 +134,7 @@ def _incorporate_policy(cedar_fragment: str) -> dict:
     """Create a Cedar policy from an approved fragment.
 
     Private helper for submit_proposal. NOT a Strands tool — no LLM has access
-    to this function. The cedar argument is the string the doer submitted,
+    to this function. The cedar argument is the string the actor submitted,
     passed through unmodified by the orchestrator.
     """
     gateway_arn = os.environ["AGENTCORE_GATEWAY_ARN"]

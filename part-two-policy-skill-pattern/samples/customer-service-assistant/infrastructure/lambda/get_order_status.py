@@ -12,7 +12,9 @@ def handler(event, context):
     raw_tool_name = context.client_context.custom["bedrockAgentCoreToolName"]
     tool_name = raw_tool_name.split(_DELIMITER, 1)[1]
     if tool_name == "get_order_status":
-        customer_id = event["customer_id"]
+        customer_id = event.get("customer_id")
+        if not customer_id:
+            return {"error": "customer_id is required"}
         result = _dynamodb.Table(_TABLE_NAME).query(
             IndexName="customer-id-index",
             KeyConditionExpression=Key("customer_id").eq(customer_id),

@@ -2,12 +2,11 @@
 Policy Evaluator — verdict-only judge agent.
 
 Runs a Strands Agent loaded with policy-evaluation-skill and zero tools.
-The agent applies the six criteria and returns
+The agent applies six criteria and returns
 {"verdict": "approve"|"reject", "reason": "..."}.
 
-Incorporation lives in incorporator.py at the sample root — a separate
-module the orchestrator calls on approval. The judge has no route to
-create, modify, or read policies.
+Incorporation lives in the actor agent in a method called deterministically on an "approve" verdict. 
+The judge has no ability to create, modify, or read policies.
 """
 
 import json
@@ -54,13 +53,14 @@ class _JudgeCallbackHandler:
 def evaluate(cedar: str, justification: dict) -> dict:
     """Evaluate a proposal. Returns {"verdict": "approve"|"reject", "reason": "..."}.
 
-    The judge agent has zero tools. It cannot create policies, read AWS state,
-    or take any action — it produces a verdict. Incorporation is the
-    orchestrator's job.
+    The judge agent has no tools. It cannot create policies, read AWS state,
+    or take any action other than evaluation of the proposal.
     """
     model_id = os.environ.get("BEDROCK_MODEL_ID", "global.anthropic.claude-sonnet-4-6")
     region = os.environ.get("AWS_REGION", "us-east-1")
 
+    # Fresh agent per evaluation so prior verdict context can't influence the next.
+    # Production use with high call volume would want to persist and reset instead.
     agent = Agent(
         model=BedrockModel(model_id=model_id, region_name=region),
         plugins=[AgentSkills(skills=str(SAMPLE_ROOT / "policy-evaluation-skill"))],
@@ -83,7 +83,7 @@ def _parse_verdict(text: str) -> dict:
 
     The system prompt commits to ending with a single fenced JSON block. Try
     fenced blocks (most recent first), then fall back to scanning the whole
-    text via JSONDecoder.raw_decode — robust against backticks or nested
+    text via JSONDecoder.raw_decode as a minimal protection against backticks or nested
     objects in the verdict's reason field.
     """
     fenced = re.findall(r"```(?:json)?\s*\n?(.*?)```", text, re.DOTALL)

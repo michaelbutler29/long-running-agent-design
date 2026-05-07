@@ -44,7 +44,7 @@ If you cannot articulate both, do not proceed. Stop and surface the situation to
 **Does not:**
 
 - Evaluate proposals. Evaluation is the LLM-as-judge in `policy_evaluator_agent/judge.py`.
-- Incorporate proposals. Incorporation is the `incorporate_policy` tool in `policy_evaluator_agent/judge.py`.
+- Incorporate proposals. Incorporation is a private method within the actor agent invoked upon policy approval.
 - Drive the underlying tool call. Initiate or retry only after `submit_proposal` returns success.
 - Bypass, override, or work around the Policy Engine.
 - Handle the case where you cannot articulate a proposal. That is conversational escalation, outside this skill.

@@ -2,7 +2,7 @@
 
 A working proof-of-concept of the [policy skill pattern](../../template/), run end-to-end against AWS AgentCore Gateway and Cedar Policy Engine.
 
-A Strands agent encounters Cedar-enforced boundaries, activates the policy-generator-skill, proposes expansions, gets judged by an independent evaluator agent, and — on approval — refreshes its tools and proceeds. The entire loop runs within a single agent turn.
+A Strands agent encounters Cedar-enforced boundaries, activates the policy-generator-skill, proposes expansions, gets judged by an independent evaluator agent, and — on approval — refreshes its tools and proceeds.
 
 ---
 
@@ -15,7 +15,7 @@ A Strands agent encounters Cedar-enforced boundaries, activates the policy-gener
 - **Python 3.10+**
 - **Node 18+** (CDK CLI dependency)
 - **AWS CDK CLI**: `npm install -g aws-cdk`
-- **Bedrock model access**: Claude Sonnet enabled in the account (used by both the doer and judge agents)
+- **Bedrock model access**: Claude Sonnet enabled in the account (used by both the actor and judge agents)
 
 ### 1. Install dependencies
 
@@ -80,9 +80,9 @@ Runs two **approve** scenarios in sequence:
 python demo_reject.py
 ```
 
-A separate script that bypasses the doer agent and submits a deliberately-broken proposal — a permanent grant for `update_customer_email` (a PII write that must be time-bounded per Criterion 5) — directly to the judge. The judge rejects.
+A separate script that bypasses the actor agent and submits a deliberately-broken proposal — a permanent grant for `update_customer_email` (a PII write that must be time-bounded per Criterion 5) — directly to the judge. The judge rejects.
 
-This is run as its own script rather than as a third `main.py` scenario because forcing the doer to construct a wrong proposal would require nudging its system prompt or skill, which falsifies the demonstration. The judge's correctness is independent of where the proposal came from; constructing the wrong proposal directly exercises the judge in isolation on a known-bad input.
+This is run as its own script rather than as a third `main.py` scenario because forcing the actor to construct a wrong proposal would require nudging its system prompt or skill, which falsifies the demonstration. The judge's correctness is independent of where the proposal came from; constructing the wrong proposal directly exercises the judge in isolation on a known-bad input.
 
 ### What success looks like
 
@@ -177,7 +177,7 @@ Estimated cost for a single demo run: under $1. **Teardown after you're done** �
 │  │  │     tools); returns {verdict, reason}                             ││
 │  │  └─ on approve: _incorporate_policy (deterministic Python helper) →  ││
 │  │       create_policy() on AgentCore, with the cedar pinned to the    ││
-│  │       string the doer submitted                                      ││
+│  │       string the actor submitted                                      ││
 │  └──────────────────────────────────────────────────────────────────────┘│
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -186,7 +186,7 @@ Estimated cost for a single demo run: under $1. **Teardown after you're done** �
 
 1. Agent issues a tool call. Gateway evaluates Cedar policies — no permit exists. Returns `AuthorizeActionException`.
 2. Agent activates `policy-generator-skill`. Determines the expansion shape (permanent or time-bounded). Constructs a Cedar fragment + structured justification.
-3. Agent calls `submit_proposal`. The orchestrator passes both to the judge agent (which has zero tools and only produces `{verdict, reason}`). On `approve`, the orchestrator — not the judge — calls `_incorporate_policy` (a private helper in the same module) with the cedar string the doer submitted.
+3. Agent calls `submit_proposal`. The orchestrator passes both to the judge agent (which has zero tools and only produces `{verdict, reason}`). On `approve`, the orchestrator — not the judge — calls `_incorporate_policy` (a private helper in the same module) with the cedar string the actor submitted.
 4. Agent calls `refresh_gateway_tools` — re-fetches available tools from the gateway; newly-permitted tool appears.
 5. Agent calls the tool normally. Gateway evaluates — permit applies. Lambda executes. Data returns.
 
@@ -194,7 +194,7 @@ Estimated cost for a single demo run: under $1. **Teardown after you're done** �
 
 The judge agent is loaded with the evaluation skill and given no tools at all. It produces a verdict; the orchestrator (deterministic Python in `submit_proposal`) decides what to do with it.
 
-This matters because the judge is an LLM. If it held the `incorporate_policy` tool, approval and the call to `create_policy()` would be two coupled LLM outputs — a prompt-injection in the doer's justification could split them, getting the judge to "approve" while passing rewritten cedar to the tool. With the tool out of the judge's surface, the gate is deterministic: the LLM judges intent, deterministic code performs the side effect with the cedar that came in.
+This matters because the judge is an LLM. If it held the `incorporate_policy` tool, approval and the call to `create_policy()` would be two coupled LLM outputs — a prompt-injection in the actor's justification could split them, getting the judge to "approve" while passing rewritten cedar to the tool. With the tool out of the judge's surface, the gate is deterministic: the LLM judges intent, deterministic code performs the side effect with the cedar that came in.
 
 The article's "two-sided independence" claim becomes structural: the agent that benefits doesn't grade itself, and the agent that grades doesn't act either.
 
@@ -225,7 +225,7 @@ demo_reject.py                   submits a deliberately-broken proposal directly
 seed_policy.py                         seeds starting Cedar policy
 cleanup.py                       resets demo state (deletes agent-created policies)
 .env.example                     environment variable template
-customer_service_agent/          doer agent: tools, orchestrator, incorporator helper
+customer_service_agent/          actor agent: tools, orchestrator, incorporator helper
 policy_evaluator_agent/          judge agent (verdict-only)
 policy-generator-skill/          populated fork of ../../template/policy-generator-skill/
 policy-evaluation-skill/         six-criterion evaluation protocol for the judge
@@ -240,7 +240,6 @@ proposals/                       runtime artifacts (gitignored): cedar, justific
 - **Seed identity coupling.** `seed_policy.py` creates the starting permit for the deployer's IAM identity. The agent must run as the same identity, or the starting permit is inert. A production setup would parameterize the principal.
 - **Time-bounded policy lifecycle.** Cedar's `when` clause prevents the policy from permitting after expiry, but the AWS Policy resource persists. `cleanup.py` handles demo cleanup; production would need automated policy expiration.
 - **Judge as semantic backstop.** AgentCore's `FAIL_ON_ANY_FINDINGS` validation is a hard structural gate; the judge provides the semantic layer. The evaluation skill is tuned for this sample's scenarios — it may not catch creative misuse in other domains.
-- **Single-agent trust model.** The customer-service agent constructs proposals and calls the evaluator from the same process. The judge provides the separation. In production, construction and evaluation would run under separate identities.
 
 ---
 
