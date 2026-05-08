@@ -1,6 +1,6 @@
 # Part Two: The Policy Skill Pattern
 
-Companion artifacts for Part Two of the *Long-Running Agents* series: *Reasoning About Boundaries: The Policy Skill Pattern*. (Article link forthcoming.)
+Companion artifacts for Part Two of the *Long-Running Agents* series: [Reasoning About Boundaries: The Policy Skill Pattern](https://www.linkedin.com/pulse/reasoning-boundaries-policy-skill-pattern-michael-butler-dfiwe).
 
 ---
 
