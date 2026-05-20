@@ -13,6 +13,7 @@ from strands import Agent, tool
 from strands.models.bedrock import BedrockModel
 from strands.tools.mcp import MCPClient
 from strands.vended_plugins.skills import AgentSkills
+from strands_tools import file_read
 from mcp_proxy_for_aws.client import aws_iam_streamablehttp_client
 
 from policy_evaluator_agent import judge as _judge
@@ -200,7 +201,7 @@ def make_agent() -> Agent:
     agent = Agent(
         model=BedrockModel(model_id=model_id, region_name=region),
         plugins=[AgentSkills(skills=str(SAMPLE_ROOT / "policy-generator-skill"))],
-        tools=[mcp_client, get_current_utc_time, get_agent_identity, submit_proposal],
+        tools=[mcp_client, file_read, get_current_utc_time, get_agent_identity, submit_proposal],
         system_prompt=SYSTEM_PROMPT,
         callback_handler=_AgentCallbackHandler(),
     )
