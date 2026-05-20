@@ -258,6 +258,11 @@ class PolicySkillSampleStack(Stack):
                                 f"arn:aws:bedrock-agentcore:{self.region}:{self.account}:gateway/*",
                             ],
                         ),
+                        iam.PolicyStatement(
+                            sid="PolicyEnginePreflightCheck",
+                            actions=["bedrock-agentcore:CheckAuthorizePermissions"],
+                            resources=["*"],
+                        ),
                     ]
                 ),
             },

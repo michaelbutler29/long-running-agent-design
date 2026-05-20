@@ -15,6 +15,9 @@ venv/
 # CDK
 infrastructure/cdk.out/
 infrastructure/cdk-outputs.json
+infrastructure/node_modules/
+infrastructure/package.json
+infrastructure/package-lock.json
 
 # build artifacts
 customer_service_assistant.egg-info/
