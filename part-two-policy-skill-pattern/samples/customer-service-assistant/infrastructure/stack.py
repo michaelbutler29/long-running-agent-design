@@ -261,7 +261,7 @@ class PolicySkillSampleStack(Stack):
                         iam.PolicyStatement(
                             sid="PolicyEnginePreflightCheck",
                             actions=["bedrock-agentcore:CheckAuthorizePermissions"],
-                            resources=["*"],
+                            resources=[f"arn:aws:bedrock-agentcore:{self.region}:{self.account}:/policy-engines/*"],
                         ),
                     ]
                 ),
