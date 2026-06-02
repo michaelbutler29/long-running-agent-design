@@ -1,6 +1,6 @@
 # Part Three: Skills & Growth
 
-Companion artifacts for Part Three of the *Long-Running Agents* series.
+Companion artifacts for Part Three of the *Long-Running Agents* series: [From Recall to Insight: An Agent Development Model](https://www.linkedin.com/pulse/from-recall-insight-agent-development-model-michael-butler-a661e).
 
 ---
 
@@ -80,7 +80,7 @@ The **golden template** is the "answer key." After the system self-corrects, dif
 | [Part Zero](../README.md) | The four-layer anatomy of a long-running agent | Conceptual framework |
 | [Part One](../README.md) | The reconciliation tax — why memory alone isn't enough | Problem statement |
 | [Part Two](../part-two-policy-skill-pattern/) | The Policy Skill Pattern — agents reasoning about their own boundaries | Cedar policies, policy-evaluation-skill |
-| **Part Three** | Skills & Growth — agents developing themselves through experience | Curation skill, reflection skill, developmental loop |
+| [**Part Three**](https://www.linkedin.com/pulse/from-recall-insight-agent-development-model-michael-butler-a661e) | From Recall to Insight — agents developing themselves through experience | Curation skill, reflection skill, developmental loop |
 
 Part Two established that skills are the right container for equipping agents with curated reasoning at the moment of decision. Part Three extends that move from security boundaries to capability boundaries — and then turns it inward: the Curator reasons about its own reasoning using the same infrastructure it uses to develop its fleet.
 
