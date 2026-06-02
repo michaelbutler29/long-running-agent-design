@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "customer-service-growth"
+version = "0.1.0"
+description = "Part Three sample: skill growth lifecycle for long-running agents"
+requires-python = ">=3.10"
+license = "CC-BY-4.0"
+authors = [{ name = "Michael Butler" }]
+dependencies = [
+    "strands-agents>=0.5.0",
+    "strands-agents-tools>=0.2.0",
+    "bedrock-agentcore>=0.1.0",
+    "mcp-proxy-for-aws>=0.1.0",
+    "python-dotenv>=1.0.0",
+    "boto3>=1.35.0",
+    "botocore[crt]>=1.35.0",
+    "aws-cdk-lib>=2.250.0,<3.0.0",
+    "constructs>=10.0.0,<11.0.0",
+]
+
+[tool.setuptools]
+packages = []

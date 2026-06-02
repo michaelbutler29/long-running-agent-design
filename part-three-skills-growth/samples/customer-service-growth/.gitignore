@@ -1,0 +1,28 @@
+# environment
+*.env
+!*.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# CDK
+infrastructure/cdk.out/
+infrastructure/cdk-outputs.json
+infrastructure/node_modules/
+infrastructure/package.json
+infrastructure/package-lock.json
+
+# build artifacts
+*.egg-info
+*.build
+
+# runtime state
+state/
+
+# editor
+.vscode/
+.idea/
+*.swp

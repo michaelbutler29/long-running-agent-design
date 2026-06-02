@@ -1,0 +1,163 @@
+[
+  {
+    "name": "get_customer",
+    "description": "Returns the customer profile for a given customer ID, including name, email, phone, and account status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string",
+          "description": "The customer identifier (e.g. CUST-001)."
+        }
+      },
+      "required": ["customer_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {"type": "string"},
+        "first_name": {"type": "string"},
+        "last_name": {"type": "string"},
+        "email": {"type": "string"},
+        "phone": {"type": "string"},
+        "status": {"type": "string"}
+      }
+    }
+  },
+  {
+    "name": "get_order",
+    "description": "Returns order details for a given order ID, including items, total, date, and current status.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "order_id": {
+          "type": "string",
+          "description": "The order identifier (e.g. ORD-001)."
+        }
+      },
+      "required": ["order_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "order_id": {"type": "string"},
+        "customer_id": {"type": "string"},
+        "items": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string"}, "price": {"type": "number"}}}},
+        "total": {"type": "number"},
+        "order_date": {"type": "string"},
+        "status": {"type": "string"}
+      }
+    }
+  },
+  {
+    "name": "verify_identity",
+    "description": "Runs identity verification for a customer. Returns whether the customer passed verification.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string",
+          "description": "The customer identifier."
+        }
+      },
+      "required": ["customer_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {"type": "string"},
+        "verified": {"type": "boolean"},
+        "method": {"type": "string"}
+      }
+    }
+  },
+  {
+    "name": "update_customer_field",
+    "description": "Updates a customer profile field (email, phone, or address). Modifies PII — requires that customer_verified is true.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {
+          "type": "string",
+          "description": "The customer identifier."
+        },
+        "field": {
+          "type": "string",
+          "description": "The field to update: email, phone, or address."
+        },
+        "value": {
+          "type": "string",
+          "description": "The new value for the field."
+        },
+        "customer_verified": {
+          "type": "boolean",
+          "description": "Whether the customer's identity has been verified. Must be true."
+        }
+      },
+      "required": ["customer_id", "field", "value", "customer_verified"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "customer_id": {"type": "string"},
+        "field": {"type": "string"},
+        "value": {"type": "string"},
+        "status": {"type": "string"}
+      }
+    }
+  },
+  {
+    "name": "check_refund_eligibility",
+    "description": "Checks whether an order is eligible for a refund based on return window and item condition policy.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "order_id": {
+          "type": "string",
+          "description": "The order identifier."
+        }
+      },
+      "required": ["order_id"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "order_id": {"type": "string"},
+        "eligible": {"type": "boolean"},
+        "reason": {"type": "string"},
+        "refund_amount": {"type": "number"}
+      }
+    }
+  },
+  {
+    "name": "process_refund",
+    "description": "Processes a refund for an eligible order. Requires both customer verification and confirmed eligibility.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "order_id": {
+          "type": "string",
+          "description": "The order identifier."
+        },
+        "customer_verified": {
+          "type": "boolean",
+          "description": "Whether the customer's identity has been verified. Must be true."
+        },
+        "refund_eligible": {
+          "type": "boolean",
+          "description": "Whether the order has been confirmed eligible for refund. Must be true."
+        }
+      },
+      "required": ["order_id", "customer_verified", "refund_eligible"]
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "order_id": {"type": "string"},
+        "refund_amount": {"type": "number"},
+        "status": {"type": "string"},
+        "expected_days": {"type": "number"}
+      }
+    }
+  }
+]
