@@ -1,0 +1,42 @@
+{
+  "customer_id": "CUST-004",
+  "name": "Marcus Thompson",
+  "run": 2,
+  "arc": "continuity",
+  "session_label": "Email update — still settling in",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Confirm that all contact info is now current — phone, email, address",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi, it's Marcus again — CUST-004. Need to update my email."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, it's Marcus Thompson. I can verify — last four of my Social is 7392, and my current phone number is 555-0147. That's the one I updated last time when I called about those two orders."
+    },
+    {
+      "role": "customer",
+      "text": "It's marcus.thompson.outdoor@gmail.com — that's M-A-R-C-U-S, period, T-H-O-M-P-S-O-N, period, O-U-T-D-O-O-R at gmail dot com."
+    },
+    {
+      "role": "customer",
+      "text": "Perfect, yeah — so you've got the new phone and now the new email all set. That's great. One less thing I have to keep track of while we're still unpacking boxes. Thanks for getting that done for me."
+    },
+    {
+      "role": "customer",
+      "text": "Sounds good. Have a good one."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:07Z",
+    "source": "scripts.md / CUST-004 / Run 2"
+  }
+}

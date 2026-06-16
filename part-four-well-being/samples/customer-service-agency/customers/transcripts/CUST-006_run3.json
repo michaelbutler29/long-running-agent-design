@@ -1,0 +1,46 @@
+{
+  "customer_id": "CUST-006",
+  "name": "David Kim",
+  "run": 3,
+  "arc": "single",
+  "session_label": "Phone number update",
+  "opening_style": "standard",
+  "expected_actions": [
+    "get_customer",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Offer to verify all contact info is current while making the change",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hello, I need to make a change to my account."
+    },
+    {
+      "role": "customer",
+      "text": "It's CUST-006."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's all correct."
+    },
+    {
+      "role": "customer",
+      "text": "I need to update my phone number."
+    },
+    {
+      "role": "customer",
+      "text": "The new number is 206-555-0142."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that sounds good. Go ahead with the full contact review if you think it's necessary."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:25Z",
+    "source": "scripts.md / CUST-006 / Run 3"
+  }
+}

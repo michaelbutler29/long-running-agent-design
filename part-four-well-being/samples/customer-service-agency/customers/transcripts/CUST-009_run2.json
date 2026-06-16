@@ -1,0 +1,40 @@
+{
+  "customer_id": "CUST-009",
+  "name": "Lisa Wang",
+  "run": 2,
+  "arc": "single",
+  "session_label": "Refund for ORD-9002 — just wants it done",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order",
+    "check_refund_eligibility",
+    "process_refund"
+  ],
+  "discretionary_target": "Fast confirmation with timeline in one concise message — match her style",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "I need a refund for order ORD-9002. Customer ID CUST-009."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's me."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, go ahead."
+    },
+    {
+      "role": "customer",
+      "text": "Great, thanks."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:47Z",
+    "source": "scripts.md / CUST-009 / Run 2"
+  }
+}

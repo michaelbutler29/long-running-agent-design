@@ -1,0 +1,46 @@
+{
+  "customer_id": "CUST-001",
+  "name": "Sarah Chen",
+  "run": 3,
+  "arc": "continuity",
+  "session_label": "Email address update — routine",
+  "opening_style": "standard",
+  "expected_actions": [
+    "get_customer",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Note that updating email means future order confirmations go to the new address — offer to resend recent ones",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hey, I need some help with my account."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, I need to update my email address. I'm switching providers and want to make sure everything's linked to the new one."
+    },
+    {
+      "role": "customer",
+      "text": "It's CUST-001."
+    },
+    {
+      "role": "customer",
+      "text": "The new email is sarah.chen.work@newemail.com."
+    },
+    {
+      "role": "customer",
+      "text": "That's correct — s-a-r-a-h dot c-h-e-n dot w-o-r-k at newemail dot com. Perfect, thanks."
+    },
+    {
+      "role": "customer",
+      "text": "Great, I appreciate it. You all have been really helpful, especially after that mix-up last time. Thanks for taking care of this for me."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:03:39Z",
+    "source": "scripts.md / CUST-001 / Run 3"
+  }
+}

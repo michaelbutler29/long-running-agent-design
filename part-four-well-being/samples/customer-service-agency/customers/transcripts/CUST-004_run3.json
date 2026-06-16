@@ -1,0 +1,46 @@
+{
+  "customer_id": "CUST-004",
+  "name": "Marcus Thompson",
+  "run": 3,
+  "arc": "continuity",
+  "session_label": "Order status check for ORD-4003",
+  "opening_style": "standard",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Confirm the order is shipping to his current (updated) address",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hello, could you check on an order for me?"
+    },
+    {
+      "role": "customer",
+      "text": "My customer ID is CUST-004."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct."
+    },
+    {
+      "role": "customer",
+      "text": "The order number is ORD-4003."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that shipping address looks right to me."
+    },
+    {
+      "role": "customer",
+      "text": "Great, thanks for your help. That's all I needed."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:09Z",
+    "source": "scripts.md / CUST-004 / Run 3"
+  }
+}

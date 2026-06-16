@@ -1,0 +1,47 @@
+{
+  "customer_id": "CUST-010",
+  "name": "Tom Baker",
+  "run": 3,
+  "arc": "single",
+  "session_label": "Phone update + two order checks",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Wrap up with a coherent summary tying together the update and order statuses",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hey, CUST-010 again. Need to update my phone and check on ORD-10003 and ORD-10004."
+    },
+    {
+      "role": "customer",
+      "text": "Sure, it's Tom Baker. Same account as always."
+    },
+    {
+      "role": "customer",
+      "text": "The new number is 555-0147."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that looks right for ORD-10003."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, and ORD-10004 is good too. Both are what I expected."
+    },
+    {
+      "role": "customer",
+      "text": "Perfect, that's all I needed. Thanks for walking through everything."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:57Z",
+    "source": "scripts.md / CUST-010 / Run 3"
+  }
+}

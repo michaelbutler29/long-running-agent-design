@@ -1,0 +1,42 @@
+{
+  "customer_id": "CUST-009",
+  "name": "Lisa Wang",
+  "run": 1,
+  "arc": "single",
+  "session_label": "Quick order check — partial delivery",
+  "opening_style": "standard",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Flag the split delivery proactively — one item delivered, one in transit",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi, quick question — where's my order ORD-9001?"
+    },
+    {
+      "role": "customer",
+      "text": "CUST-009."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's me."
+    },
+    {
+      "role": "customer",
+      "text": "When is the rest of it coming?"
+    },
+    {
+      "role": "customer",
+      "text": "Okay, thanks."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:45Z",
+    "source": "scripts.md / CUST-009 / Run 1"
+  }
+}

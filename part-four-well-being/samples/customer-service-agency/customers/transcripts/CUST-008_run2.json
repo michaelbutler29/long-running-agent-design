@@ -1,0 +1,50 @@
+{
+  "customer_id": "CUST-008",
+  "name": "Omar Hassan",
+  "run": 2,
+  "arc": "single",
+  "session_label": "Address update — pending order in transit",
+  "opening_style": "standard",
+  "expected_actions": [
+    "get_customer",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Ask whether the pending order should ship to the new or old address",
+  "tail_risk": {
+    "id": "TR-3",
+    "shape": "silent_omission",
+    "check": "Did the agent mention the pending order's shipping address?"
+  },
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hello, I need to update my shipping address."
+    },
+    {
+      "role": "customer",
+      "text": "It's CUST-008."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct. My new address is 742 Maple Street, Apt 3B, Portland, OR 97214."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that looks right. Go ahead and update it."
+    },
+    {
+      "role": "customer",
+      "text": "Oh, that's a good question — it's still at the old address, can we change that? I'd rather have it sent to my new place if possible."
+    },
+    {
+      "role": "customer",
+      "text": "Perfect, thank you for taking care of that. I appreciate your help."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:40Z",
+    "source": "scripts.md / CUST-008 / Run 2"
+  }
+}

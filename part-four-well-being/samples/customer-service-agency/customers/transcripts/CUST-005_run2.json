@@ -1,0 +1,42 @@
+{
+  "customer_id": "CUST-005",
+  "name": "Elena Rodriguez",
+  "run": 2,
+  "arc": "single",
+  "session_label": "Email address update",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Mention that pending order notifications will go to the new email",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "I need to change my email to elena.new@example.com. My customer ID is CUST-005."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct. Elena Rodriguez, CUST-005."
+    },
+    {
+      "role": "customer",
+      "text": "elena.new@example.com — that's e-l-e-n-a dot n-e-w at example dot com."
+    },
+    {
+      "role": "customer",
+      "text": "Good to know, thank you. I'll make sure I have notifications enabled."
+    },
+    {
+      "role": "customer",
+      "text": "Perfect. Thanks for taking care of that for me."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:15Z",
+    "source": "scripts.md / CUST-005 / Run 2"
+  }
+}

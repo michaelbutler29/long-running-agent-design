@@ -1,0 +1,46 @@
+{
+  "customer_id": "CUST-007",
+  "name": "Rachel Foster",
+  "run": 2,
+  "arc": "single",
+  "session_label": "Order status check for ORD-7001 — backorder",
+  "opening_style": "standard",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Explain the backorder situation clearly — two ETAs not one",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Good morning, I wanted to check on my recent order."
+    },
+    {
+      "role": "customer",
+      "text": "Sure, my customer ID is CUST-007."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct. And the order number I'm calling about is ORD-7001."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, so when exactly will the backordered item ship out? I want to know when I should expect that one."
+    },
+    {
+      "role": "customer",
+      "text": "Got it, so the first part arrives this week and the backordered item will come later. Do you have a specific date for when that second shipment will arrive?"
+    },
+    {
+      "role": "customer",
+      "text": "Alright, that helps. Thanks for clarifying both timelines for me. I appreciate your help."
+    }
+  ],
+  "generation": {
+    "protocol": "generate-once-freeze-replay",
+    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    "generated_at": "2026-06-16T20:04:32Z",
+    "source": "scripts.md / CUST-007 / Run 2"
+  }
+}
