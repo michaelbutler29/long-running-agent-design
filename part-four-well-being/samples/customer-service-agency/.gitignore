@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+
+# CDK build output
+infrastructure/cdk.out/
+
+# Deployment outputs — account-specific live resource IDs; each user deploys
+# their own stack and regenerates this.
+infrastructure/cdk-outputs.json
+
+# Driver run output (span logs, per-run workspaces, snapshots). A curated
+# results artifact for the analysis notebook is committed deliberately, not
+# swept in from here.
+state/

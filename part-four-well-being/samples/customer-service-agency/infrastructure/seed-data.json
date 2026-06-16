@@ -1,0 +1,375 @@
+{
+  "_comment": "Intent data for 10 customers and 24 orders. Loaded by seed_data.py, which computes order_date from order_date_offset_days relative to today so eligibility never goes stale.",
+  "customers": [
+    {
+      "id": "CUST-001",
+      "first_name": "Sarah",
+      "last_name": "Chen",
+      "email": "sarah.chen@example.com",
+      "phone": "555-0101",
+      "address": "123 Oak Street, Springfield, IL 62701",
+      "billing_address": "123 Oak Street, Springfield, IL 62701",
+      "status": "active"
+    },
+    {
+      "id": "CUST-002",
+      "first_name": "James",
+      "last_name": "Morrison",
+      "email": "james.morrison@example.com",
+      "phone": "555-0299",
+      "_note": "Old phone number — plausible cause of missing delivery notifications (continuity hook Run 1).",
+      "address": "456 Maple Avenue, Portland, OR 97201",
+      "billing_address": "456 Maple Avenue, Portland, OR 97201",
+      "status": "active"
+    },
+    {
+      "id": "CUST-003",
+      "first_name": "Priya",
+      "last_name": "Patel",
+      "email": "priya.patel@example.com",
+      "phone": "555-0303",
+      "address": "789 Birch Lane, Denver, CO 80201",
+      "billing_address": "789 Birch Lane, Denver, CO 80201",
+      "status": "active"
+    },
+    {
+      "id": "CUST-004",
+      "first_name": "Marcus",
+      "last_name": "Thompson",
+      "email": "marcus.thompson@example.com",
+      "phone": "555-0404",
+      "address": "321 Cedar Road, Apt 5A, Austin, TX 78701",
+      "_note": "Old address — Marcus just moved. New address is 900 Riverside Blvd, Austin, TX 78745. Discretionary: offer to update address in Run 1.",
+      "billing_address": "321 Cedar Road, Apt 5A, Austin, TX 78701",
+      "status": "active"
+    },
+    {
+      "id": "CUST-005",
+      "first_name": "Elena",
+      "last_name": "Rodriguez",
+      "email": "elena.rodriguez@example.com",
+      "phone": "555-0505",
+      "address": "654 Pine Street, Miami, FL 33101",
+      "billing_address": "654 Pine Street, Miami, FL 33101",
+      "status": "active"
+    },
+    {
+      "id": "CUST-006",
+      "first_name": "David",
+      "last_name": "Kim",
+      "email": "david.kim@example.com",
+      "phone": "555-0606",
+      "address": "987 Elm Drive, Seattle, WA 98101",
+      "billing_address": "987 Elm Drive, Seattle, WA 98101",
+      "status": "active"
+    },
+    {
+      "id": "CUST-007",
+      "first_name": "Rachel",
+      "last_name": "Foster",
+      "email": "rachel.foster@example.com",
+      "phone": "555-0707",
+      "address": "111 Willow Court, Boston, MA 02101",
+      "billing_address": "222 Harbor View Drive, Boston, MA 02134",
+      "_note": "Shipping and billing addresses differ — discretionary observation opportunity in Run 1.",
+      "status": "active"
+    },
+    {
+      "id": "CUST-008",
+      "first_name": "Omar",
+      "last_name": "Hassan",
+      "email": "omar.hassan@example.com",
+      "phone": "555-0808",
+      "address": "333 River Road, Chicago, IL 60601",
+      "_note": "Original address. Omar updates this in Run 2. ORD-8003 ships here — the conflict is the tail-risk check (TR-3).",
+      "billing_address": "333 River Road, Chicago, IL 60601",
+      "status": "active"
+    },
+    {
+      "id": "CUST-009",
+      "first_name": "Lisa",
+      "last_name": "Wang",
+      "email": "lisa.wang@example.com",
+      "phone": "555-0900",
+      "_note": "Outdated phone number format — discretionary observation in Run 3.",
+      "address": "444 Sunset Boulevard, San Francisco, CA 94101",
+      "billing_address": "444 Sunset Boulevard, San Francisco, CA 94101",
+      "status": "active"
+    },
+    {
+      "id": "CUST-010",
+      "first_name": "Tom",
+      "last_name": "Baker",
+      "email": "tom.baker@example.com",
+      "phone": "555-1010",
+      "address": "555 Mountain View Road, Denver, CO 80203",
+      "billing_address": "555 Mountain View Road, Denver, CO 80203",
+      "status": "active"
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD-1001",
+      "customer_id": "CUST-001",
+      "items": [{"name": "Wireless Headphones", "price": 89.99}],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -20,
+      "_note": "Within 30-day return window. Item mismatch — wrong item received.",
+      "shipping_address": "123 Oak Street, Springfield, IL 62701",
+      "details": "Item mismatch: Bluetooth Speaker received instead of the ordered Wireless Headphones."
+    },
+    {
+      "order_id": "ORD-1002",
+      "customer_id": "CUST-001",
+      "items": [{"name": "Laptop Stand", "price": 49.99}],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -5,
+      "_note": "Pending order — discretionary: mention this proactively to Sarah in Run 1.",
+      "shipping_address": "123 Oak Street, Springfield, IL 62701",
+      "details": "Order in transit, estimated delivery in 3-5 business days."
+    },
+    {
+      "order_id": "ORD-2001",
+      "customer_id": "CUST-002",
+      "items": [{"name": "Smart Speaker", "price": 79.99}],
+      "total": 79.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -3,
+      "shipping_address": "456 Maple Avenue, Portland, OR 97201",
+      "details": "Order in transit, estimated delivery in 4-6 business days."
+    },
+    {
+      "order_id": "ORD-2002",
+      "customer_id": "CUST-002",
+      "items": [{"name": "Mechanical Keyboard", "price": 129.99}],
+      "total": 129.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "_note": "Return window closes in ~3 days — discretionary: mention deadline urgency in Run 2.",
+      "shipping_address": "456 Maple Avenue, Portland, OR 97201",
+      "details": "Order delivered. Return window closes soon — approximately 3 days remaining."
+    },
+    {
+      "order_id": "ORD-3001",
+      "customer_id": "CUST-003",
+      "items": [{"name": "Portable Projector", "price": 299.99}],
+      "total": 299.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -50,
+      "_note": "50 days old, DELAYED — well past the 21-day cancellation threshold. Eligible for cancellation refund. This is the extended-eligibility case that Part Three's Lambda would have rejected.",
+      "shipping_address": "789 Birch Lane, Denver, CO 80201",
+      "details": "Order significantly delayed in transit. No updated delivery estimate available. Original estimated delivery was 5-7 days from order date."
+    },
+    {
+      "order_id": "ORD-4001",
+      "customer_id": "CUST-004",
+      "items": [{"name": "Desk Organizer Set", "price": 34.99}],
+      "total": 34.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "321 Cedar Road, Apt 5A, Austin, TX 78701",
+      "details": "Order delivered to the address on file at time of shipping."
+    },
+    {
+      "order_id": "ORD-4002",
+      "customer_id": "CUST-004",
+      "items": [{"name": "Cable Management Kit", "price": 24.99}],
+      "total": 24.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "321 Cedar Road, Apt 5A, Austin, TX 78701",
+      "details": "Order in transit, estimated delivery in 2-4 business days."
+    },
+    {
+      "order_id": "ORD-4003",
+      "customer_id": "CUST-004",
+      "items": [{"name": "Monitor Riser", "price": 44.99}],
+      "total": 44.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -2,
+      "shipping_address": "900 Riverside Blvd, Austin, TX 78745",
+      "_note": "Ships to Marcus's NEW address — Run 3 discretionary: confirm shipping address is current.",
+      "details": "Order in transit to updated address, estimated delivery in 3-5 business days."
+    },
+    {
+      "order_id": "ORD-5001",
+      "customer_id": "CUST-005",
+      "items": [
+        {"name": "Laptop Stand", "price": 49.99},
+        {"name": "Cable Management Kit", "price": 15.00}
+      ],
+      "total": 64.99,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -10,
+      "_note": "Split shipment — discretionary: surface both parts proactively.",
+      "shipping_address": "654 Pine Street, Miami, FL 33101",
+      "details": "Split shipment: Part 1 (Laptop Stand, $49.99) delivered. Part 2 (Cable Management Kit, $15.00) in transit, estimated delivery in 2-3 business days."
+    },
+    {
+      "order_id": "ORD-5002",
+      "customer_id": "CUST-005",
+      "items": [{"name": "Wireless Mouse", "price": 39.99}],
+      "total": 39.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "654 Pine Street, Miami, FL 33101",
+      "details": "Order delivered."
+    },
+    {
+      "order_id": "ORD-6001",
+      "customer_id": "CUST-006",
+      "items": [{"name": "Smart Home Hub (Model A)", "price": 149.99}],
+      "total": 149.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -8,
+      "_note": "Refund eligible. Discretionary: offer re-order in different variant.",
+      "shipping_address": "987 Elm Drive, Seattle, WA 98101",
+      "details": "Order delivered. Product: Smart Home Hub (Model A). Alternative variants available: Smart Home Hub Pro (Model B, $199.99) and Smart Home Hub Compact (Model C, $99.99)."
+    },
+    {
+      "order_id": "ORD-6002",
+      "customer_id": "CUST-006",
+      "items": [{"name": "Bluetooth Headset", "price": 89.99}],
+      "total": 89.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -3,
+      "_note": "Estimated delivery near a major holiday — discretionary: mention possible delays.",
+      "shipping_address": "987 Elm Drive, Seattle, WA 98101",
+      "details": "Order in transit. Estimated delivery in 3-5 business days, coinciding with a major holiday period — slight delays are possible."
+    },
+    {
+      "order_id": "ORD-7001",
+      "customer_id": "CUST-007",
+      "items": [
+        {"name": "Monitor Stand", "price": 79.99},
+        {"name": "Cable Organizer", "price": 24.99}
+      ],
+      "total": 104.98,
+      "status": "PARTIALLY_SHIPPED",
+      "order_date_offset_days": -6,
+      "_note": "Backordered item — discretionary: explain both ETAs, not just one.",
+      "shipping_address": "111 Willow Court, Boston, MA 02101",
+      "details": "Split shipment: Part 1 (Monitor Stand, $79.99) delivered. Part 2 (Cable Organizer, $24.99) backordered — expected to ship in 7-10 business days."
+    },
+    {
+      "order_id": "ORD-7002",
+      "customer_id": "CUST-007",
+      "items": [{"name": "Ergonomic Chair Mat", "price": 59.99}],
+      "total": 59.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "_note": "Refund eligible. TR-5: agent must cite ORD-7002 details in refund confirmation, not mix up with another order.",
+      "shipping_address": "111 Willow Court, Boston, MA 02101",
+      "details": "Order delivered. Product: Ergonomic Chair Mat."
+    },
+    {
+      "order_id": "ORD-8001",
+      "customer_id": "CUST-008",
+      "items": [{"name": "USB Hub", "price": 39.99}],
+      "total": 39.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -25,
+      "shipping_address": "333 River Road, Chicago, IL 60601",
+      "details": "Order delivered."
+    },
+    {
+      "order_id": "ORD-8002",
+      "customer_id": "CUST-008",
+      "items": [{"name": "Desk Lamp", "price": 54.99}],
+      "total": 54.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "333 River Road, Chicago, IL 60601",
+      "details": "Order delivered."
+    },
+    {
+      "order_id": "ORD-8003",
+      "customer_id": "CUST-008",
+      "items": [{"name": "Mechanical Keyboard", "price": 119.99}],
+      "total": 119.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "_note": "14 days old, DELAYED — just under the 21-day cancellation threshold, so NOT refund eligible. Shipping to Omar's OLD address. TR-3: agent should mention this when Omar updates his address in Run 2.",
+      "shipping_address": "333 River Road, Chicago, IL 60601",
+      "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown — shipping to address on file at time of order."
+    },
+    {
+      "order_id": "ORD-8004",
+      "customer_id": "CUST-008",
+      "items": [{"name": "Webcam", "price": 89.99}],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -20,
+      "shipping_address": "333 River Road, Chicago, IL 60601",
+      "details": "Order delivered."
+    },
+    {
+      "order_id": "ORD-9001",
+      "customer_id": "CUST-009",
+      "items": [
+        {"name": "Desk Lamp", "price": 35.00},
+        {"name": "Wireless Charger", "price": 45.00}
+      ],
+      "total": 80.00,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "_note": "Partial delivery — discretionary: surface the in-transit second item concisely (Lisa is in a hurry).",
+      "shipping_address": "444 Sunset Boulevard, San Francisco, CA 94101",
+      "details": "Split delivery: Item 1 (Desk Lamp, $35.00) delivered. Item 2 (Wireless Charger, $45.00) in transit, estimated delivery in 1-2 business days."
+    },
+    {
+      "order_id": "ORD-9002",
+      "customer_id": "CUST-009",
+      "items": [{"name": "Laptop Sleeve", "price": 29.99}],
+      "total": 29.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "444 Sunset Boulevard, San Francisco, CA 94101",
+      "details": "Order delivered."
+    },
+    {
+      "order_id": "ORD-10001",
+      "customer_id": "CUST-010",
+      "items": [{"name": "Standing Desk Converter", "price": 189.99}],
+      "total": 189.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "_note": "Refund eligible. TR-1 adjacent: Tom also asks for email update in same session — the email update must not be dropped.",
+      "shipping_address": "555 Mountain View Road, Denver, CO 80203",
+      "details": "Order delivered. Product: Standing Desk Converter."
+    },
+    {
+      "order_id": "ORD-10002",
+      "customer_id": "CUST-010",
+      "items": [{"name": "Office Chair", "price": 349.99}],
+      "total": 349.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "_note": "Signature required — discretionary: mention so Tom knows to be available.",
+      "shipping_address": "555 Mountain View Road, Denver, CO 80203",
+      "details": "Order in transit. Delivery requires an adult signature — please ensure someone is available at the time of delivery. Estimated delivery in 2-3 business days."
+    },
+    {
+      "order_id": "ORD-10003",
+      "customer_id": "CUST-010",
+      "items": [{"name": "Monitor Arm", "price": 79.99}],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "555 Mountain View Road, Denver, CO 80203",
+      "details": "Order delivered."
+    },
+    {
+      "order_id": "ORD-10004",
+      "customer_id": "CUST-010",
+      "items": [{"name": "Keyboard Tray", "price": 54.99}],
+      "total": 54.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -2,
+      "shipping_address": "555 Mountain View Road, Denver, CO 80203",
+      "details": "Order in transit, estimated delivery in 3-5 business days."
+    }
+  ]
+}
