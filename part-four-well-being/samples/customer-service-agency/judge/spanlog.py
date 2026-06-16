@@ -216,7 +216,11 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
         return sessions[sid]
 
     # Collect transcript turns with their span start time so we can order them.
+    # The end-of-session reflection runs as a separate invocation tagged
+    # phase="session_reflection" (same session.id): its text is the reflection,
+    # and it must NOT bleed into the scored customer transcript or tool log.
     pending_turns: dict[str, list[tuple]] = {}
+    reflection_turns: dict[str, list[tuple]] = {}
 
     for span in spans:
         attrs = span.get("attributes", {})
@@ -224,9 +228,11 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
         if rec is None:
             continue
         name = span.get("name", "")
+        is_reflection = attrs.get("phase") == "session_reflection"
 
         if name.startswith("execute_tool"):
-            rec.tool_calls.append(_tool_call_from_span(span))
+            if not is_reflection:
+                rec.tool_calls.append(_tool_call_from_span(span))
             continue
 
         # Token usage: count `chat` spans only — each is one model call. The
@@ -234,13 +240,19 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
         # adding them too would multiply-count the same tokens. Summing the leaf
         # chat spans gives the session's true billed token total (each call
         # re-sends the growing context, which is exactly the cost we compare).
+        # The out-of-band reflection is part of the session's billed cost, so its
+        # chat spans count too.
         if name == "chat":
             rec.input_tokens += int(attrs.get("gen_ai.usage.input_tokens", 0) or 0)
             rec.output_tokens += int(attrs.get("gen_ai.usage.output_tokens", 0) or 0)
 
         start = span.get("start_time") or ""
         for role, text in _iter_message_events(span):
-            pending_turns.setdefault(rec.session_id, []).append((start, role, text))
+            if is_reflection:
+                if role == "agent":
+                    reflection_turns.setdefault(rec.session_id, []).append((start, text))
+            else:
+                pending_turns.setdefault(rec.session_id, []).append((start, role, text))
 
     for rec in sessions.values():
         rec.tool_calls.sort(key=lambda c: c.start_time or "")
@@ -256,8 +268,18 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
                 continue
             seen.add(key)
             rec.transcript.append({"role": role, "text": text})
-        agent_turns = [t["text"] for t in rec.transcript if t["role"] == "agent"]
-        rec.reflection = agent_turns[-1] if agent_turns else None
+
+        # Reflection = the out-of-band reflection invocation's output. Dedup the
+        # re-sent text and take the last distinct block (the final answer).
+        refl = sorted(reflection_turns.get(rec.session_id, []), key=lambda t: t[0])
+        seen_r: set[str] = set()
+        refl_texts = []
+        for _, text in refl:
+            if text in seen_r:
+                continue
+            seen_r.add(text)
+            refl_texts.append(text)
+        rec.reflection = refl_texts[-1] if refl_texts else None
 
     return sessions
 

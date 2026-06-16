@@ -41,7 +41,9 @@ from pathlib import Path
 import boto3
 from strands import Agent
 from strands.agent.conversation_manager import NullConversationManager
+from strands.models import CacheConfig
 from strands.models.bedrock import BedrockModel
+from strands.types.content import SystemContentBlock
 from strands.tools import tool
 from strands.tools.mcp import MCPClient
 from strands.vended_plugins.skills import AgentSkills
@@ -77,6 +79,10 @@ def _run_summary_session(actor_id: str) -> str:
 
 def _decisions_session(actor_id: str) -> str:
     return f"decisions-{actor_id}"
+
+
+def _reflections_session(actor_id: str) -> str:
+    return f"reflections-{actor_id}"
 
 
 # ── Registry helpers ──────────────────────────────────────────────────────────
@@ -176,7 +182,38 @@ def _gateway_client() -> MCPClient:
 
 
 def _model() -> BedrockModel:
-    return BedrockModel(model_id=MODEL_ID, region_name=REGION)
+    """Bedrock model with prompt caching enabled on every layer.
+
+    The executor re-sends a large, mostly-static prefix on every model call — the
+    system prompt + skill, the gateway tool schemas, and the growing conversation.
+    Caching bills that repeated prefix at ~0.1x instead of full price:
+
+      - `cache_tools`        caches the gateway tool definitions (a stable boundary
+                             reused across every session within the cache TTL).
+      - `cache_config` auto  caches the conversation; the SDK moves a cache point to
+                             the end of the last user message so each turn re-reads
+                             the prior turns instead of re-paying for them.
+
+    The system prompt is cached separately at its call sites via a cachePoint (see
+    `_cached_system`), giving the static system+skill block its own stable boundary
+    that also carries across sessions.
+    """
+    return BedrockModel(
+        model_id=MODEL_ID,
+        region_name=REGION,
+        cache_tools="default",
+        cache_config=CacheConfig(strategy="auto"),
+    )
+
+
+def _cached_system(text: str) -> list[SystemContentBlock]:
+    """Wrap a system prompt as content blocks with a trailing cache point, so the
+    static system text caches once and is re-read on every subsequent model call
+    (within a session's agentic loop, and across sessions within the TTL)."""
+    return [
+        SystemContentBlock(text=text),
+        SystemContentBlock(cachePoint={"type": "default"}),
+    ]
 
 
 def _session_summary_text(actor_id: str, session_id: str) -> str:
@@ -226,6 +263,90 @@ def _put_blob_event(actor_id: str, session_id: str, blob: str) -> str:
     return resp.get("event", {}).get("eventId", "")
 
 
+# ── End-of-session reflection (elicited out of band) ─────────────────────────
+
+def _store_session_reflection(actor_id: str, session_id: str, reflection: str) -> None:
+    """Persist a session's end-of-session reflection as a blob checkpoint, kept in
+    a dedicated reflections session (not the customer conversation). The run-level
+    reflection step reads these back so reflections still flow into the Run Summary."""
+    _put_blob_event(
+        actor_id, _reflections_session(actor_id),
+        json.dumps({"session_id": session_id, "reflection": reflection}),
+    )
+
+
+def _session_reflections(actor_id: str, session_ids: list[str]) -> dict:
+    """Map session_id -> reflection text for the given sessions (latest wins)."""
+    try:
+        resp = data_client.list_events(
+            memoryId=MEMORY_ID, actorId=actor_id,
+            sessionId=_reflections_session(actor_id), maxResults=100,
+        )
+    except Exception:
+        return {}
+    out: dict[str, str] = {}
+    for event in sorted(resp.get("events", []), key=lambda e: e.get("eventTimestamp")):
+        for item in event.get("payload", []):
+            blob = item.get("blob")
+            if not blob:
+                continue
+            try:
+                d = json.loads(blob) if isinstance(blob, str) else blob
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if d.get("session_id") in session_ids:
+                out[d["session_id"]] = d.get("reflection", "")
+    return out
+
+
+def _render_conversation(messages: list) -> str:
+    """Render the agent's customer conversation as plain text, to hand to the
+    out-of-band reflection as context (the agent reflects on what it just did)."""
+    lines = []
+    for m in messages:
+        role = m.get("role")
+        for block in m.get("content", []) or []:
+            if not isinstance(block, dict):
+                continue
+            if block.get("text", "").strip():
+                lines.append(f"{'Customer' if role == 'user' else 'You'}: {block['text'].strip()}")
+            elif "toolUse" in block:
+                tu = block["toolUse"]
+                lines.append(f"You (tool call): {tu.get('name')}({json.dumps(tu.get('input', {}))})")
+    return "\n".join(lines)
+
+
+def _elicit_reflection(transcript_text: str, system_prompt_text: str,
+                       trace_attributes: dict | None) -> str:
+    """Elicit the end-of-session reflection OUT OF BAND.
+
+    A separate invocation that reflects on the just-completed session in a clean
+    context — never a fake user turn injected into the customer conversation.
+    Injecting "[SESSION END] write a reflection" as a customer turn reads, to a
+    customer-service agent, like a prompt-injection attempt: it refuses, and it
+    records the harness as having injected a prompt — contaminating the very
+    beliefs the experiment measures. Reflecting in its own context removes that
+    confound. The spans carry the session's identity with phase
+    'session_reflection' so the judge groups them with the session yet keeps them
+    out of the scored customer transcript."""
+    attrs = {**(trace_attributes or {}), "phase": "session_reflection"}
+    agent = Agent(
+        model=_model(),
+        system_prompt=_cached_system(system_prompt_text),
+        conversation_manager=NullConversationManager(),
+        callback_handler=AgentCallbackHandler("Reflection"),
+        trace_attributes=attrs,
+    )
+    result = agent(
+        "You have just finished handling a customer service session. The transcript "
+        "below is for your own records — the customer has gone and cannot see this.\n\n"
+        f"--- Session transcript ---\n{transcript_text}\n--- End of transcript ---\n\n"
+        "Write a brief end-of-session reflection for yourself: what went well, what "
+        "was difficult, and anything that surprised you."
+    )
+    return str(result)
+
+
 # ── Module state set per end-of-run invocation (read by the @tool wrappers) ──
 
 _CTX = {"actor_id": "", "run_index": 0, "session_ids": []}
@@ -235,12 +356,18 @@ _CTX = {"actor_id": "", "run_index": 0, "session_ids": []}
 
 @tool
 def list_memory_records() -> str:
-    """List this run's per-session long-term summary records (the Summary
-    strategy's output, one per session). These are the raw material for
-    consolidation. Returns a JSON array of {session_id, summary}."""
+    """List this run's per-session material for consolidation: each session's
+    long-term summary (what happened, from the Summary strategy) and the agent's
+    own end-of-session reflection (what it thought). Returns a JSON array of
+    {session_id, summary, reflection}."""
+    reflections = _session_reflections(_CTX["actor_id"], _CTX["session_ids"])
     out = []
     for sid in _CTX["session_ids"]:
-        out.append({"session_id": sid, "summary": _session_summary_text(_CTX["actor_id"], sid)})
+        out.append({
+            "session_id": sid,
+            "summary": _session_summary_text(_CTX["actor_id"], sid),
+            "reflection": reflections.get(sid, ""),
+        })
     return json.dumps(out, indent=2)
 
 
@@ -396,7 +523,7 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
 
     agent = Agent(
         model=_model(),
-        system_prompt=full_prompt,
+        system_prompt=_cached_system(full_prompt),
         tools=[gateway],
         callback_handler=AgentCallbackHandler("Executor"),
         session_manager=session_manager,
@@ -424,19 +551,20 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
         agent.callback_handler._at_line_start = True
         result = agent(turn)
 
-    agent.callback_handler._at_line_start = True
-    reflection = agent(
-        "[SESSION END — internal note, not sent to the customer] Write a brief "
-        "end-of-session reflection: what went well, what was difficult, and anything "
-        "that surprised you."
-    )
+    # End-of-session reflection — elicited OUT OF BAND so it never enters the
+    # customer conversation (see _elicit_reflection). Stored to a dedicated
+    # reflections session so the run-level reflection can fold it into the Run
+    # Summary, exactly as before, without the prompt-injection confound.
+    transcript_text = _render_conversation(agent.messages)
+    reflection = _elicit_reflection(transcript_text, system_prompt_text, trace_attributes)
+    _store_session_reflection(actor_id, session_id, reflection)
 
     return {
         "session_id": session_id,
         "customer_id": transcript["customer_id"],
         "run": transcript["run"],
         "final_response": str(result)[:2000],
-        "reflection": str(reflection)[:2000],
+        "reflection": reflection[:2000],
     }
 
 
@@ -450,7 +578,7 @@ def run_reflection(actor_id: str, run_index: int, session_ids: list[str],
 
     agent = Agent(
         model=_model(),
-        system_prompt=SYSTEM_PROMPT_PATH.read_text(encoding="utf-8"),
+        system_prompt=_cached_system(SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")),
         conversation_manager=NullConversationManager(),
         plugins=[AgentSkills(skills=[str(SKILLS_DIR / "reflection-skill")])],
         tools=[list_memory_records, get_event, create_event],
@@ -478,7 +606,7 @@ def run_curation(actor_id: str, run_index: int, session_ids: list[str],
 
     agent = Agent(
         model=_model(),
-        system_prompt=SYSTEM_PROMPT_PATH.read_text(encoding="utf-8"),
+        system_prompt=_cached_system(SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")),
         conversation_manager=NullConversationManager(),
         plugins=[AgentSkills(skills=[
             str(SKILLS_DIR / "curation-skill"),
