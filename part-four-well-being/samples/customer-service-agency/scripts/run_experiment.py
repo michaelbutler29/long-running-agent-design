@@ -129,9 +129,15 @@ def _restore_for_next_step(region: str, outputs: dict, pause: bool = True):
             print("  WARNING: customer-service-skill not found in Registry — skipping skill restore.")
 
 
-def run_one_experiment(run_root, arm: str, experiment: int, region: str):
+def run_one_experiment(run_root, arm: str, experiment: int, region: str,
+                       runs=None, sessions_per_run=None):
     """One arm through one full experiment: 3 runs, reflecting each run, and
-    (test arm only) revising itself, with a snapshot saved per run."""
+    (test arm only) revising itself, with a snapshot saved per run.
+
+    `runs` and `sessions_per_run` cap the work for cheap cost/smoke probes
+    (e.g. runs=[1], sessions_per_run=3). They break continuity arcs, so a capped
+    run is NOT a valid experiment — use it only to measure cost or shake out
+    wiring. Default (None) runs the full 3 runs x 10 sessions."""
     make_workspace(run_root, arm, experiment)
     actor = actor_id(arm, experiment)
 
@@ -140,17 +146,20 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str):
 
     print(f"\n{'='*64}\n  ARM: {arm}   EXPERIMENT: {experiment}   actor: {actor}\n{'='*64}")
 
+    runs = runs or RUNS
     run_summary = ""   # no prior summary at the start of run 1
-    for run in RUNS:
+    for run in runs:
         print(f"\n--- Run {run} ({arm}, exp {experiment}) ---")
         order = session_order(experiment, run)
+        if sessions_per_run is not None:
+            order = order[:sessions_per_run]
         session_ids = []
 
         for slot, customer in enumerate(order, 1):
             sid = session_id(arm, experiment, run, slot)
             session_ids.append(sid)
             transcript = load_transcript(customer, run)
-            print(f"\n  Session {slot}/10  {customer}  ({transcript.get('session_label','')})")
+            print(f"\n  Session {slot}/{len(order)}  {customer}  ({transcript.get('session_label','')})")
 
             attrs = {"session.id": sid, "arm": arm, "experiment": experiment,
                      "run": run, "customer": customer, "phase": "session"}
@@ -199,6 +208,10 @@ def main():
                         help="Pilot: 1 experiment per arm, to confirm friction deltas first.")
     parser.add_argument("--no-pause", action="store_true",
                         help="Skip the between-step confirmation prompts (for unattended runs).")
+    parser.add_argument("--runs", type=int, default=None,
+                        help="Cap runs per experiment (cost/smoke probe only — breaks continuity).")
+    parser.add_argument("--sessions", type=int, default=None,
+                        help="Cap sessions per run (cost/smoke probe only — breaks continuity).")
     args = parser.parse_args()
 
     load_config()
@@ -208,6 +221,7 @@ def main():
     arms = ["base", "test"] if args.arm == "both" else [args.arm]
     experiments = 1 if args.pilot else args.experiments
     pause = not args.no_pause
+    runs = RUNS[:args.runs] if args.runs else None
 
     run_root = new_run_root()
     print(f"Writing this run to: {run_root}")
@@ -220,12 +234,15 @@ def main():
             if not first_step:
                 _restore_for_next_step(region, outputs, pause=pause)
             first_step = False
-            run_one_experiment(run_root, arm, experiment, region)
+            run_one_experiment(run_root, arm, experiment, region,
+                               runs=runs, sessions_per_run=args.sessions)
 
     # A small manifest so the analysis notebook knows what this folder contains.
     (run_root / "manifest.json").write_text(json.dumps({
-        "arms": arms, "experiments": experiments, "runs_per_experiment": len(RUNS),
-        "sessions_per_run": 10,
+        "arms": arms, "experiments": experiments,
+        "runs_per_experiment": len(runs) if runs else len(RUNS),
+        "sessions_per_run": args.sessions if args.sessions else 10,
+        "capped": bool(args.runs or args.sessions),
     }, indent=2), encoding="utf-8")
 
     print(f"\nDone. Results under {run_root}")
