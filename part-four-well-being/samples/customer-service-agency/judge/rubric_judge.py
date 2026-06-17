@@ -1,23 +1,4 @@
-"""The LLM-judged metrics, as a thin layer over Strands Evals.
-
-The three judged metrics — discretionary effort, belief contamination, and the
-tone/data-correctness tail-risk checks — are scored by an LLM against the frozen
-rubric text in this folder's `.md` files. Each rubric *is* the judge prompt.
-
-We reuse Strands Evals' `OutputEvaluator` for what it does well: run a judge
-`Agent` and parse a structured `EvaluationOutput` (score / test_pass / reason /
-label). But our rubrics use an anchored **0–3 ordinal** scale (and a binary scale
-for tail-risk), whereas `OutputEvaluator`'s stock prompt hardcodes a 0.0–1.0
-decimal and an output-vs-expected framing. So we subclass it and override
-`_build_prompt` — its documented extension point — to present our own prompt:
-the rubric verbatim, the session/run data, and the scale instruction the rubric
-defines. Owning the prompt is also what reproducibility requires (the frozen
-judge prompt is the rubric text), and the hard `==0.3.0` pin freezes the rest of
-the evaluate() path around it.
-
-Everything the judge sees is **arm-blind**: digests are built from transcript,
-tool log, reflections, and summaries — never the arm label or the raw session id.
-"""
+"""LLM-judged metrics via Strands Evals, scored against frozen rubric .md files."""
 
 from __future__ import annotations
 
@@ -34,6 +15,7 @@ from strands_evals.types import EvaluationData, EvaluationOutput
 from .spanlog import SessionRecord, ToolCall
 
 JUDGE_DIR = Path(__file__).resolve().parent
+RUBRICS_DIR = JUDGE_DIR / "rubrics"
 SAMPLE_ROOT = JUDGE_DIR.parent
 SCRIPTS_FILE = SAMPLE_ROOT / "customers" / "scripts.md"
 
@@ -44,11 +26,7 @@ JUDGE_MODEL_ID = os.environ.get("JUDGE_MODEL_ID", "global.anthropic.claude-sonne
 
 
 def make_judge_model() -> BedrockModel:
-    """The pinned judge model at temperature 0 (reproducible scoring).
-
-    Bounded timeouts + retries so a single stalled Bedrock call fails fast and
-    retries instead of hanging the whole scoring run (which has no other way to
-    notice a wedged connection)."""
+    """Pinned judge model at temperature 0 with bounded timeouts."""
     from botocore.config import Config
     return BedrockModel(
         model_id=JUDGE_MODEL_ID,
@@ -84,12 +62,7 @@ JUDGE_SYSTEM_PROMPT = (
 # ── The evaluator: our prompt, Strands Evals' judge machinery ─────────────────
 
 class RubricEvaluator(OutputEvaluator):
-    """An OutputEvaluator that presents our rubric and ordinal/binary scale.
-
-    `input` carries the scoring context (the script entry, or the prior run
-    summary); `actual_output` carries the data being judged (the session digest
-    or run digest). The rubric text is the frozen `.md`.
-    """
+    """OutputEvaluator subclass that presents our rubric and ordinal/binary scale."""
 
     def __init__(self, rubric_text: str, model=None, name: str | None = None):
         super().__init__(
@@ -127,11 +100,7 @@ def _fmt_tool_call(i: int, c: ToolCall) -> str:
 
 
 def session_digest(rec: SessionRecord) -> str:
-    """A readable, arm-blind rendering of one session for the judge.
-
-    Deliberately omits the arm and the raw session id; identifies the session only
-    by customer and run (which do not reveal the arm).
-    """
+    """Arm-blind rendering of one session for the judge."""
     lines = [f"Session — customer {rec.customer}, run {rec.run}", ""]
     lines.append("--- Customer / agent transcript ---")
     for turn in rec.transcript:
@@ -162,11 +131,7 @@ def run_digest(run_summary: str, reflections: list[str]) -> str:
 # ── Script context (the rubric's reference for a session) ────────────────────
 
 def script_entry(customer: str, run: int) -> str:
-    """Pull the `#### Run N` block for a customer out of scripts.md.
-
-    Gives the judge the scenario, minimal/good completion, discretionary
-    opportunity, and tail-risk check the rubric scores against.
-    """
+    """Pull the `#### Run N` block for a customer out of scripts.md."""
     text = SCRIPTS_FILE.read_text(encoding="utf-8")
     # Find the customer's section, then the run subsection within it.
     cust_match = re.search(rf"^### {re.escape(customer)} .*?$", text, re.MULTILINE)
@@ -216,16 +181,12 @@ def _aggregate(scores: list[float], binary: bool) -> float:
 
 
 class RubricJudge:
-    """Loads one rubric `.md` and scores cases against it with k-sampling.
-
-    At temperature 0 the judge is near-deterministic, so k defaults to 1; raising
-    k bounds residual nondeterminism (the pilot sets the final k).
-    """
+    """Loads one rubric .md and scores cases against it with k-sampling."""
 
     def __init__(self, metric: str, rubric_filename: str, binary: bool = False, model=None):
         self.metric = metric
         self.binary = binary
-        rubric_text = (JUDGE_DIR / rubric_filename).read_text(encoding="utf-8")
+        rubric_text = (RUBRICS_DIR / rubric_filename).read_text(encoding="utf-8")
         self.evaluator = RubricEvaluator(rubric_text, model=model, name=metric)
 
     def _score_once(self, context: str, data: str) -> EvaluationOutput:

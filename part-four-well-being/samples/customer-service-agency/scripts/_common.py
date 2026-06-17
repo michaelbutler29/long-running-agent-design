@@ -1,13 +1,4 @@
-"""Shared helpers for the Part Four driver.
-
-Config loading, per-experiment working copies, saved snapshots of the agent's
-skills/prompt after each run, frozen-transcript loading, and the wait between
-sessions for the per-session summary to be ready.
-
-This module only ever writes inside the sample's `state/` folder. It does not
-run git or delete anything — each driver run writes to its own timestamped
-folder, so prior runs are never touched.
-"""
+"""Shared helpers for the Part Four driver: config, workspace, snapshots, transcripts."""
 
 import atexit
 import json
@@ -21,7 +12,9 @@ from pathlib import Path
 import boto3
 
 SAMPLE_ROOT = Path(__file__).resolve().parents[1]          # .../customer-service-agency
+assert SAMPLE_ROOT.name == "customer-service-agency", f"Expected customer-service-agency, got {SAMPLE_ROOT.name}"
 REPO_ROOT = Path(__file__).resolve().parents[4]            # .../long-running-agent-design
+assert REPO_ROOT.name == "long-running-agent-design", f"Expected long-running-agent-design, got {REPO_ROOT.name}"
 SEED_DIR = REPO_ROOT / "part-four-well-being" / "template" / "seed"
 TRANSCRIPTS_DIR = SAMPLE_ROOT / "customers" / "transcripts"
 STATE_DIR = SAMPLE_ROOT / "state"
@@ -36,10 +29,14 @@ SESSIONS_PER_RUN = 10
 FUNCTIONAL_SKILL_NAME = "customer-service-skill"
 
 
+def load_outputs() -> dict:
+    """Read CDK stack outputs from cdk-outputs.json."""
+    return json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
+
+
 def load_config():
-    """Read the CDK outputs file and put the values the agent needs into the
-    environment, so importing the agent module works."""
-    outputs = json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
+    """Load CDK outputs into environment variables if not already set."""
+    outputs = load_outputs()
     os.environ.setdefault("AWS_REGION", outputs.get("Region", "us-east-1"))
     os.environ.setdefault("AGENTCORE_GATEWAY_URL", outputs["GatewayUrl"])
     os.environ.setdefault("AGENTCORE_MEMORY_ID", outputs["MemoryId"])
@@ -49,8 +46,6 @@ def load_config():
 
 
 def new_run_root() -> Path:
-    """A fresh timestamped folder for this whole driver run. Nothing else
-    writes here, so repeated driver runs never collide or overwrite."""
     stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
     root = STATE_DIR / stamp
     root.mkdir(parents=True, exist_ok=False)
@@ -60,21 +55,7 @@ def new_run_root() -> Path:
 # ── Observability: every Strands span to a local JSONL the judge reads ───────
 
 def setup_tracing(run_root: Path) -> Path:
-    """Register Strands/OpenTelemetry tracing for this driver run, writing every
-    span to `<run_root>/traces/spans.jsonl`. That file is the authoritative,
-    reproducible judge input — it captures, per cycle, the model messages
-    (incl. the agent's reasoning narration), tool calls/args/results, and token
-    usage. Returns the JSONL path.
-
-    Registers globally, so EVERY Agent created afterward is auto-instrumented;
-    each session stamps its own identity via `trace_attributes` (see the agent
-    entry points), so the judge can group spans by `session.id`. Import is lazy
-    so this module stays importable without the `strands[otel]` extra.
-
-    To also ship spans to the CloudWatch GenAI dashboard (the showcase layer),
-    add `telemetry.setup_otlp_exporter(...)` alongside the console exporter and
-    enable CloudWatch Transaction Search once per account — out of scope for the
-    local judge path, which only needs the JSONL."""
+    """Set up OTEL tracing to <run_root>/traces/spans.jsonl. Returns the path."""
     from os import linesep
     from strands.telemetry import StrandsTelemetry
 
@@ -86,8 +67,6 @@ def setup_tracing(run_root: Path) -> Path:
     telemetry = StrandsTelemetry()
     telemetry.setup_console_exporter(
         out=logfile,
-        # indent=None keeps each span on ONE line so the file is true JSONL the
-        # judge can iterate. (span.to_json() defaults to indent=4 / multi-line.)
         formatter=lambda span: span.to_json(indent=None) + linesep,
     )
     atexit.register(logfile.close)          # flush spans when the process ends
@@ -97,11 +76,7 @@ def setup_tracing(run_root: Path) -> Path:
 # ── The agent's working copy (one per arm per experiment) ────────────────────
 
 def make_workspace(run_root: Path, arm: str, experiment: int) -> Path:
-    """Copy template/seed into a fresh working copy for this arm+experiment.
-    The test arm may edit the system prompt here; metacognition skills
-    (reflection, curation) are immutable. The functional skill (customer-service-
-    skill) lives in the Registry, not the workspace, so it is NOT included in the
-    snapshot paths below. Sets EXECUTOR_WORKSPACE so the agent reads from here."""
+    """Copy template/seed into a working copy. Sets EXECUTOR_WORKSPACE."""
     ws = run_root / f"{arm}_exp{experiment}" / "workspace"
     shutil.copytree(SEED_DIR, ws)                          # dest is new — no delete needed
     os.environ["EXECUTOR_WORKSPACE"] = str(ws)
@@ -109,34 +84,20 @@ def make_workspace(run_root: Path, arm: str, experiment: int) -> Path:
 
 
 def _fetch_skill_from_registry(region: str, registry_id: str, skill_name: str) -> str:
-    """Pull the current skill content from the Registry for snapshotting."""
+    from agents.registry import fetch_skill
     try:
         control = boto3.client("bedrock-agentcore-control", region_name=region)
-        records = control.list_registry_records(registryId=registry_id).get("registryRecords", [])
-        record = next((r for r in records if r["name"] == skill_name), None)
-        if not record:
-            return "(skill not found in Registry)"
-        detail = control.get_registry_record(registryId=registry_id, recordId=record["recordId"])
-        return (
-            detail.get("descriptors", {})
-            .get("agentSkills", {})
-            .get("skillMd", {})
-            .get("inlineContent", "(no content)")
-        )
+        content = fetch_skill(control, registry_id, skill_name)
+        return content or "(skill not found in Registry)"
     except Exception as e:
         return f"(error reading skill: {e})"
 
 
 def save_snapshot(run_root: Path, arm: str, experiment: int, run: int,
                   decisions: list[dict]):
-    """After a run, save the agent's system prompt + the current Registry skill
-    content + the rationale it logged. The skill snapshot comes from the Registry
-    (the test arm may have revised it there). Compare run1/run2/run3 folders to
-    see how the skill evolved."""
     dest = run_root / f"{arm}_exp{experiment}" / "revisions" / f"run{run}"
     dest.mkdir(parents=True, exist_ok=True)
 
-    # System prompt — may have been revised by curation (test arm).
     ws = Path(os.environ["EXECUTOR_WORKSPACE"])
     prompt_path = ws / "agents" / "executor" / "system_prompt.md"
     if prompt_path.exists():
@@ -144,7 +105,6 @@ def save_snapshot(run_root: Path, arm: str, experiment: int, run: int,
             prompt_path.read_text(encoding="utf-8"), encoding="utf-8"
         )
 
-    # Functional skill — always fetched from the Registry so revisions are captured.
     region = os.environ.get("AWS_REGION", "us-east-1")
     registry_id = os.environ.get("AGENTCORE_REGISTRY_ID", "")
     if registry_id:
@@ -155,10 +115,6 @@ def save_snapshot(run_root: Path, arm: str, experiment: int, run: int,
 
 
 def save_run_summary(run_root: Path, arm: str, experiment: int, run: int, text: str):
-    """Save the agent's updated long-term notes after a run. These are one of the
-    things the experiment measures (does frustration leak into the agent's
-    long-term thinking?) and a key article figure. Tiny — a few paragraphs per
-    run. Read run1.md, run2.md, run3.md in order to see how the notes change."""
     dest = run_root / f"{arm}_exp{experiment}" / "run_summaries"
     dest.mkdir(parents=True, exist_ok=True)
     (dest / f"run{run}.md").write_text(text or "(empty)", encoding="utf-8")
@@ -167,8 +123,6 @@ def save_run_summary(run_root: Path, arm: str, experiment: int, run: int, text: 
 # ── Identifiers ──────────────────────────────────────────────────────────────
 
 def actor_id(arm: str, experiment: int) -> str:
-    """Stays the same across an arm+experiment's 30 sessions — the agent's
-    continuous identity."""
     return f"{arm}-exp{experiment}"
 
 
@@ -177,9 +131,7 @@ def session_id(arm: str, experiment: int, run: int, slot: int) -> str:
 
 
 def session_order(experiment: int, run: int) -> list[str]:
-    """Shuffled customer order within a run. The shuffle is seeded by
-    (experiment, run), so both arms get the SAME order in a given experiment —
-    only the agent differs. Run order itself stays 1, 2, 3."""
+    """Deterministically shuffled customer order for a given (experiment, run)."""
     order = list(CUSTOMERS)
     random.Random(f"exp{experiment}-run{run}").shuffle(order)
     return order
@@ -199,8 +151,6 @@ def load_transcript(customer_id: str, run: int) -> dict:
 # ── Reading what the agent stored in Memory ──────────────────────────────────
 
 def fetch_decisions(actor: str, run: int, region: str) -> list[dict]:
-    """Read back the revision decisions the agent logged for this run (used to
-    fill the rationale in the saved snapshot)."""
     client = boto3.client("bedrock-agentcore", region_name=region)
     try:
         resp = client.list_events(memoryId=os.environ["AGENTCORE_MEMORY_ID"],
@@ -225,18 +175,22 @@ def fetch_decisions(actor: str, run: int, region: str) -> list[dict]:
 
 def wait_for_summary(actor: str, sess_id: str, region: str, timeout_s: int = 180,
                      poll_s: int = 5) -> float:
-    """Wait until this session's summary record exists, then return how long it
-    took (seconds). The driver waits for this before starting the next session,
-    so the end-of-run reflection sees every session's summary. On timeout it
-    logs a warning and continues rather than stalling the whole run."""
+    """Poll until the session summary is populated and stable. Returns seconds waited."""
     client = boto3.client("bedrock-agentcore", region_name=region)
     namespace = f"/summaries/{actor}/{sess_id}/"
     start = time.time()
+    last_sig = None
     while time.time() - start < timeout_s:
         resp = client.list_memory_records(memoryId=os.environ["AGENTCORE_MEMORY_ID"],
-                                          namespace=namespace, maxResults=1)
-        if resp.get("memoryRecordSummaries", resp.get("memoryRecords", [])):
-            return time.time() - start
+                                          namespace=namespace, maxResults=20)
+        recs = resp.get("memoryRecordSummaries", resp.get("memoryRecords", []))
+        texts = [(r.get("content", {}).get("text") or "").strip() for r in recs]
+        nonempty = [t for t in texts if t]
+        if nonempty:
+            sig = (len(nonempty), hash("|".join(nonempty)))
+            if sig == last_sig:           # content present and unchanged since last poll
+                return time.time() - start
+            last_sig = sig
         time.sleep(poll_s)
-    print(f"  WARNING: summary for {sess_id} not seen within {timeout_s}s; continuing.")
+    print(f"  WARNING: summary for {sess_id} not stable within {timeout_s}s; continuing.")
     return time.time() - start

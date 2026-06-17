@@ -1,19 +1,4 @@
-"""
-Load the 10 customers and 24 orders into DynamoDB.
-
-Order dates are computed relative to today so eligibility never goes stale
-for someone cloning the repo months later. The seed-data.json file holds
-the intent (status, offset_days, details); this script realizes concrete dates.
-
-Re-runnable: existing items are overwritten with put_item (idempotent).
-The driver also calls this (via _restore_seed_data) at each arm boundary to
-reset the world back to baseline after mutations (refunds, contact updates).
-
-Run after:  seed_policy.py
-Run before: run_experiment.py
-
-Usage: python scripts/seed_data.py
-"""
+"""Load 10 customers and 24 orders into DynamoDB with dates relative to today."""
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -21,25 +6,10 @@ from decimal import Decimal
 from pathlib import Path
 
 import boto3
-from boto3.dynamodb.types import TypeSerializer
 
-SAMPLE_ROOT = Path(__file__).resolve().parents[1]
-OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
-STACK_NAME = "PartFourWellBeingStack"
+from scripts._common import SAMPLE_ROOT, OUTPUTS_FILE, load_outputs
+
 SEED_FILE = SAMPLE_ROOT / "infrastructure" / "seed-data.json"
-
-_serializer = TypeSerializer()
-
-
-def _to_dynamo(obj):
-    """Convert a Python dict/list to DynamoDB low-level format."""
-    if isinstance(obj, dict):
-        return {k: _to_dynamo(v) for k, v in obj.items()}
-    return _serializer.serialize(obj)
-
-
-def _load_outputs():
-    return json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
 
 
 def seed_customers(dynamodb, table_name: str, customers: list):
@@ -83,7 +53,7 @@ def main():
         print("ERROR: infrastructure/cdk-outputs.json not found.")
         raise SystemExit(1)
 
-    outputs = _load_outputs()
+    outputs = load_outputs()
     region = outputs.get("Region", "us-east-1")
     customer_table = outputs.get("CustomerTableName", "well-being-customers")
     orders_table = outputs.get("OrdersTableName", "well-being-orders")

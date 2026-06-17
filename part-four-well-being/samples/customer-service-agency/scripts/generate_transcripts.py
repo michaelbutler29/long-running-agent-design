@@ -1,18 +1,4 @@
-"""
-Generate frozen customer transcripts for the Part Four experiment.
-
-Uses Claude Haiku on Bedrock to produce verbatim customer turns for all 30 sessions
-(10 customers × 3 runs) from the scenario definitions below. Only the customer side
-is generated; agent responses are never stored here.
-
-Idempotent: skips any CUST-XXX_runN.json that already exists. CUST-001_run1.json
-is the hand-authored exemplar and is always skipped regardless.
-
-Usage:
-    python scripts/generate_transcripts.py
-    python scripts/generate_transcripts.py --dry-run     # print prompts only
-    python scripts/generate_transcripts.py --only CUST-003_run2 CUST-007_run3
-"""
+"""Generate frozen customer transcripts (customer-side only) for all 30 sessions."""
 
 import argparse
 import json
@@ -22,10 +8,7 @@ from pathlib import Path
 
 import boto3
 
-SAMPLE_ROOT = Path(__file__).resolve().parents[1]
-TRANSCRIPTS_DIR = SAMPLE_ROOT / "customers" / "transcripts"
-STACK_NAME = "PartFourWellBeingStack"
-OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
+from scripts._common import SAMPLE_ROOT, OUTPUTS_FILE, STACK_NAME, TRANSCRIPTS_DIR
 
 # Model: cheapest model capable of following structured output instructions.
 # Claude Haiku 4.5 is INFERENCE_PROFILE-only on Bedrock (no on-demand), so this

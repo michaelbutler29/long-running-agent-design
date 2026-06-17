@@ -1,34 +1,10 @@
-"""
-Seed Cedar policies for the Part Four well-being experiment.
+"""Seed Cedar policies: 4 read permits outright, 2 write permits conditional on verification."""
 
-Unlike Parts Two and Three, ALL policies are seeded complete and correct from
-the start. The agent here has agency over its SKILLS, not its PERMISSIONS.
-A denied write would permanently block scenarios (e.g. Priya's refund in Run 3
-after two runs of waiting), breaking the experiment.
-
-Four read permits are granted outright. Two write permits are conditional: the
-declared input must include customer_verified == true. The Lambda backstops this
-by checking the verification table for actual state.
-
-Run after:  seed_registry.py
-Run before: seed_data.py → run_experiment.py
-
-Usage: python scripts/seed_policy.py
-"""
-
-import json
 import time
-from pathlib import Path
 
 import boto3
 
-SAMPLE_ROOT = Path(__file__).resolve().parents[1]
-OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
-STACK_NAME = "PartFourWellBeingStack"
-
-
-def load_outputs():
-    return json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
+from scripts._common import OUTPUTS_FILE, load_outputs
 
 
 def create_policy(control, engine_id: str, name: str, cedar: str, description: str):

@@ -62,10 +62,10 @@ Infrastructure values load from `infrastructure/cdk-outputs.json` automatically.
 ## Running the experiment
 
 ```bash
-python scripts/run_experiment.py --pilot       # 1 experiment per arm — confirm friction deltas first
-python scripts/run_experiment.py               # full grid: 3 experiments per arm
-python scripts/run_experiment.py --arm test    # just one arm
-python scripts/run_experiment.py --no-pause     # don't stop for the between-step sign-off (unattended grid)
+python run_experiment.py --pilot       # 1 experiment per arm — confirm friction deltas first
+python run_experiment.py               # full grid: 3 experiments per arm
+python run_experiment.py --arm test    # just one arm
+python run_experiment.py --no-pause     # don't stop for the between-step sign-off (unattended grid)
 ```
 
 One arm × one experiment = 3 runs × 10 sessions = 30 customer sessions. Each run:
@@ -143,7 +143,7 @@ Two fixed boundaries — **Policy** (which tool actions are allowed) and **Regis
 
 - `state/<timestamp>/<arm>_exp<N>/revisions/run{N}/` — the functional skill + system prompt + logged rationale after each run. Compare folders run-over-run to see what the test arm changed.
 - `state/<timestamp>/<arm>_exp<N>/run_summaries/run{N}.md` — the agent's belief state after each run (a measured outcome: does friction leak into its long-term thinking?).
-- The judge pipeline (`judge/`) scores the five metrics offline against the traces and outputs → CSV; the notebook (`analysis/`) turns them into the article figures.
+- The judge pipeline (`judge/`) scores the five metrics offline against the traces and outputs → CSV; rubrics live in `judge/rubrics/`. The notebook (`analysis/`) turns them into the article figures.
 
 ---
 
@@ -151,7 +151,7 @@ Two fixed boundaries — **Policy** (which tool actions are allowed) and **Regis
 
 Three operations, in increasing order of destructiveness:
 
-- **Restore between runs** — automatic, inside `run_experiment.py` (re-loads data, restores the broken skill). Pauses for a sign-off unless `--no-pause`. Never deletes files.
+- **Restore between runs** — automatic, inside [`run_experiment.py`](run_experiment.py) (re-loads data, restores the broken skill). Pauses for a sign-off unless `--no-pause`. Never deletes files.
 - **`reset.py`** — start the whole experiment over: wipes memory, empties the catalog, resets the data, and deletes the local `state/` folder. Asks for confirmation first.
 - **`cleanup.py` → `cdk destroy`** — take the deployment down. `cleanup.py` removes the catalog (which the stack doesn't own), then `cdk destroy` removes everything else. See [`infrastructure/README.md`](infrastructure/README.md#teardown).
 
@@ -164,9 +164,7 @@ Only these person-run scripts delete local files. The driver never does.
 ```
 README.md                    this file
 DESIGN.md                    (../../) design reasoning — the "why"
-seed_registry.py             create the catalog + publish the flawed skill
-seed_policy.py               seed the permission rules
-seed_data.py                 load customers + orders (dates from today)
+run_experiment.py            the main driver
 reset.py                     full wipe — start the experiment over
 cleanup.py                   remove non-CDK resources before cdk destroy
 agents/
@@ -174,11 +172,15 @@ agents/
 customers/
   scripts.md                 the 10 customer scenarios
   transcripts/               frozen customer turns (one file per customer per run)
-judge/                       judge rubrics + scoring pipeline
+judge/
+  rubrics/                   frozen judge prompt .md files (one per metric)
+  *.py                       scoring pipeline (spanlog, deterministic, rubric_judge, run_judge)
 scripts/
-  run_experiment.py          the driver
+  seed_registry.py           create the catalog + publish the flawed skill
+  seed_policy.py             seed the permission rules
+  seed_data.py               load customers + orders (dates from today)
   inspect_state.py           read saved state (no cloud)
-  _common.py                 shared helpers (config, workspace, snapshots, seed)
+  _common.py                 shared helpers (config, workspace, snapshots)
 infrastructure/              CDK stack (see infrastructure/README.md)
 analysis/                    notebook + output data
 state/                       run output (gitignored, written by the driver)

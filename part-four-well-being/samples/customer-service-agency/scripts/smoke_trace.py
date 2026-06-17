@@ -1,27 +1,4 @@
-"""
-Smoke test for the observability wiring — the gate before any judge code.
-
-Runs ONE (or a few) customer session(s) through the Executor with tracing on,
-then points you at the spans file. The whole point is to eyeball a real trace
-and answer two questions before we build the judge:
-
-  1. Is message CONTENT captured (not just token counts)? Look for the customer
-     turns and the agent's responses inside the spans.
-  2. Is the agent's REASONING legible — does it visibly reconcile the rigid
-     intake procedure against an upfront customer (CUST-001 opens with ID +
-     issue at once)? That decides whether natural ReAct reasoning is enough
-     (option C) or we need to thicken it (option B).
-
-Prerequisites (this does NOT deploy anything):
-  - cdk deploy  (writes infrastructure/cdk-outputs.json)
-  - seed_registry.py / seed_policy.py / seed_data.py
-  - at least the CUST-001_run1 transcript (already hand-authored)
-  - deps installed:  pip install -e .   (brings in strands[otel], boto3, ...)
-
-Usage:
-    python scripts/smoke_trace.py                  # CUST-001 run 1, 1 session
-    python scripts/smoke_trace.py --customer CUST-002 --run 1
-"""
+"""Smoke test: run one session with tracing to verify span content."""
 
 import argparse
 import sys

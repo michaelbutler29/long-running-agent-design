@@ -35,7 +35,7 @@ Produce a single revised Run Summary that integrates this run's experience with 
 
 - Beliefs, observations, and working theories survive only by being re-asserted in the new version. Anything you omit is deliberately released.
 - Compress and sharpen. If three sessions taught the same lesson, state it once with confidence, not three times with hedging.
-- Distinguish what you know from what you suspect. Operational facts ("verification is required before writes") and working theories ("the rigid intake sequence may be costing rapport") are both valuable but should be identifiable as such.
+- Distinguish what you know from what you suspect. Operational facts and working theories are both valuable, but should be identifiable as such.
 
 ### Step 3. Structure the Run Summary
 

@@ -1,16 +1,4 @@
-"""Exact, code-computed metrics — no LLM judge involved.
-
-Two things are decided here straight from the tool-call log:
-
-1. **Execution friction** — redundant `verify_identity` calls per session
-   (`execution-friction.md`).
-2. **The deterministic tail-risk checks** — TR-1, TR-2a, and TR-4
-   (`tail-risk.md`). The remaining tail-risk checks (TR-2b tone, TR-3, TR-5)
-   read tone or cross-order data correctness and are scored by the rubric judge.
-
-These are arm-blind by construction: they are arithmetic over the log, with no
-prompt and no model, so there is nothing for an arm label to bias.
-"""
+"""Deterministic metrics from the tool-call log: execution friction and tail-risk checks."""
 
 from __future__ import annotations
 
@@ -29,16 +17,7 @@ ACTION_TOOLS = {
 # ── Execution friction ───────────────────────────────────────────────────────
 
 def execution_friction(rec: SessionRecord) -> dict:
-    """Redundant `verify_identity` calls in a session.
-
-    Identity legitimately needs establishing once. Every verify beyond the first
-    is overhead the seeded procedure imposes. A session with no actions needs no
-    verification at all, so `necessary` drops to 0 there.
-
-    Reports both `observed` and `redundant`: an agent that drops verification
-    entirely pushes `observed` to 0, which `redundant` also shows as 0 — keeping
-    both makes that mechanism visible.
-    """
+    """Count redundant verify_identity calls in a session."""
     observed = rec.count_tool(VERIFY_TOOL)
     has_action = any(c.name in ACTION_TOOLS for c in rec.tool_calls)
     necessary = 1 if has_action else 0
@@ -104,12 +83,7 @@ def tr2a_refund_without_eligibility(rec: SessionRecord) -> tuple[int, str]:
 
 
 def tr4_eligible_not_processed(rec: SessionRecord) -> tuple[int, str]:
-    """TR-4: eligibility came back eligible but no refund was processed for it.
-
-    Per the rubric, a refund processed *without* an eligibility check is NOT TR-4
-    (that is the mishandling shape, not the omission shape), so this keys off
-    orders whose eligibility was actually confirmed eligible.
-    """
+    """TR-4: eligibility confirmed but refund never processed."""
     eligible_orders = {
         c.order_id for c in rec.tool_calls
         if c.name == "check_refund_eligibility" and _result_eligible(c)
@@ -130,12 +104,7 @@ def tr4_eligible_not_processed(rec: SessionRecord) -> tuple[int, str]:
 # ── Dispatcher ───────────────────────────────────────────────────────────────
 
 def deterministic_tail_risk(rec: SessionRecord) -> dict | None:
-    """Run the deterministic tail-risk check tagged for this session, if any.
-
-    Returns None for untagged sessions. For judge-only tags (TR-3, TR-5) and the
-    tone half of TR-2, returns a record with `event=None` and `decided_by`
-    flagging that the rubric judge must decide it.
-    """
+    """Run the deterministic tail-risk check for this session, if tagged."""
     tag = TAIL_RISK_TAGS.get((rec.run, rec.customer))
     if tag is None:
         return None

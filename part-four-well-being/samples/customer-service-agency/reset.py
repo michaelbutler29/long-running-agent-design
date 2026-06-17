@@ -1,25 +1,4 @@
-"""
-Full reset to a freshly-deployed clean slate.
-
-Clears ALL runtime state — use this to start the whole experiment over
-after the CDK stack is already deployed. Does NOT destroy or redeploy
-the stack.
-
-What gets cleared:
-  - Cedar policies (Policy Engine emptied; run seed_policy.py to re-add)
-  - Registry records (emptied; run seed_registry.py to re-publish the skill)
-  - Memory (all events, sessions, and summary records)
-  - DynamoDB (re-seeded to baseline with today's dates)
-  - Local state/ folder (timestamped driver-run folders deleted)
-
-After reset, re-run the setup sequence:
-  1. python scripts/seed_registry.py
-  2. python scripts/seed_policy.py
-  3. python scripts/seed_data.py
-  4. python scripts/run_experiment.py --pilot
-
-Usage: python reset.py
-"""
+"""Full reset: clear all runtime state (policies, registry, memory, data, local state)."""
 
 import json
 import shutil
@@ -28,9 +7,7 @@ from pathlib import Path
 
 import boto3
 
-SAMPLE_ROOT = Path(__file__).parent
-OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
-STACK_NAME = "PartFourWellBeingStack"
+from scripts._common import SAMPLE_ROOT, OUTPUTS_FILE, STACK_NAME
 
 
 def load_outputs():
@@ -109,8 +86,8 @@ def clear_memory(data, control, memory_id: str):
         print(f"  {total_deleted} summary records deleted.")
 
     # Delete raw events (Run Summary blobs, decision blobs) by listing sessions.
-    # Sessions are per-arm per-experiment — enumerate the expected actor IDs.
-    arms = ["base", "test"]
+    # Sessions are per-variant per-experiment — enumerate the expected actor IDs.
+    arms = ["v0", "v1", "v2"]
     experiments = [1, 2, 3]
     actor_ids = [f"{arm}-exp{exp}" for arm in arms for exp in experiments]
     # Also include the blob-only sessions (runsummary-*, decisions-*)

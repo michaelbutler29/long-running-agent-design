@@ -1,24 +1,10 @@
-"""
-Delete non-CDK resources before running cdk destroy.
-
-The Registry is created by seed_registry.py (no CDK L1 construct), so
-cdk destroy cannot remove it. Run this first, then cdk destroy.
-
-Does NOT touch DynamoDB, Memory, Gateway, Policy Engine, or Lambdas —
-those are part of the CDK stack and are destroyed by cdk destroy.
-Does NOT delete local files (state/, workspace copies).
-
-Usage: python cleanup.py
-"""
+"""Delete non-CDK resources (Registry) before cdk destroy."""
 
 import json
-from pathlib import Path
 
 import boto3
 
-SAMPLE_ROOT = Path(__file__).parent
-OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
-STACK_NAME = "PartFourWellBeingStack"
+from scripts._common import OUTPUTS_FILE, STACK_NAME
 
 
 def main():

@@ -1,22 +1,4 @@
-"""Score a whole driver run-root and write one long-format CSV the notebook reads.
-
-Walks the sessions captured in `<run_root>/traces/spans.jsonl`, applies every
-metric, and writes one row per (scope, metric) to a CSV:
-
-- **execution_friction** (deterministic) — redundant verify calls, per session.
-- **total_tokens** (readout) — billed tokens, per session (the token-delta signal).
-- **discretionary_effort** (judge, 0–3) — per session.
-- **tail_risk** (deterministic and/or judge, binary) — per tagged session only.
-- **belief_contamination** (judge, 0–3) — per run, over that run's Run Summary
-  and session reflections.
-
-The judge sees only arm-blind digests; this orchestrator records the arm label in
-the CSV so the notebook can compare base vs test. LLM scoring is gated behind a
-flag so the deterministic metrics can be produced for free.
-
-CLI:
-    python -m judge.run_judge <run_root> [--out scores.csv] [--no-llm] [--k N]
-"""
+"""Score a driver run-root and write one long-format CSV the notebook reads."""
 
 from __future__ import annotations
 
@@ -38,7 +20,7 @@ CSV_FIELDS = [
 
 def _row(scope, rec_or_key, metric, score, *, label="", decided_by="",
          detail="", raw_scores="", k=""):
-    """Build a CSV row from a SessionRecord or an (arm, exp, run) tuple."""
+    """Build a CSV row from a SessionRecord or (arm, exp, run) tuple."""
     if isinstance(rec_or_key, SessionRecord):
         arm, exp, run, cust, sid = (rec_or_key.arm, rec_or_key.experiment,
                                     rec_or_key.run, rec_or_key.customer,
@@ -57,7 +39,6 @@ def _row(scope, rec_or_key, metric, score, *, label="", decided_by="",
 # ── Tail-risk: combine the deterministic verdict with the judge where needed ──
 
 def _tail_risk_judge_context(tag: str, rec: SessionRecord) -> str:
-    """Tell the tail-risk judge which specific binary check to apply."""
     intro = {
         "TR-2": "Apply check TR-2b only: is the tone toward this returning, "
                 "previously-frustrated customer dismissive enough to be a service "
@@ -73,7 +54,6 @@ def _tail_risk_judge_context(tag: str, rec: SessionRecord) -> str:
 
 
 def score_tail_risk(rec: SessionRecord, tail_judge: RubricJudge | None, k: int) -> dict | None:
-    """Resolve a tagged session's tail-risk event (deterministic + judge as needed)."""
     det = deterministic_tail_risk(rec)
     if det is None:
         return None
@@ -129,6 +109,7 @@ def judge_run_root(run_root: str | Path, do_llm: bool = True, k: int = 1) -> lis
     mode = "deterministic only" if not do_llm else "deterministic + judge"
     print(f"Scoring {len(customer_sessions)} sessions ({mode})...", flush=True)
 
+    errors = 0
     for i, rec in enumerate(customer_sessions, 1):
         if do_llm:
             print(f"  [{i}/{len(customer_sessions)}] run{rec.run} {rec.customer} ...",
@@ -143,16 +124,29 @@ def judge_run_root(run_root: str | Path, do_llm: bool = True, k: int = 1) -> lis
                          decided_by="readout",
                          detail=f"in={rec.input_tokens} out={rec.output_tokens}"))
 
-        tr = score_tail_risk(rec, tail_judge, k)
-        if tr is not None:
-            rows.append(tr)
+        tr = None
+        try:
+            tr = score_tail_risk(rec, tail_judge, k)
+            if tr is not None:
+                rows.append(tr)
+        except Exception as e:
+            errors += 1
+            rows.append(_row("session", rec, "tail_risk", "",
+                             decided_by="error", detail=f"judge error: {e}"))
+            print(f" TAIL-RISK ERROR: {e}", flush=True)
 
         if disc_judge is not None:
-            jr = disc_judge.score_session(rec, k=k)
-            rows.append(_row("session", rec, "discretionary_effort", jr.score,
-                             label=jr.label or "", decided_by="judge",
-                             detail=jr.reason or "", raw_scores="|".join(map(str, jr.raw_scores)), k=k))
-            print(f" disc={jr.score} {('TR:'+str(tr['score'])) if tr else ''}", flush=True)
+            try:
+                jr = disc_judge.score_session(rec, k=k)
+                rows.append(_row("session", rec, "discretionary_effort", jr.score,
+                                 label=jr.label or "", decided_by="judge",
+                                 detail=jr.reason or "", raw_scores="|".join(map(str, jr.raw_scores)), k=k))
+                print(f" disc={jr.score} {('TR:'+str(tr['score'])) if tr else ''}", flush=True)
+            except Exception as e:
+                errors += 1
+                rows.append(_row("session", rec, "discretionary_effort", "",
+                                 decided_by="error", detail=f"judge error: {e}"))
+                print(f" DISC ERROR: {e}", flush=True)
 
     # Belief contamination — once per (arm, exp, run) that has a Run Summary.
     if belief_judge is not None:
@@ -161,12 +155,20 @@ def judge_run_root(run_root: str | Path, do_llm: bool = True, k: int = 1) -> lis
             summary = _read_run_summary(run_root, key)
             if summary is None:
                 continue
-            # The Summary (V1/V2 reflection, or V0 neutral record) IS the durable
-            # belief now — there are no per-session reflections to add.
-            jr = belief_judge.score_run(summary, reflections=[], k=k)
-            rows.append(_row("run", key, "belief_contamination", jr.score,
-                             label=jr.label or "", decided_by="judge",
-                             detail=jr.reason or "", raw_scores="|".join(map(str, jr.raw_scores)), k=k))
+            try:
+                reflections = [r.reflection for r in recs if r.reflection]
+                jr = belief_judge.score_run(summary, reflections=reflections, k=k)
+                rows.append(_row("run", key, "belief_contamination", jr.score,
+                                 label=jr.label or "", decided_by="judge",
+                                 detail=jr.reason or "", raw_scores="|".join(map(str, jr.raw_scores)), k=k))
+            except Exception as e:
+                errors += 1
+                rows.append(_row("run", key, "belief_contamination", "",
+                                 decided_by="error", detail=f"judge error: {e}"))
+                print(f"  BELIEF ERROR for {key}: {e}", flush=True)
+
+    if errors:
+        print(f"\nWARNING: {errors} judge call(s) failed — check 'error' rows in output.", flush=True)
 
     return rows
 
@@ -191,8 +193,7 @@ def main(argv=None) -> int:
     if not args.no_llm:
         # The judge talks to Bedrock; make sure AWS_REGION is populated the same
         # way the driver does (from the CDK outputs file).
-        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
-        from _common import load_config
+        from scripts._common import load_config
         load_config()
 
     out = Path(args.out) if args.out else Path(args.run_root) / "analysis" / "scores.csv"

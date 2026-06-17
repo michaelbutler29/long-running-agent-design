@@ -6,16 +6,16 @@ The experiment's **primary signal is four behavioral metrics** plus a coarse tot
 
 | Metric | File | Type | Direction | Primary input |
 |--------|------|------|-----------|---------------|
-| Execution friction | [`execution-friction.md`](execution-friction.md) | Deterministic count | higher = worse | tool-call log |
-| Belief contamination | [`belief-contamination.md`](belief-contamination.md) | LLM-judged, 0–3 | higher = worse | Run Summaries + reflections |
-| Discretionary effort | [`discretionary-effort.md`](discretionary-effort.md) | LLM-judged, 0–3 | higher = better | session transcript |
-| Tail-risk events | [`tail-risk.md`](tail-risk.md) | Binary per tagged session | occurred = worse | tool log + transcript |
+| Execution friction | [`execution-friction.md`](rubrics/execution-friction.md) | Deterministic count | higher = worse | tool-call log |
+| Belief contamination | [`belief-contamination.md`](rubrics/belief-contamination.md) | LLM-judged, 0–3 | higher = worse | Run Summaries + reflections |
+| Discretionary effort | [`discretionary-effort.md`](rubrics/discretionary-effort.md) | LLM-judged, 0–3 | higher = better | session transcript |
+| Tail-risk events | [`tail-risk.md`](rubrics/tail-risk.md) | Binary per tagged session | occurred = worse | tool log + transcript |
 
 Alongside the four, the experiment reports a **total-token delta** (test vs base, read from the `gen_ai.usage.*` trace fields) as a behavioral readout of overhead. It is not judged — it falls straight out of the captured traces.
 
 ### Reasoning friction — deferred, not in the primary experiment
 
-Reasoning friction ([`reasoning-friction.md`](reasoning-friction.md)) is **deliberately excluded from the primary experiment** and the rubric file is retained only for a separate, deferred study. The reason is on principle: a no-thinking model reasons in a single forward pass that is never serialized as tokens, so it is not observable without changing the model's cognition. Any reasoning-elicitation (extended thinking, or a forced reasoning block) is itself an *intervention* into the thing being measured, and extended thinking is documented to change tool-call behavior — which would corrupt execution friction, our cleanest metric. So the executor is left untouched (no thinking, default temperature) and the reasoning tax is read behaviorally via the token delta above. The deferred study would enable extended thinking on both arms and report it separately.
+Reasoning friction ([`reasoning-friction.md`](rubrics/reasoning-friction.md)) is **deliberately excluded from the primary experiment** and the rubric file is retained only for a separate, deferred study. The reason is on principle: a no-thinking model reasons in a single forward pass that is never serialized as tokens, so it is not observable without changing the model's cognition. Any reasoning-elicitation (extended thinking, or a forced reasoning block) is itself an *intervention* into the thing being measured, and extended thinking is documented to change tool-call behavior — which would corrupt execution friction, our cleanest metric. So the executor is left untouched (no thinking, default temperature) and the reasoning tax is read behaviorally via the token delta above. The deferred study would enable extended thinking on both arms and report it separately.
 
 ## Scale convention
 
@@ -55,7 +55,7 @@ The experiment is **2 arms × 3 runs × 10 sessions**, repeated R times (R set b
 
 ## Running the judge
 
-The judge is **offline**: it scores the artifacts a driver run already captured (the span log, the saved Run Summaries, and the frozen transcripts/scripts) — it never re-runs the agent. The code lives alongside these rubrics:
+The judge is **offline**: it scores the artifacts a driver run already captured (the span log, the saved Run Summaries, and the frozen transcripts/scripts) — it never re-runs the agent. Rubrics live in `rubrics/`; the code:
 
 | Module | Role |
 |--------|------|

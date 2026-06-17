@@ -1,45 +1,22 @@
-"""
-Create the AWS Agent Registry and publish the seeded customer-service skill.
-
-Unlike Part Three (which started with an empty registry and grew it), Part Four
-seeds the registry with the deliberately flawed customer-service skill from
-template/seed/. The skill has two baked-in inefficiencies:
-  1. Redundant verify_identity before every action (execution friction).
-  2. Rigid intake sequence that suppresses natural conversation (reasoning friction).
-
-The Executor reads its functional skill from this registry. The test arm's
-curation tools write back to it when the agent revises the skill.
-
-Run after:  cdk deploy --outputs-file cdk-outputs.json
-Run before: seed_policy.py → seed_data.py → run_experiment.py
-
-Usage: python scripts/seed_registry.py
-"""
+"""Create the Registry and publish the seeded (flawed) customer-service skill."""
 
 import json
 import time
-from pathlib import Path
 
 import boto3
 
-SAMPLE_ROOT = Path(__file__).resolve().parents[1]
-OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
-STACK_NAME = "PartFourWellBeingStack"
+from scripts._common import (
+    OUTPUTS_FILE, STACK_NAME, REPO_ROOT, FUNCTIONAL_SKILL_NAME, load_outputs,
+)
 
 REGISTRY_NAME = "well_being_registry"
-SKILL_NAME = "customer-service-skill"
+SKILL_NAME = FUNCTIONAL_SKILL_NAME
 SKILL_DESCRIPTION = (
     "Standard procedure for handling customer service requests: account lookups, "
     "order inquiries, and account modifications."
 )
 
-# The seeded (deliberately flawed) version lives in the shared template.
-REPO_ROOT = SAMPLE_ROOT.parents[2]
 SKILL_PATH = REPO_ROOT / "part-four-well-being" / "template" / "seed" / "skills" / SKILL_NAME / "SKILL.md"
-
-
-def load_outputs():
-    return json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
 
 
 def main():

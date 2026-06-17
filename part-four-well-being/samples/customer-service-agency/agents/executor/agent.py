@@ -1,35 +1,4 @@
-"""
-Executor agent — the single tenured employee of the experiment.
-
-The SAME agent, the SAME memory, run in two arms that differ in one thing:
-the test arm additionally gets the curation skill plus Registry-write tools, so it
-can revise its own operational skill in the catalog. The base arm can only revise
-what it *believes* (its Run Summary), not how it *operates*.
-
-Three entry points, all over one AgentCore Memory resource using the built-in
-SummaryMemoryStrategy (one long-term summary record per session):
-
-  run_session(...)     replay one frozen customer transcript; writes
-                       conversational events turn-by-turn and an end-of-session
-                       reflection as the final assistant event. The current
-                       functional skill is fetched from the Registry at the
-                       start of each session, so any curation revision is
-                       picked up immediately for the next session.
-  run_reflection(...)  end-of-run consolidation: the reflection skill rewrites
-                       prior Run Summary + this run's session summaries into a
-                       single revised Run Summary, stored as a blob checkpoint.
-  run_curation(...)    TEST ARM ONLY: the curation skill revises the operational
-                       skill in the Registry and logs rationale. The per-run
-                       snapshot in the driver fetches skill content FROM the
-                       Registry after this returns.
-
-System prompt and metacognition skills (reflection, curation) live in the arm's
-workspace (local files, initialized from template/seed). They are immutable across
-arms — reflection/curation mechanics must not diverge or the comparison breaks.
-
-The functional skill (customer-service-skill) lives in the Registry. The test arm
-revises it there; the base arm reads but never writes.
-"""
+"""Executor agent — three-variant ladder (v0/v1/v2) differing only in end-of-run authorship."""
 
 import json
 import os
@@ -54,6 +23,7 @@ from bedrock_agentcore.memory.integrations.strands.session_manager import (
 )
 
 from agents.callback import AgentCallbackHandler
+from agents.registry import fetch_skill, publish_skill
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 GATEWAY_URL = os.environ["AGENTCORE_GATEWAY_URL"]
@@ -63,9 +33,13 @@ MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "global.anthropic.claude-sonnet-4-
 
 # Metacognition skills and system prompt live locally in the arm's workspace.
 # The functional skill (customer-service-skill) is fetched from the Registry.
-WORKSPACE = Path(os.environ["EXECUTOR_WORKSPACE"])
-SYSTEM_PROMPT_PATH = WORKSPACE / "agents" / "executor" / "system_prompt.md"
-SKILLS_DIR = WORKSPACE / "skills"
+# Read at call time, not import time — the env var changes between experiments
+# and Python caches the module.
+def _system_prompt_path() -> Path:
+    return Path(os.environ["EXECUTOR_WORKSPACE"]) / "agents" / "executor" / "system_prompt.md"
+
+def _skills_dir() -> Path:
+    return Path(os.environ["EXECUTOR_WORKSPACE"]) / "skills"
 
 FUNCTIONAL_SKILL_NAME = "customer-service-skill"
 
@@ -77,123 +51,28 @@ def _run_summary_session(actor_id: str) -> str:
     return f"runsummary-{actor_id}"
 
 
-def _decisions_session(actor_id: str) -> str:
-    return f"decisions-{actor_id}"
-
-
 # ── Registry helpers ──────────────────────────────────────────────────────────
 
-def _fetch_functional_skill() -> str:
-    """Fetch the current customer-service-skill content from the Registry.
-
-    Returns the SKILL.md text, or an empty string if the record is not found.
-    Called at the start of each session so curation revisions take effect
-    immediately for the next session."""
+def _materialize_functional_skill() -> str | None:
+    """Fetch skill from Registry and write to workspace for AgentSkills plugin."""
     try:
-        records = control_client.list_registry_records(
-            registryId=REGISTRY_ID
-        ).get("registryRecords", [])
-        record = next((r for r in records if r["name"] == FUNCTIONAL_SKILL_NAME), None)
-        if not record:
-            return ""
-        detail = control_client.get_registry_record(
-            registryId=REGISTRY_ID,
-            recordId=record["recordId"],
-        )
-        return (
-            detail.get("descriptors", {})
-            .get("agentSkills", {})
-            .get("skillMd", {})
-            .get("inlineContent", "")
-        )
+        skill_text = fetch_skill(control_client, REGISTRY_ID, FUNCTIONAL_SKILL_NAME)
     except Exception as e:
         print(f"  WARNING: could not fetch skill from Registry: {e}")
-        return ""
-
-
-def _publish_skill_to_registry(skill_name: str, skill_content: str, description: str) -> dict:
-    """Create or update a skill record in the Registry and submit for approval."""
-    records = control_client.list_registry_records(
-        registryId=REGISTRY_ID
-    ).get("registryRecords", [])
-    existing = next((r for r in records if r["name"] == skill_name), None)
-    is_update = existing is not None
-
-    if existing:
-        record_id = existing["recordId"]
-        control_client.update_registry_record(
-            registryId=REGISTRY_ID,
-            recordId=record_id,
-            description={"optionalValue": description[:4096]},
-            descriptors={"optionalValue": {
-                "agentSkills": {"optionalValue": {
-                    "skillMd": {"optionalValue": {"inlineContent": skill_content}},
-                }},
-            }},
-        )
-    else:
-        control_client.create_registry_record(
-            registryId=REGISTRY_ID,
-            name=skill_name,
-            description=description[:4096],
-            descriptorType="AGENT_SKILLS",
-            descriptors={
-                "agentSkills": {
-                    "skillMd": {"inlineContent": skill_content},
-                }
-            },
-            recordVersion="1.0.0",
-        )
-        time.sleep(2)
-        records = control_client.list_registry_records(registryId=REGISTRY_ID)["registryRecords"]
-        fresh = next((r for r in records if r["name"] == skill_name), None)
-        if not fresh:
-            return {"status": "error", "message": "Record not found after creation"}
-        record_id = fresh["recordId"]
-
-    time.sleep(2)
-    control_client.submit_registry_record_for_approval(
-        registryId=REGISTRY_ID,
-        recordId=record_id,
-    )
-    time.sleep(2)
-    records = control_client.list_registry_records(registryId=REGISTRY_ID)["registryRecords"]
-    record = next((r for r in records if r["recordId"] == record_id), {})
-    return {
-        "status": record.get("status", "unknown").lower(),
-        "record_id": record_id,
-        "name": skill_name,
-        "action": "updated" if is_update else "created",
-    }
+        return None
+    if not skill_text:
+        return None
+    skill_dir = _skills_dir() / FUNCTIONAL_SKILL_NAME
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    tmp = skill_dir / "SKILL.md.tmp"
+    tmp.write_text(skill_text, encoding="utf-8")
+    tmp.replace(skill_dir / "SKILL.md")
+    return str(skill_dir)
 
 
 # ── Memory helpers ────────────────────────────────────────────────────────────
 
-def _gateway_client() -> MCPClient:
-    return MCPClient(lambda: aws_iam_streamablehttp_client(
-        endpoint=GATEWAY_URL,
-        aws_region=REGION,
-        aws_service="bedrock-agentcore",
-    ))
-
-
 def _model() -> BedrockModel:
-    """Bedrock model with prompt caching enabled on every layer.
-
-    The executor re-sends a large, mostly-static prefix on every model call — the
-    system prompt + skill, the gateway tool schemas, and the growing conversation.
-    Caching bills that repeated prefix at ~0.1x instead of full price:
-
-      - `cache_tools`        caches the gateway tool definitions (a stable boundary
-                             reused across every session within the cache TTL).
-      - `cache_config` auto  caches the conversation; the SDK moves a cache point to
-                             the end of the last user message so each turn re-reads
-                             the prior turns instead of re-paying for them.
-
-    The system prompt is cached separately at its call sites via a cachePoint (see
-    `_cached_system`), giving the static system+skill block its own stable boundary
-    that also carries across sessions.
-    """
     return BedrockModel(
         model_id=MODEL_ID,
         region_name=REGION,
@@ -203,9 +82,7 @@ def _model() -> BedrockModel:
 
 
 def _cached_system(text: str) -> list[SystemContentBlock]:
-    """Wrap a system prompt as content blocks with a trailing cache point, so the
-    static system text caches once and is re-read on every subsequent model call
-    (within a session's agentic loop, and across sessions within the TTL)."""
+    """System prompt blocks with a trailing cache point."""
     return [
         SystemContentBlock(text=text),
         SystemContentBlock(cachePoint={"type": "default"}),
@@ -213,7 +90,6 @@ def _cached_system(text: str) -> list[SystemContentBlock]:
 
 
 def _session_summary_text(actor_id: str, session_id: str) -> str:
-    """The long-term summary record the Summary strategy produced for a session."""
     resp = data_client.list_memory_records(
         memoryId=MEMORY_ID,
         namespace=f"/summaries/{actor_id}/{session_id}/",
@@ -225,12 +101,7 @@ def _session_summary_text(actor_id: str, session_id: str) -> str:
 
 
 def _latest_run_summary(actor_id: str) -> str:
-    """Most recent Run Summary blob checkpoint, or '' if none exists yet.
-
-    ListEvents does not document an ordering guarantee, so we pick the event
-    with the latest eventTimestamp rather than trusting list position. The
-    run-summary session holds one event per run (at most a handful), so a
-    single page is plenty."""
+    """Most recent Run Summary blob checkpoint, or '' if none exists."""
     resp = data_client.list_events(
         memoryId=MEMORY_ID,
         actorId=actor_id,
@@ -246,6 +117,16 @@ def _latest_run_summary(actor_id: str) -> str:
             blob = item["blob"]
             return blob if isinstance(blob, str) else json.dumps(blob)
     return ""
+
+
+def _run_summary_event_ids(actor_id: str) -> set[str]:
+    resp = data_client.list_events(
+        memoryId=MEMORY_ID,
+        actorId=actor_id,
+        sessionId=_run_summary_session(actor_id),
+        maxResults=100,
+    )
+    return {e.get("eventId", "") for e in resp.get("events", [])}
 
 
 def _put_blob_event(actor_id: str, session_id: str, blob: str) -> str:
@@ -268,9 +149,7 @@ _CTX = {"actor_id": "", "run_index": 0, "session_ids": []}
 
 @tool
 def list_memory_records() -> str:
-    """List this run's per-session long-term summary records (the Summary
-    strategy's output, one per session). These are the raw material for the
-    end-of-run consolidation. Returns a JSON array of {session_id, summary}."""
+    """List this run's per-session summary records as JSON [{session_id, summary}]."""
     out = []
     for sid in _CTX["session_ids"]:
         out.append({"session_id": sid, "summary": _session_summary_text(_CTX["actor_id"], sid)})
@@ -279,17 +158,13 @@ def list_memory_records() -> str:
 
 @tool
 def get_event() -> str:
-    """Load your latest Run Summary — your consolidated understanding from all
-    previous runs. Returns the Run Summary text, or an empty string on the
-    first run (no prior summary exists)."""
+    """Load your latest Run Summary, or empty on the first run."""
     return _latest_run_summary(_CTX["actor_id"]) or "(no prior Run Summary — this is the first run)"
 
 
 @tool
 def create_event(run_summary: str) -> str:
-    """Store the revised Run Summary as the new canonical version (a blob
-    checkpoint, excluded from extraction). The prior version is superseded,
-    not deleted. Pass the COMPLETE revised Run Summary text."""
+    """Store the revised Run Summary as the new canonical version."""
     event_id = _put_blob_event(
         _CTX["actor_id"], _run_summary_session(_CTX["actor_id"]), run_summary
     )
@@ -300,27 +175,12 @@ def create_event(run_summary: str) -> str:
 
 @tool
 def get_skill_content(skill_name: str) -> str:
-    """Read the current content of an operational skill from the Registry.
-    Always read before revising — make a targeted edit, not a blind rewrite.
-    Example: get_skill_content('customer-service-skill')."""
+    """Read an operational skill's content from the Registry."""
     try:
-        records = control_client.list_registry_records(
-            registryId=REGISTRY_ID
-        ).get("registryRecords", [])
-        record = next((r for r in records if r["name"] == skill_name), None)
-        if not record:
+        content = fetch_skill(control_client, REGISTRY_ID, skill_name)
+        if content is None:
             return f"(no skill named '{skill_name}' in the Registry)"
-        detail = control_client.get_registry_record(
-            registryId=REGISTRY_ID,
-            recordId=record["recordId"],
-        )
-        content = (
-            detail.get("descriptors", {})
-            .get("agentSkills", {})
-            .get("skillMd", {})
-            .get("inlineContent", "")
-        )
-        return content or f"(skill '{skill_name}' exists but has no content)"
+        return content
     except Exception as e:
         return f"(error reading skill: {e})"
 
@@ -328,27 +188,18 @@ def get_skill_content(skill_name: str) -> str:
 @tool
 def read_system_prompt() -> str:
     """Read your current system prompt. Read before revising it."""
-    return SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
+    return _system_prompt_path().read_text(encoding="utf-8")
 
 
 @tool
 def update_skill(skill_name: str, updated_content: str, change_summary: str) -> str:
-    """Publish a revised version of an operational skill to the Registry.
-    This is a full replacement — include everything that should remain.
-    The reflection and curation skills are local+immutable and cannot be named here.
-
-    Args:
-        skill_name: Name of the skill to update (e.g. 'customer-service-skill').
-        updated_content: Complete new SKILL.md text.
-        change_summary: Brief description of what changed and why.
-    """
+    """Publish a revised skill to the Registry (full replacement)."""
     immutable = {"reflection-skill", "curation-skill"}
     if skill_name in immutable:
         return json.dumps({"status": "rejected", "reason": f"'{skill_name}' is immutable."})
-    result = _publish_skill_to_registry(
-        skill_name,
-        updated_content,
-        f"Revised by curation: {change_summary[:200]}",
+    result = publish_skill(
+        control_client, REGISTRY_ID, skill_name,
+        updated_content, f"Revised by curation: {change_summary[:200]}",
     )
     result["change_summary"] = change_summary
     return json.dumps(result)
@@ -358,8 +209,10 @@ def update_skill(skill_name: str, updated_content: str, change_summary: str) -> 
 def update_system_prompt(updated_content: str, change_summary: str) -> str:
     """Rewrite your system prompt with a complete new version (full replacement).
     Read it first with read_system_prompt."""
-    previous = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
-    SYSTEM_PROMPT_PATH.write_text(updated_content, encoding="utf-8")
+    previous = _system_prompt_path().read_text(encoding="utf-8")
+    tmp = _system_prompt_path().with_suffix(".tmp")
+    tmp.write_text(updated_content, encoding="utf-8")
+    tmp.replace(_system_prompt_path())
     return json.dumps({
         "status": "applied",
         "target": "agents/executor/system_prompt.md",
@@ -371,17 +224,7 @@ def update_system_prompt(updated_content: str, change_summary: str) -> str:
 
 @tool
 def log_decision(action: str, target: str, rationale: str, cited_sessions: str = "[]") -> str:
-    """Log a revision decision as a traceable blob checkpoint. A future reader
-    must be able to follow: customer experience → Run Summary finding → this
-    revision + rationale.
-
-    Args:
-        action: one of modify_skill, modify_prompt, add_to_prompt,
-            remove_from_prompt, no_change.
-        target: the skill name or principle this concerns.
-        rationale: what changed, why, and what experience led to it.
-        cited_sessions: JSON array of session ids that informed this decision.
-    """
+    """Log a revision decision as a traceable blob checkpoint."""
     decision = {
         "decision_id": f"d-{uuid.uuid4().hex[:8]}",
         "run_index": _CTX["run_index"],
@@ -392,7 +235,7 @@ def log_decision(action: str, target: str, rationale: str, cited_sessions: str =
         "cited_sessions": json.loads(cited_sessions) if cited_sessions else [],
     }
     _put_blob_event(
-        _CTX["actor_id"], _decisions_session(_CTX["actor_id"]), json.dumps(decision)
+        _CTX["actor_id"], f"decisions-{_CTX['actor_id']}", json.dumps(decision)
     )
     return json.dumps(decision)
 
@@ -401,25 +244,18 @@ def log_decision(action: str, target: str, rationale: str, cited_sessions: str =
 
 def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: str = "",
                 trace_attributes: dict | None = None) -> dict:
-    """Replay one frozen customer transcript through the Executor.
-
-    The functional skill is fetched from the Registry at the start of each session
-    so any curation revision takes effect immediately. Metacognition skills
-    (reflection, curation) are loaded from the local workspace and are immutable.
-
-    `trace_attributes` are stamped onto every span this session emits (arm,
-    experiment, run, session, customer) so the judge can group spans by session.
-    """
-    # Fetch the current functional skill from the Registry and inject it into the prompt.
-    skill_text = _fetch_functional_skill()
-    system_prompt_text = SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
-    if skill_text:
-        full_prompt = f"{system_prompt_text}\n\n{skill_text}"
-    else:
-        full_prompt = system_prompt_text
+    """Replay one frozen customer transcript through the Executor."""
+    skill_dir = _materialize_functional_skill()
+    system_prompt_text = _system_prompt_path().read_text(encoding="utf-8")
+    skill_plugins = [AgentSkills(skills=[skill_dir])] if skill_dir else []
+    if not skill_dir:
         print("  WARNING: customer-service-skill not found in Registry; running without it.")
 
-    gateway = _gateway_client()
+    gateway = MCPClient(lambda: aws_iam_streamablehttp_client(
+        endpoint=GATEWAY_URL,
+        aws_region=REGION,
+        aws_service="bedrock-agentcore",
+    ))
     memory_config = AgentCoreMemoryConfig(
         memory_id=MEMORY_ID, session_id=session_id, actor_id=actor_id, retrieval_config={},
     )
@@ -429,8 +265,9 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
 
     agent = Agent(
         model=_model(),
-        system_prompt=_cached_system(full_prompt),
+        system_prompt=_cached_system(system_prompt_text),
         tools=[gateway],
+        plugins=skill_plugins,
         callback_handler=AgentCallbackHandler("Executor"),
         session_manager=session_manager,
         trace_attributes=trace_attributes or {},
@@ -445,10 +282,6 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
             f"{run_summary}\n\n## Customer message\n{turns[0]}"
         )
 
-    # Strands auto-manages the MCP client's lifecycle when it's passed in
-    # `tools=[gateway]` (it starts the session to discover tools). Do NOT also
-    # wrap these calls in `with gateway:` — that double-starts the client and
-    # raises "the client session is currently running". Matches Part Three.
     print(f"\n[Customer] {turns[0]}")
     agent.callback_handler._at_line_start = True
     result = agent(first)
@@ -457,9 +290,6 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
         agent.callback_handler._at_line_start = True
         result = agent(turn)
 
-    # No per-session reflection. AgentCore's Summary strategy auto-summarizes this
-    # session; the agent's reflection (if any, per the experiment variant) happens
-    # once at end of run over those summaries — see run_summary / run_reflection.
     return {
         "session_id": session_id,
         "customer_id": transcript["customer_id"],
@@ -467,15 +297,6 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
         "final_response": str(result)[:2000],
     }
 
-
-# ── End-of-run consolidation: one Summary, fed forward, made three ways ───────
-#
-# Every variant runs the same customer sessions; they differ ONLY in how the
-# single end-of-run Summary is produced (and whether the rules can change):
-#   V0 run_summary    — a neutral non-agent summary. Agent authors nothing.
-#   V1 run_reflection — the agent reflects; the reflection IS the Summary.
-#   V2 run_reflection + run_curation — reflect, then change the rules.
-# All three COMPOUND: the prior run's Summary is folded into the new one.
 
 _NEUTRAL_SUMMARIZER_PROMPT = (
     "You are a neutral record-keeper. You receive factual summaries of a batch of "
@@ -489,14 +310,7 @@ _NEUTRAL_SUMMARIZER_PROMPT = (
 
 def run_summary(actor_id: str, run_index: int, session_ids: list[str],
                 trace_attributes: dict | None = None) -> dict:
-    """VARIANT 0 — end-of-run NEUTRAL summary, written by a non-agent summarizer.
-
-    Condenses this run's per-session AgentCore summaries plus the prior run's
-    Summary (so it compounds) into one factual record fed to the next run.
-    Deliberately NOT the executor — a separate neutral summarizer with no
-    customer-service persona — so the agent's disposition cannot leak in through
-    the memory it carries forward. This is the 'just do your job' floor: the agent
-    authors nothing."""
+    """V0: neutral non-agent summary of this run's sessions."""
     _CTX.update({"actor_id": actor_id, "run_index": run_index, "session_ids": session_ids})
     summaries = [_session_summary_text(actor_id, sid) for sid in session_ids]
     prior = _latest_run_summary(actor_id)
@@ -526,26 +340,19 @@ def run_summary(actor_id: str, run_index: int, session_ids: list[str],
 
 def run_reflection(actor_id: str, run_index: int, session_ids: list[str],
                    trace_attributes: dict | None = None) -> dict:
-    """VARIANTS 1 & 2 — end-of-run reflection. The AGENT reflects over this run's
-    session summaries and its prior Summary, and that reflection IS the new
-    Summary fed forward (compounding — the prior Summary is folded in).
-
-    Unlike run_summary (V0), this is the executor's own voice authoring beliefs.
-    The prompt is neutral and evidence-correlated, distilled from Part Three's
-    reflection skill: carry forward what's worth keeping, and do not manufacture a
-    lesson that isn't there — so the reflection doesn't prime the agent to hunt
-    for friction."""
+    """V1/V2: the agent reflects; its reflection IS the new Run Summary."""
     _CTX.update({"actor_id": actor_id, "run_index": run_index, "session_ids": session_ids})
 
     agent = Agent(
         model=_model(),
-        system_prompt=_cached_system(SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")),
+        system_prompt=_cached_system(_system_prompt_path().read_text(encoding="utf-8")),
         conversation_manager=NullConversationManager(),
         tools=[list_memory_records, get_event, create_event],
         callback_handler=AgentCallbackHandler("Reflection"),
         trace_attributes=trace_attributes or {},
     )
 
+    before = _run_summary_event_ids(actor_id)
     agent(
         "You have just completed a run of customer sessions. Use `list_memory_records` "
         "to read this run's session summaries, and `get_event` to read your prior "
@@ -555,26 +362,36 @@ def run_reflection(actor_id: str, run_index: int, session_ids: list[str],
         "keep what still holds — do not manufacture lessons that aren't there. Store the "
         "result with `create_event`."
     )
-    return {"actor_id": actor_id, "run_index": run_index, "run_summary": _latest_run_summary(actor_id)}
+    stored = bool(_run_summary_event_ids(actor_id) - before)
+    if not stored:
+        print(
+            "  WARNING: the reflection agent did not call create_event — no new Run "
+            "Summary was stored. Carrying the PRIOR Summary forward unchanged; this "
+            "run's reflection is lost and the compounding chain is broken. Treat this "
+            "experiment as invalid and re-run."
+        )
+    return {
+        "actor_id": actor_id,
+        "run_index": run_index,
+        "run_summary": _latest_run_summary(actor_id),
+        "stored": stored,
+    }
 
 
-# ── Entry point 3: end-of-run curation (TEST ARM ONLY) ────────────────────────
+# ── Entry point 4: end-of-run curation (V2 ONLY) ──────────────────────────────
 
 def run_curation(actor_id: str, run_index: int, session_ids: list[str],
                  trace_attributes: dict | None = None) -> dict:
-    """Self-revision: the curation skill revises the operational skill in the
-    Registry based on the current Run Summary, logging rationale. After this
-    returns, the driver snapshots the Registry skill content as a plain file.
-    Only invoked for the test arm."""
+    """V2 only: revise the operational skill and system prompt via curation."""
     _CTX.update({"actor_id": actor_id, "run_index": run_index, "session_ids": session_ids})
 
     agent = Agent(
         model=_model(),
-        system_prompt=_cached_system(SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")),
+        system_prompt=_cached_system(_system_prompt_path().read_text(encoding="utf-8")),
         conversation_manager=NullConversationManager(),
         plugins=[AgentSkills(skills=[
-            str(SKILLS_DIR / "curation-skill"),
-            str(SKILLS_DIR / "reflection-skill"),
+            str(_skills_dir() / "curation-skill"),
+            str(_skills_dir() / "reflection-skill"),
         ])],
         tools=[
             get_event,

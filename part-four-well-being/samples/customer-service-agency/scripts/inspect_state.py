@@ -1,15 +1,4 @@
-"""
-Show what the experiment produced — read-only, no cloud needed.
-
-For a given driver-run folder under state/, prints each arm/experiment's:
-  - the agent's notes after each run (run_summaries/), so you can see how its
-    long-term thinking changed run to run,
-  - the revision decisions it logged, and where the instruction snapshots live
-    (compare those folders to see exactly what changed).
-
-  python scripts/inspect_state.py                 # newest state/ folder
-  python scripts/inspect_state.py 2026-06-15T14-30-00
-"""
+"""Print experiment results from a state/ folder (read-only, no cloud)."""
 
 import json
 import sys

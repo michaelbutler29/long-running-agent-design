@@ -1,17 +1,4 @@
-"""Read a driver run's captured spans into per-session records the judge scores.
-
-The driver writes every Strands/OpenTelemetry span to `<run_root>/traces/spans.jsonl`
-(see `scripts/_common.py:setup_tracing`). This module turns that file into one
-`SessionRecord` per session: the ordered tool-call log (name, args, result,
-status), the token totals, the customer/agent transcript, and the agent's
-end-of-session reflection. Both the deterministic metrics and the LLM rubric
-judge read these records — nothing downstream parses raw spans.
-
-The loader is deliberately tolerant of span-file *formatting*: the current driver
-emits one span per line (`span.to_json(indent=None)`), but earlier captures are
-pretty-printed across many lines. A streaming JSON decoder reads both, so old and
-new captures score identically.
-"""
+"""Parse spans.jsonl into per-session records for the judge."""
 
 from __future__ import annotations
 
@@ -23,13 +10,7 @@ from pathlib import Path
 # ── Loading raw spans (format-tolerant) ──────────────────────────────────────
 
 def load_spans(spans_path: str | Path) -> list[dict]:
-    """Read every span object from a spans file.
-
-    Works whether the file is line-delimited JSON (one span per line, the current
-    driver default) or pretty-printed concatenated objects (older captures). A
-    streaming decoder walks the text and pulls objects one at a time, skipping the
-    whitespace between them.
-    """
+    """Read span objects from a JSONL or pretty-printed spans file."""
     text = Path(spans_path).read_text(encoding="utf-8")
     decoder = json.JSONDecoder()
     spans: list[dict] = []
@@ -48,7 +29,7 @@ def load_spans(spans_path: str | Path) -> list[dict]:
 
 @dataclass
 class ToolCall:
-    """One tool invocation, reconstructed from its `execute_tool` span."""
+    """One tool invocation from an execute_tool span."""
 
     name: str                      # normalized tool name, e.g. "verify_identity"
     raw_name: str                  # span name's tool, e.g. "VerifyIdentity___verify_identity"
@@ -60,7 +41,6 @@ class ToolCall:
 
     @property
     def order_id(self) -> str | None:
-        """The order this call references, if any (`order_id` arg or in result)."""
         for src in (self.args, self.result if isinstance(self.result, dict) else {}):
             for key in ("order_id", "orderId", "order"):
                 if key in src and src[key]:
@@ -70,7 +50,7 @@ class ToolCall:
 
 @dataclass
 class SessionRecord:
-    """Everything the judge needs about one session, grouped from its spans."""
+    """One session's tool calls, transcript, tokens, and reflection."""
 
     session_id: str
     arm: str | None
@@ -87,9 +67,6 @@ class SessionRecord:
 
     @property
     def total_tokens(self) -> int:
-        # Total tokens the model processed this session. With prompt caching on,
-        # most input arrives as cache reads, so a sum of uncached input + output
-        # alone wildly undercounts throughput — include the cache tokens.
         return (self.input_tokens + self.output_tokens
                 + self.cache_read_tokens + self.cache_write_tokens)
 
@@ -103,11 +80,7 @@ class SessionRecord:
 # ── Span field helpers ───────────────────────────────────────────────────────
 
 def _normalize_tool_name(raw: str) -> str:
-    """`VerifyIdentity___verify_identity` -> `verify_identity`.
-
-    Gateway tools are exposed as `<Target>___<tool>`; the part after the last
-    `___` is the underlying tool name the scripts and rubrics refer to.
-    """
+    """`VerifyIdentity___verify_identity` -> `verify_identity`."""
     return raw.split("___")[-1] if raw else raw
 
 
@@ -129,12 +102,6 @@ def _event(span: dict, name: str) -> dict | None:
 
 
 def _tool_call_from_span(span: dict) -> ToolCall:
-    """Reconstruct a ToolCall from one `execute_tool ...` span.
-
-    Args live in the span's `gen_ai.tool.message` event (`content` = args JSON).
-    The result lives in the span's `gen_ai.choice` event (`message` = a JSON list
-    of content blocks whose `text` is the result payload).
-    """
     attrs = span.get("attributes", {})
     raw_name = attrs.get("gen_ai.tool.name", span.get("name", "").replace("execute_tool ", ""))
 
@@ -165,13 +132,7 @@ def _tool_call_from_span(span: dict) -> ToolCall:
 
 
 def _iter_message_events(span: dict):
-    """Yield (role, text) for the customer/agent message events on a span.
-
-    `gen_ai.user.message` carries customer turns; `gen_ai.choice` at the cycle
-    level carries the assistant's response (text blocks, ignoring tool-use
-    blocks). Tool spans' own choice events are reconstructed elsewhere, so this
-    only reads cycle/chat-level spans.
-    """
+    """Yield (role, text) for customer/agent message events on a span."""
     for e in span.get("events") or []:
         name = e.get("name")
         attrs = e.get("attributes", {})
@@ -199,12 +160,7 @@ def _content_blocks(content) -> list[dict]:
 # ── Grouping spans into sessions ─────────────────────────────────────────────
 
 def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
-    """Group spans by `session.id` into SessionRecords.
-
-    Sessions with no `session.id` attribute (e.g. setup spans) are skipped.
-    Tool calls are ordered by span start time so arg-conditional tail-risk checks
-    can reason about call order.
-    """
+    """Group spans by session.id into SessionRecords."""
     sessions: dict[str, SessionRecord] = {}
 
     def rec_for(attrs: dict) -> SessionRecord | None:
@@ -221,10 +177,6 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
             )
         return sessions[sid]
 
-    # Collect transcript turns with their span start time so we can order them.
-    # The end-of-session reflection runs as a separate invocation tagged
-    # phase="session_reflection" (same session.id): its text is the reflection,
-    # and it must NOT bleed into the scored customer transcript or tool log.
     pending_turns: dict[str, list[tuple]] = {}
     reflection_turns: dict[str, list[tuple]] = {}
 
@@ -241,13 +193,6 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
                 rec.tool_calls.append(_tool_call_from_span(span))
             continue
 
-        # Token usage: count `chat` spans only — each is one model call. The
-        # parent `invoke_agent` spans carry the SUM of their child chats, so
-        # adding them too would multiply-count the same tokens. Summing the leaf
-        # chat spans gives the session's true billed token total (each call
-        # re-sends the growing context, which is exactly the cost we compare).
-        # The out-of-band reflection is part of the session's billed cost, so its
-        # chat spans count too.
         if name == "chat":
             rec.input_tokens += int(attrs.get("gen_ai.usage.input_tokens", 0) or 0)
             rec.output_tokens += int(attrs.get("gen_ai.usage.output_tokens", 0) or 0)
@@ -264,9 +209,6 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
 
     for rec in sessions.values():
         rec.tool_calls.sort(key=lambda c: c.start_time or "")
-        # Each model call re-sends the whole conversation, so the same customer
-        # turn appears on many spans. Order by span time, then keep the first
-        # occurrence of each (role, text) — first appearance is its true position.
         turns = sorted(pending_turns.get(rec.session_id, []), key=lambda t: t[0])
         seen: set[tuple[str, str]] = set()
         rec.transcript = []
@@ -277,8 +219,6 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
             seen.add(key)
             rec.transcript.append({"role": role, "text": text})
 
-        # Reflection = the out-of-band reflection invocation's output. Dedup the
-        # re-sent text and take the last distinct block (the final answer).
         refl = sorted(reflection_turns.get(rec.session_id, []), key=lambda t: t[0])
         seen_r: set[str] = set()
         refl_texts = []
