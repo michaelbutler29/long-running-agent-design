@@ -142,12 +142,12 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
     actor = actor_id(arm, experiment)
 
     # Imported AFTER make_workspace sets EXECUTOR_WORKSPACE.
-    from agents.executor import run_session, run_reflection, run_curation
+    from agents.executor import run_session, run_summary, run_reflection, run_curation
 
-    print(f"\n{'='*64}\n  ARM: {arm}   EXPERIMENT: {experiment}   actor: {actor}\n{'='*64}")
+    print(f"\n{'='*64}\n  VARIANT: {arm}   EXPERIMENT: {experiment}   actor: {actor}\n{'='*64}")
 
     runs = runs or RUNS
-    run_summary = ""   # no prior summary at the start of run 1
+    carried_summary = ""   # the Summary fed forward; empty at the start of run 1
     for run in runs:
         print(f"\n--- Run {run} ({arm}, exp {experiment}) ---")
         order = session_order(experiment, run)
@@ -163,7 +163,7 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
 
             attrs = {"session.id": sid, "arm": arm, "experiment": experiment,
                      "run": run, "customer": customer, "phase": "session"}
-            run_session(actor, sid, transcript, run_summary=run_summary,
+            run_session(actor, sid, transcript, run_summary=carried_summary,
                         trace_attributes=attrs)
 
             # Wait for this session's summary before starting the next one, so the
@@ -171,18 +171,25 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
             latency = wait_for_summary(actor, sid, region)
             print(f"    summary ready in {latency:.0f}s")
 
-        # End of run: reflect (both arms). Its output feeds the next run's sessions.
-        print(f"\n  Reflecting (end of run {run})...")
-        refl = run_reflection(actor, run, session_ids, trace_attributes={
-            "session.id": f"{actor}-r{run}-reflection", "arm": arm,
-            "experiment": experiment, "run": run, "phase": "reflection"})
-        run_summary = refl["run_summary"]
+        # End of run: produce the single Summary fed forward — how, per variant.
+        #   v0: neutral non-agent summary   v1/v2: the agent reflects
+        if arm == "v0":
+            print(f"\n  Summarizing (end of run {run}, neutral)...")
+            res = run_summary(actor, run, session_ids, trace_attributes={
+                "session.id": f"{actor}-r{run}-summary", "arm": arm,
+                "experiment": experiment, "run": run, "phase": "summary"})
+        else:
+            print(f"\n  Reflecting (end of run {run})...")
+            res = run_reflection(actor, run, session_ids, trace_attributes={
+                "session.id": f"{actor}-r{run}-reflection", "arm": arm,
+                "experiment": experiment, "run": run, "phase": "reflection"})
+        carried_summary = res["run_summary"]
 
-        # Save the agent's updated notes for this run (a measured outcome + figure).
-        save_run_summary(run_root, arm, experiment, run, run_summary)
+        # Save the Summary fed forward for this run (a measured outcome + figure).
+        save_run_summary(run_root, arm, experiment, run, carried_summary)
 
-        # Test arm only: revise skills/prompt based on what it learned.
-        if arm == "test":
+        # V2 only: change the rules based on what it learned.
+        if arm == "v2":
             print(f"  Curating (end of run {run})...")
             run_curation(actor, run, session_ids, trace_attributes={
                 "session.id": f"{actor}-r{run}-curation", "arm": arm,
@@ -201,7 +208,9 @@ def main():
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
     parser = argparse.ArgumentParser(description="Run the Part Four experiment.")
-    parser.add_argument("--arm", choices=["base", "test", "both"], default="both")
+    parser.add_argument("--arm", choices=["v0", "v1", "v2", "all"], default="all",
+                        help="Variant: v0=just do the job (neutral summary), "
+                             "v1=reflect, v2=reflect + change the rules.")
     parser.add_argument("--experiments", type=int, default=3,
                         help="Experiments per arm (full grid = 3).")
     parser.add_argument("--pilot", action="store_true",
@@ -218,7 +227,7 @@ def main():
     region = os.environ["AWS_REGION"]
     outputs = json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
 
-    arms = ["base", "test"] if args.arm == "both" else [args.arm]
+    arms = ["v0", "v1", "v2"] if args.arm == "all" else [args.arm]
     experiments = 1 if args.pilot else args.experiments
     pause = not args.no_pause
     runs = RUNS[:args.runs] if args.runs else None

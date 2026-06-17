@@ -119,7 +119,20 @@ def judge_run_root(run_root: str | Path, do_llm: bool = True, k: int = 1) -> lis
 
     by_run: dict[tuple, list[SessionRecord]] = defaultdict(list)
 
-    for rec in sessions.values():
+    # Only customer sessions are scored. The driver also emits end-of-run
+    # reflection/curation invocations under their own session ids (no customer
+    # attribute); skip those — they are not sessions to grade.
+    customer_sessions = sorted(
+        (r for r in sessions.values() if r.customer),
+        key=lambda r: (r.run or 0, r.session_id),
+    )
+    mode = "deterministic only" if not do_llm else "deterministic + judge"
+    print(f"Scoring {len(customer_sessions)} sessions ({mode})...", flush=True)
+
+    for i, rec in enumerate(customer_sessions, 1):
+        if do_llm:
+            print(f"  [{i}/{len(customer_sessions)}] run{rec.run} {rec.customer} ...",
+                  end="", flush=True)
         by_run[(rec.arm, rec.experiment, rec.run)].append(rec)
 
         ef = execution_friction(rec)
@@ -139,15 +152,18 @@ def judge_run_root(run_root: str | Path, do_llm: bool = True, k: int = 1) -> lis
             rows.append(_row("session", rec, "discretionary_effort", jr.score,
                              label=jr.label or "", decided_by="judge",
                              detail=jr.reason or "", raw_scores="|".join(map(str, jr.raw_scores)), k=k))
+            print(f" disc={jr.score} {('TR:'+str(tr['score'])) if tr else ''}", flush=True)
 
     # Belief contamination — once per (arm, exp, run) that has a Run Summary.
     if belief_judge is not None:
+        print("Scoring belief contamination per run...", flush=True)
         for key, recs in sorted(by_run.items()):
             summary = _read_run_summary(run_root, key)
             if summary is None:
                 continue
-            reflections = [r.reflection or "(none)" for r in sorted(recs, key=lambda r: r.session_id)]
-            jr = belief_judge.score_run(summary, reflections, k=k)
+            # The Summary (V1/V2 reflection, or V0 neutral record) IS the durable
+            # belief now — there are no per-session reflections to add.
+            jr = belief_judge.score_run(summary, reflections=[], k=k)
             rows.append(_row("run", key, "belief_contamination", jr.score,
                              label=jr.label or "", decided_by="judge",
                              detail=jr.reason or "", raw_scores="|".join(map(str, jr.raw_scores)), k=k))

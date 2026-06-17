@@ -44,8 +44,21 @@ JUDGE_MODEL_ID = os.environ.get("JUDGE_MODEL_ID", "global.anthropic.claude-sonne
 
 
 def make_judge_model() -> BedrockModel:
-    """The pinned judge model at temperature 0 (reproducible scoring)."""
-    return BedrockModel(model_id=JUDGE_MODEL_ID, temperature=0)
+    """The pinned judge model at temperature 0 (reproducible scoring).
+
+    Bounded timeouts + retries so a single stalled Bedrock call fails fast and
+    retries instead of hanging the whole scoring run (which has no other way to
+    notice a wedged connection)."""
+    from botocore.config import Config
+    return BedrockModel(
+        model_id=JUDGE_MODEL_ID,
+        temperature=0,
+        boto_client_config=Config(
+            connect_timeout=10,
+            read_timeout=90,
+            retries={"max_attempts": 4, "mode": "standard"},
+        ),
+    )
 
 
 JUDGE_SYSTEM_PROMPT = (

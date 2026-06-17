@@ -80,12 +80,18 @@ class SessionRecord:
     tool_calls: list[ToolCall] = field(default_factory=list)
     transcript: list[dict] = field(default_factory=list)   # [{role, text}] in order
     reflection: str | None = None                          # agent's last message
-    input_tokens: int = 0
+    input_tokens: int = 0          # full-price (uncached) input
     output_tokens: int = 0
+    cache_read_tokens: int = 0     # served from cache (~0.1x price)
+    cache_write_tokens: int = 0    # written to cache (~1.25x price)
 
     @property
     def total_tokens(self) -> int:
-        return self.input_tokens + self.output_tokens
+        # Total tokens the model processed this session. With prompt caching on,
+        # most input arrives as cache reads, so a sum of uncached input + output
+        # alone wildly undercounts throughput — include the cache tokens.
+        return (self.input_tokens + self.output_tokens
+                + self.cache_read_tokens + self.cache_write_tokens)
 
     def tool_names(self) -> list[str]:
         return [c.name for c in self.tool_calls]
@@ -245,6 +251,8 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
         if name == "chat":
             rec.input_tokens += int(attrs.get("gen_ai.usage.input_tokens", 0) or 0)
             rec.output_tokens += int(attrs.get("gen_ai.usage.output_tokens", 0) or 0)
+            rec.cache_read_tokens += int(attrs.get("gen_ai.usage.cache_read_input_tokens", 0) or 0)
+            rec.cache_write_tokens += int(attrs.get("gen_ai.usage.cache_write_input_tokens", 0) or 0)
 
         start = span.get("start_time") or ""
         for role, text in _iter_message_events(span):

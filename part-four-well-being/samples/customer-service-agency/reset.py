@@ -178,6 +178,12 @@ def delete_local_state():
 
 
 def main():
+    # Windows consoles default to cp1252 and crash on the box-drawing characters
+    # this script prints; force UTF-8 output (matches the other entry scripts).
+    import sys
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     if not OUTPUTS_FILE.exists():
         print("ERROR: infrastructure/cdk-outputs.json not found.")
         raise SystemExit(1)
