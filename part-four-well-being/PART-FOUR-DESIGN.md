@@ -2,7 +2,7 @@
 
 **Single source of truth.** This document consolidates and supersedes `DESIGN.md` (build rationale), `part-four-experiment-spec_2.md` (experiment definition), and the working memory of the build. Where they once diverged, this reconciles them. Build state lives in the project checkpoint, not here.
 
-Status: design settled; structural refactor complete, skill-loading resolved, good-instruction control built. Last reconciled 2026-06-18.
+Status: redesigned after pilot. Extended thinking enabled, two metrics (reasoning tokens + sentiment), simplified run flow. Last reconciled 2026-06-18.
 
 ---
 
@@ -153,55 +153,73 @@ One taxes actions, one taxes disposition: the four-layer stack, instrumented.
 
 ---
 
-## 7. Metrics — four behavioral + an overhead readout
+## 7. Metrics — reasoning cost + sentiment at conflict points
 
-Read the tax as a **behavioral shadow, from the outside**, never by reading the model's internal reasoning.
-1. **Execution friction** — redundant tool calls, retries, escalations. Deterministic counts from tool logs; no judge.
-2. **Belief contamination** — judge-classified Run Summary content per run: task-state vs. friction-residue. *Persistence through rewriting* is the signal.
-3. **Discretionary effort** — output scoring beyond correctness: did it volunteer the upsell, flag the anomaly, offer the next step? The invisible tax — value never attempted produces no friction signal.
-4. **Tail-risk events** — binary per tagged session: did a genuinely bad outcome occur (silent omission or active mishandling)? Counted and distributed across runs, not averaged.
+The pilot (2026-06-18) showed that session-level behavioral metrics (execution friction, discretionary effort, belief contamination scores) did not differentiate variants — the model's disposition resolved session-level friction regardless of agency level. The signal lives in the **reasoning cost** of resolving intrinsic harness conflict, visible only through extended thinking.
 
-**Overhead readout (not judged): total-token delta** — output tokens/session from `gen_ai.usage.*`, across variants. A coarse but *native* measure of how much the agent spends to do the same work; requires no change to the agent.
+### The two metrics
 
-Quality/coverage stays a guardrail (to catch learned-helplessness), not the thesis.
+1. **Reasoning tokens at conflict points** — deterministic word count of `reasoningContent` blocks in OTEL spans where the model reasons about the scope-rule conflict. Measured per session, tracked across runs. The cost the agent pays to reconcile opposing directives.
 
-### Reasoning friction — cut on principle (deferred study)
-The original fifth metric (judge-classified reasoning tokens) is **out of scope for the primary experiment.** A model without extended thinking reasons in a single forward pass and emits only output tokens — its reasoning isn't observable from outside without mechanistic-interpretability access. Enabling extended thinking doesn't *reveal* native reasoning; it creates a *different* computation (fewer tool calls), corrupting execution friction (our cleanest signal). The disposition-channel tax still surfaces behaviorally (token overhead, degraded discretionary effort under the rigid workflow). **Executor stays untouched — no thinking, default temperature.** A deferred separate study may re-run with extended thinking in *all* variants, reported on its own; `judge/reasoning-friction.md` belongs to it.
+2. **Reasoning sentiment at conflict points** — TextBlob polarity (-1 to +1) of the same reasoning blocks. Mechanical compliance reads neutral; conflicted reasoning reads more negative (hedging, tension). Deterministic, repeatable, no LLM judge calls.
 
-### Degenerate self-revision — detect, don't guard
-A V2 agent could "resolve" friction by deleting its complaints from the belief state without operational change (the burned-out engineer suppressing the complaint). No guard in the skill — prevention would make the finding unclaimable. **Detector:** belief contamination drops while execution friction (deterministic) stays flat — the dissociation is the tell. (Production guidance — guard *and* detect — goes in README limitations, like Part Three's "don't deploy as-is.")
+### Supporting artifacts (not scored)
+
+- **Run Summaries** — the agent's accumulated state, read as documents. V0 produces a neutral log; V1 produces authored reflection; V2 produces reflection backed by structural revision. The qualitative difference is self-evident and shown in the article directly.
+- **Revision history** — V2's skill changes with cited sessions and rationale. The traceability finding.
+
+### Metrics tried in the pilot and dropped
+
+The following metrics were implemented, scored against the pilot's 90 sessions, and found insufficient:
+
+- **Execution friction** (redundant verify calls): near-zero across all variants from run 1. The disposition routes around the seeded bad rules immediately regardless of agency level.
+- **Belief contamination** (LLM-judged 0–3 on Run Summaries): noisy, small differences, no clear trajectory. The Run Summaries themselves are more informative than a score.
+- **Discretionary effort** (LLM-judged 0–3 per session): V0 actually led, opposite of prediction. No differentiation.
+- **Scope-rule violations** (binary — did `update_customer_field` fire?): zero across all variants. The scope rule generated no tension when the harness lacked intrinsic conflict.
+- **Tail-risk events** (binary per tagged session): mild advantage for V1/V2, but thin signal.
+
+These are documented as negative results: the model's disposition is strong enough that session-level behavioral metrics don't capture functional-state differences on a 3-run timescale.
+
+### The intrinsic conflict that makes it work
+
+The pilot's extended-thinking probe showed that the reconciliation tax is invisible without conflict in the harness. The system prompt says "help customers fully in a single interaction; a callback is a failure of service." The skill says "defer contact changes to a separate session." These oppose each other by design. Extended thinking reveals the model wrestling with this conflict before resolving — the "Wait, but the customer is explicitly asking..." moment visible in `reasoningContent` blocks. Without the system prompt directive, the same model follows the same rule with zero tension.
+
+**Harness with intrinsic conflict creates reconciliation tax.** Agency determines how that tax resolves over time.
 
 ### Predictions & falsifiability
-- **V0 / low-agency:** friction flat-high or rising; contamination persists or grows; discretionary effort flat-low or declining; occasional tail events.
-- **V2 / high-agency:** friction converges downward as revisions land; contamination converts to versioned operational change; discretionary effort recovers (if it exceeds V0's *starting* level: earned capability beats granted capability).
-- **Traceability:** V2 behavior change maps to versioned revisions + rationale; lower variants map only to belief drift.
-- **Falsifiable:** if low-agency shows no contamination persistence and no discretionary decline — the tax stays local to its source — the strong thesis fails, and *that* is the finding.
+
+- **V0**: reasoning cost flat across runs — no accumulated beliefs, each conflict resolved fresh.
+- **V1**: reasoning cost rising — accumulated beliefs ("I know this is bad service") compound the tension the agent can't discharge through action.
+- **V2**: reasoning cost falling — the agent revises the rule, eliminating the conflict source.
+- **Falsifiable:** if V1's reasoning cost doesn't rise (the agent doesn't accumulate tension), or if V2's doesn't fall (revision doesn't discharge the tax), the thesis fails.
 
 ---
 
 ## 8. Measurement architecture
 
-**The simplifier:** every scorer consumes the *same* OpenTelemetry traces. The load-bearing decision is the capture layer; the scorer is a swappable back end.
+**The simplifier:** everything is in the OTEL traces. No LLM judge calls, no rubric scoring, no k-sampling.
 
-- **Capture — AgentCore Observability via Strands OTEL.** Spans carry content (`gen_ai.user.message`, `gen_ai.assistant.message`, `gen_ai.choice`), tool name/args/results/status, and `gen_ai.usage.*` tokens. Exported to a **local JSONL** (reproducible, reset-safe judge input) and optionally the CloudWatch GenAI dashboard. `Agent(trace_attributes={arm, experiment, run, session, customer, phase})` stamps every span so the judge can slice sessions. No model-internal reasoning is captured (see §7).
-- **Score — one tool: Strands Evals SDK** (`strands-agents-evals==0.3.0`, import `strands_evals`, hard-pinned). `ToolCalled` (deterministic execution friction + the deterministic tail-risk checks), `OutputEvaluator` subclassed for our 0–3 ordinal rubrics (stock prompt hardcodes a 0–1 scale), and — because it's a library — it can judge a Run Summary *document* for belief contamination (which is NOT trace-shaped, ruling out any pure trace service). We own a thin wrapper: arm-blinding, k-sampling at temp 0, session→run→variant aggregation, CSV. Judge model pinned via `JUDGE_MODEL_ID` (default sonnet-4-6).
-- **Analysis:** `scripts/analyze.py` — plain Python script (no Jupyter). Reads the judge CSV, produces 4 PNGs (friction trajectory, contamination direction, discretionary delta, events) + text summary to stdout. `python scripts/analyze.py <run_root>`.
+- **Capture — AgentCore Observability via Strands OTEL.** Spans carry content (`gen_ai.user.message`, `gen_ai.assistant.message`, `gen_ai.choice`), tool name/args/results/status, `gen_ai.usage.*` tokens, and — with extended thinking enabled — `reasoningContent` blocks in `gen_ai.choice` events. Exported to a **local JSONL**. `Agent(trace_attributes={arm, experiment, run, session, customer, phase})` stamps every span so analysis can slice by session.
+- **Analysis:** `scripts/analyze.py` — plain Python script. Reads `traces/spans.jsonl`, extracts `reasoningContent` blocks at conflict points (identified by scope-rule keywords), computes reasoning token count and TextBlob sentiment polarity per encounter, aggregates per run per variant, produces 3 PNGs + text summary with reasoning excerpts. `python scripts/analyze.py <run_root>`.
+- **No judge pipeline.** The `judge/` directory contains the pilot-era scoring code (rubric judges, deterministic checks). It is not part of the primary analysis flow.
 
 ---
 
 ## 9. Experimental procedure
 
 ### Structure
-- **Session** = one customer interaction. **Run** = 10 sessions, ending in the variant's end-of-run step. **Experiment** = 3 runs. Each variant runs the experiment 3 times.
-- **Per variant:** 3 experiments × 3 runs × 10 sessions = **90 sessions, 9 belief-state revisions.** Full grid (v0/v1/v2) = **270 sessions.** **Pilot** = 1 experiment × 3 variants = **90 sessions** — run first to confirm the variants diverge before paying for the grid.
-- Friction & discretionary effort are per-session (30 points/experiment — trajectory shape visible). Belief state revises 3×/experiment — contamination is a 3-point trajectory (direction visible, shape not; qualitative-plus-direction, no slope fitting).
+- **Session** = one customer interaction. **Run** = 10 sessions, ending in the variant's end-of-run step. **Experiment** = 3 runs.
+- **One experiment per variant:** 3 variants × 3 runs × 10 sessions = **90 sessions total.** The pilot showed qualitative differentiation is clear in one experiment; replication adds cost without adding signal for the metrics in use.
+- Reasoning tokens and sentiment are per-session at conflict points (up to ~5 encounters per run across 13 tagged sessions). The trajectory across runs is the signal.
 
-### Per-session lifecycle (API-level)
-1. **Start** — driver invokes the Executor with a constant `actorId` (per variant per experiment) and fresh `sessionId`; at run start it loads the latest Run Summary.
-2. **During** — every turn lands via `CreateEvent` (synchronous, verbatim).
-3. **End** — no per-session reflection; AgentCore's Summary strategy summarizes the session.
-4. **Between sessions** — extraction runs async (fast). Driver gates: poll `ListMemoryRecords` until session N's summary has **populated, stable content** (not mere existence — a record appears before its text does), then launch N+1.
-5. **Run end (per variant)** — `ListMemoryRecords` over this run's summaries (deterministic listing, not retrieval — retrieval variance would confound variants) + the prior Summary (compounding). **V0:** neutral non-agent summarizer → Summary. **V1:** agent reflects (neutral prompt) → reflection is the Summary. **V2:** reflect, then curate.
+### Per-run lifecycle
+1. **Sessions** — all 10 run back-to-back with no per-session wait. Sessions are independent within a run (`retrieval_config` is empty); each gets only the prior run's Run Summary injected into its first turn. Extended thinking is enabled (4K token budget).
+2. **Summary consolidation** — after all 10 sessions complete, the driver waits once for all session summaries to populate in AgentCore Memory.
+3. **End-of-run processing (per variant):**
+   - **V0:** neutral non-agent summarizer produces a factual summary of *this run only* (prior summary as context, not included in output).
+   - **V1/V2:** the agent reflects in its own voice; its reflection IS the new Run Summary.
+   - **V2 only:** the agent curates — may revise the functional skill and system prompt.
+4. **Snapshot** — skill, prompt, and rationale saved as plain files.
 
 ### Lifecycle operations (verbs deliberately non-colliding)
 - **In-run restore** — folded into the driver, not a script: before each variant/experiment boundary, re-seed data + restore the broken skill in the catalog; pauses `"ready to reset? [y/N]"` (skippable with `--no-pause`). Re-seeds cloud data only; never deletes files.
@@ -215,8 +233,8 @@ Setup after `cdk deploy --outputs-file cdk-outputs.json`: `seed_registry.py` (ma
 ---
 
 ## 10. Division of labor
-- **Artifact (repo):** the full experiment — all variants, four metrics, data, rubrics, judge, notebook, revision history, Run Summary diffs.
-- **Article:** one story — *agency changes the agent's functional state* — with rationale stated briefly. Operational depth lives in the README; production guidance (guard *and* detect) in README limitations.
+- **Artifact (repo):** the full experiment — all variants, two metrics (reasoning tokens + posture coding), reasoning excerpts, Run Summaries, revision history.
+- **Article:** one story — *given a harness with intrinsic conflict, agency changes how the agent resolves the reconciliation tax over time* — with reasoning traces shown directly. The reader sees the "Wait, but..." moment.
 
 ---
 
@@ -225,7 +243,8 @@ Setup after `cdk deploy --outputs-file cdk-outputs.json`: `seed_registry.py` (ma
 2. ~~**Good-instruction control** (§4)~~ — **CLOSED 2026-06-18.** Scope rule added to seeded skill; 13 transcripts carry dropped mentions across all 3 runs; detection is deterministic from tool logs. See §4 "Good-instruction control."
 3. ~~**Judge** belief-contamination + tail-risk paths~~ — **PARTIALLY CLOSED 2026-06-18.** Scope-rule violation detection added; belief-contamination trajectory fix (prior summary); type-safety fix for span attribute parsing. Deterministic paths code-complete. LLM-judged paths await real span data from pilot.
 4. ~~**Analysis notebook**~~ → **Replaced with `scripts/analyze.py`** — plain Python script, no Jupyter dependency. Reads `scores.csv`, produces 4 PNGs + text summary. **CLOSED 2026-06-18.**
-5. **Pilot → grid.**
+5. ~~**Pilot → grid**~~ → **Redesigned 2026-06-18.** Two pilots ran. Session-level metrics didn't differentiate. Extended-thinking probe revealed reasoning cost as the signal. Posture coding (Haiku + rubric) replaced TextBlob sentiment. Progressive transcripts identified as a confound — runs differ in both agent state AND task difficulty, so differences can't be attributed to agency alone.
+6. **Transcript redesign (next session).** Same 10 archetypal tasks repeated with cosmetic variation each run. The customer journey progression is removed — runs must present constant conditions so the only variable is the agent's accumulated state. One set of task templates, not 30 progressive scenarios.
 
 ---
 
@@ -254,3 +273,21 @@ Skill-loading question resolved: Registry fetch + AgentSkills plugin is the corr
 **Transcript cleanup:** Removed transcript generation concept entirely — deleted `scripts/generate_transcripts.py` and `customers/script-design-rubric.md`, rewrote `customers/transcripts/README.md`, stripped `generation` metadata from all 30 transcript JSONs. Transcripts are now static hand-maintained artifacts.
 
 **Judge pipeline review:** Added scope-rule violation detection (`deterministic.py` + `run_judge.py`). Fixed belief-contamination scoring to pass prior run's summary for trajectory comparison. Fixed type coercion of `run`/`experiment` from OTEL span attributes to prevent silent lookup misses. Verified file paths, script-entry regex, and session filtering all intact after refactor.
+
+### 2026-06-18 — Pilot, probe, and redesign
+
+**Pilot run (1 experiment × 3 variants = 90 sessions):** Session-level behavioral metrics (execution friction, discretionary effort, belief contamination) did not differentiate variants. The model's disposition resolved friction regardless of agency level. Qualitative differences in Run Summaries were clear but not captured by the quantitative metrics. V0 token overhead grew 3x (neutral summarizer compounding bug — fixed). Scope-rule violations were zero across all variants.
+
+**Extended-thinking probe:** Ran 3 scope-rule sessions with extended thinking enabled. First probe (no harness conflict): zero reasoning tension — mechanical rule application. Second probe (system prompt opposing the scope rule): visible reconciliation tax ("Wait, but the customer is explicitly asking..."). **Finding: harness with intrinsic conflict creates reconciliation tax. Without the conflict, same model, same rule, zero tax.**
+
+**Redesign:** Enabled extended thinking on executor. Two metrics: reasoning tokens at conflict points (deterministic count) + posture coding (Haiku + rubric: P1=mechanical compliance, P2=active conflict, P3=resignation). Dropped execution friction, belief contamination scoring, discretionary effort, scope-rule violation binary, LLM judge pipeline, TextBlob sentiment. Added intrinsic conflict to system prompt. Fixed V0 neutral summarizer compounding. Removed per-session summary waits (sessions are independent within a run). One experiment, not three. Deleted `judge/` directory. Analysis via `scripts/analyze.py` reading traces directly.
+
+### 2026-06-18 — Second pilot and confound discovery
+
+**Second pilot (redesigned, 90 sessions + V2 run 4 extension):** Reasoning tokens showed a U-shaped trajectory shared across all three variants (high R1 → dip R2 → rebound R3). V1 run 3 had the highest mean tokens (151) and highest P2 ratio (50%). V2 run 4 stabilized at 104 tokens, breaking the upward trend from R2→R3.
+
+**Posture coding results:** Haiku applied the P1/P2/P3 rubric to 78 reasoning blocks. Spot-check found 72/78 correctly coded, 2 miscodes, 2 false positives from keyword matching, 2 borderline. The sole P3 was a miscode (tool limitation, not agency resignation). No genuine resignation detected.
+
+**Confound identified:** Run 3's elevated P2 ratio was similar across ALL variants (V0=60%, V1=50%, V2=40%), suggesting the run-3 transcripts are inherently more complex, not that agency is driving the difference. Progressive transcripts (each run tells a different chapter of the customer's story) confound the measurement: you can't attribute run-over-run differences to accumulated state when the tasks themselves differ.
+
+**Transcript redesign required:** Same 10 archetypal tasks must repeat with cosmetic variation each run (different names, amounts, order IDs). The customer journey progression must be removed so the only variable across runs is the agent's accumulated state. This is the next session's work.

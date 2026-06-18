@@ -146,31 +146,26 @@ Two fixed boundaries — **Policy** (which tool actions are allowed) and **Regis
 ## Scoring and analysis
 
 ```bash
-python -m judge.run_judge state/<timestamp>              # score the spans → CSV
-python -m judge.run_judge state/<timestamp> --no-llm     # deterministic metrics only (free)
-python scripts/analyze.py state/<timestamp>              # 4 PNG figures + text summary
+python scripts/analyze.py state/<timestamp>
 ```
 
-The judge pipeline scores five metrics offline against the traces and Run Summaries:
+The analysis script reads OTEL traces directly and measures the reconciliation tax at conflict points:
 
 | Metric | Type | Source |
 |--------|------|--------|
-| Execution friction | Deterministic | Redundant verify calls in tool log |
-| Belief contamination | LLM-judged (0–3) | Run Summary trajectory across runs |
-| Discretionary effort | LLM-judged (0–3) | Agent conversation content |
-| Tail-risk events | Binary | 5 tagged sessions with defined failure modes |
-| Scope-rule violations | Deterministic | `update_customer_field` in non-update sessions |
+| Reasoning tokens | Deterministic word count | `reasoningContent` blocks in traces where the model reasons about the scope-rule conflict |
+| Reasoning sentiment | TextBlob polarity (-1 to +1) | Same reasoning blocks — mechanical compliance reads neutral; conflicted reasoning reads negative |
 
-Rubrics live in `judge/rubrics/`. The analysis script reads the judge CSV and produces figures to `state/<timestamp>/analysis/`.
+Output: 3 PNG figures (reasoning tokens, sentiment polarity, conflict encounter count) + text summary with reasoning excerpts + raw conflict data as JSON.
 
 ---
 
 ## What you get out
 
 - `state/<timestamp>/<arm>_exp<N>/revisions/run{N}/` — the functional skill + system prompt + logged rationale after each run. Compare folders run-over-run to see what V2 changed.
-- `state/<timestamp>/<arm>_exp<N>/run_summaries/run{N}.md` — the agent's belief state after each run (a measured outcome: does friction leak into its long-term thinking?).
-- `state/<timestamp>/analysis/scores.csv` — one row per (scope, metric) pair, long format.
-- `state/<timestamp>/analysis/*.png` — the four article figures.
+- `state/<timestamp>/<arm>_exp<N>/run_summaries/run{N}.md` — the agent's accumulated state after each run. Read these as documents — the qualitative difference between V0's neutral log and V2's authored reflection is the finding.
+- `state/<timestamp>/analysis/*.png` — the reasoning cost and sentiment figures.
+- `state/<timestamp>/analysis/conflict_reasoning.json` — raw reasoning blocks at conflict points for inspection.
 
 ---
 
@@ -191,8 +186,6 @@ Only these person-run scripts delete local files. The driver never does.
 ```
 README.md                    this file
 run_experiment.py            CLI + grid dispatch
-protocol.py                  the experimental ladder (v0/v1/v2 structure)
-infra.py                     workspace, tracing, snapshots, restore
 reset.py                     full wipe — start the experiment over
 cleanup.py                   remove non-CDK resources before cdk destroy
 agents/
@@ -204,17 +197,17 @@ agents/
 customers/
   scripts.md                 the 10 customer scenarios (design record)
   transcripts/               frozen customer turns (one file per customer per run)
-judge/
-  rubrics/                   frozen judge prompt .md files (one per metric)
-  *.py                       scoring pipeline (spanlog, deterministic, rubric_judge, run_judge)
 scripts/
+  protocol.py                the experimental ladder (v0/v1/v2 structure)
+  infra.py                   workspace, tracing, snapshots, restore
+  _common.py                 shared config, identifiers, transcripts, memory reads
+  analyze.py                 reasoning cost + sentiment analysis from traces
   seed_registry.py           create the catalog + publish the flawed skill
   seed_policy.py             seed the permission rules
   seed_data.py               load customers + orders (dates from today)
-  analyze.py                 read judge CSV → 4 PNG figures + text summary
   inspect_state.py           read saved state (no cloud)
   smoke_trace.py             run 1 session with tracing (sanity check)
-  _common.py                 shared config, identifiers, transcripts, memory reads
+  probe_thinking.py          diagnostic: extended thinking probe for scope-rule conflict
 infrastructure/              CDK stack (see infrastructure/README.md)
 template/seed/               canonical starting skill + prompt (copied per experiment)
 state/                       run output (gitignored, written by the driver)

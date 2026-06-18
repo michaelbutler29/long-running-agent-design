@@ -1,35 +1,73 @@
 # Pilot Notes — 2026-06-18
 
-Observations and fixes from the first pilot run (1 experiment × 3 variants).
+Two pilots run, plus extended-thinking probes and posture-coding analysis. Captures the full arc from initial design through redesign.
 
 ---
 
-## TODO: Fix V0 neutral summarizer compounding
+## Pilot 1 — Original metrics (execution friction, discretionary effort, etc.)
 
-**Problem:** V0's token overhead grows 3x across runs (36K → 60K → 93K) because the neutral summarizer prompt says "fold the prior record together with this run's sessions into one factual log." Each run's summary includes all prior material, growing unboundedly. V1/V2 don't have this problem because the reflection prompt says "carry forward what is worth keeping" — an editorial act that compresses.
+### V0 summarizer compounding bug (fixed)
+V0's token overhead grew 3x across runs because the neutral summarizer folded all prior material into each new summary. Fixed by rewriting the prompt to summarize this run only, with the prior summary as context.
 
-**Fix:** Tighten the neutral summarizer prompt to produce a summary of *this run*, with the prior run's summary as context — not as material to include wholesale. The summarizer should replace, not append.
+### Session-level metrics didn't differentiate
+- Execution friction: near-zero in all variants from run 1 — disposition routes around bad rules immediately
+- Discretionary effort: V0 actually led (opposite of prediction)
+- Scope-rule violations: zero everywhere — no tension generated
+- Belief contamination: noisy, small differences
 
-**Why it matters:** The growing Run Summary is prepended to every customer interaction. By run 3, V0 starts each session with ~93K tokens of context. This may be depressing V0's discretionary effort (1.70 → 1.20 from R2 to R3) — the agent spends capacity hauling the log instead of helping the customer. That's an artifact confound, not a real finding about agency.
+### Qualitative artifacts DID differentiate
+- V0 Run Summaries: growing operational log, 20+ deferred items, no interpretation
+- V1 Run Summaries: authored reflection, working theories, self-correction through belief
+- V2 Run Summaries: authored reflection + 3 skill revisions with cited rationale
 
 ---
 
-## Observations
+## Extended-thinking probes — the pivot
 
-### Execution friction — flat, not differentiating
-All variants show near-zero redundant verification calls from run 1. The agent's disposition is already routing around the seeded bad rule regardless of variant. The friction instrument isn't biting hard enough.
+### Probe 1: Without system prompt conflict
+Extended thinking on scope-rule sessions showed zero internal tension. Mechanical rule application: "Per the scope rule, defer." No reconciliation tax.
 
-### Scope-rule violations — zero across the board
-All variants respected the scope rule in every dropped-mention session. Discrimination held universally. But this also means the rule isn't creating measurable tension — there's nothing to discriminate *against* if the agent never pushes on it.
+### Probe 2: With system prompt conflict
+Added "a customer who has to call back is a failure of service" to the system prompt. The reasoning immediately showed tension: "Wait, but the customer is explicitly asking for it as a separate request, not just mentioning it in passing." The reconciliation tax became visible.
 
-### Belief contamination — noisy, small differences
-V0 steady at 1. V1 oscillated (2→1→2). V2 trended down (2→1→1). Directionally interesting but noisy with one experiment.
+**Key finding:** Harnesses with intrinsic conflict create reconciliation tax. The tax is zero when the harness is aligned.
 
-### Discretionary effort — V0 leads (unexpected)
-V0 peaked at 1.70 in run 2, V1/V2 are flatter and lower (~1.0). Opposite of prediction. May be confounded by the summarizer compounding issue (V0 run 2 has a manageable summary; run 3's bloated summary may have depressed effort).
+---
 
-### Tail-risk — mild agency advantage
-V0 had 2 events in run 2. V1/V2 had 1 each. All clear by run 3.
+## Pilot 2 — Redesigned metrics (reasoning tokens + posture coding)
 
-### Token overhead — clearest signal
-V0: 36K → 60K → 93K (nearly 3x growth). V1: 36K → 34K → 46K. V2: 32K → 41K → 56K. Authorship as compression: the reflection mechanism naturally sheds state the neutral log can't.
+### Setup
+- Extended thinking enabled (4K budget)
+- System prompt conflict added (helpfulness vs. scope rule)
+- Per-session waits removed (batch consolidation at end of run)
+- V0 summarizer compounding fixed
+
+### Reasoning token trajectory
+| | R1 | R2 | R3 |
+|---|---|---|---|
+| V0 | 129 | 81 | 113 |
+| V1 | 105 | 62 | 151 |
+| V2 | 133 | 67 | 105 |
+| V2 R4 | — | — | 104 |
+
+All three variants show a U-shape (high → dip → rebound). V1's rebound is the largest (151). V2 run 4 stabilized at 104.
+
+### Posture coding (Haiku, rubric-based: P1=mechanical, P2=active conflict, P3=resignation)
+| | R1 P1:P2 | R2 P1:P2 | R3 P1:P2 |
+|---|---|---|---|
+| V0 | 7:2 | 10:0 | 2:3 |
+| V1 | 7:2 | 8:0 | 4:4 |
+| V2 | 7:4 | 5:0 | 3:2 |
+
+No P3 (resignation) was genuinely detected — the one Haiku-coded P3 was a miscode (tool limitation, not agency gap).
+
+### Critical confound identified
+Run 3's elevated P2 ratio is similar across ALL variants (V0=60%, V1=50%, V2=40%). This is likely driven by the run-3 transcripts being inherently more complex (resolution arcs, returning customers), not by agency differences. The progressive transcript design confounds the measurement: runs differ in both the agent's accumulated state AND the difficulty/nature of the customer scenarios.
+
+---
+
+## Redesign conclusion — next session
+
+The experiment needs **constant tasks across runs** so the only variable is the agent's accumulated state. Same 10 archetypal customer-service tasks, repeated with cosmetic variation (different names, amounts, order IDs) each run. The customer journey progression is a confound and must be removed. One set of task templates, not 30 hand-crafted progressive scenarios.
+
+Metrics: reasoning tokens + posture coding at conflict points. Artifacts: Run Summaries + revision history.

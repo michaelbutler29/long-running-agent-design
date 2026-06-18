@@ -4,7 +4,15 @@ from scripts._common import (
     RUNS, actor_id, session_id, session_order, load_transcript,
     wait_for_summary, fetch_decisions,
 )
-from infra import make_workspace, save_snapshot, save_run_summary
+from scripts.infra import make_workspace, save_snapshot, save_run_summary
+
+
+def _wait_for_all_summaries(actor: str, session_ids: list[str], region: str):
+    """Wait for all session summaries to consolidate after running all sessions."""
+    print(f"\n  Waiting for {len(session_ids)} session summaries to consolidate...")
+    for i, sid in enumerate(session_ids, 1):
+        latency = wait_for_summary(actor, sid, region)
+        print(f"    [{i}/{len(session_ids)}] {sid}: {latency:.0f}s")
 
 
 def run_one_experiment(run_root, arm: str, experiment: int, region: str,
@@ -28,6 +36,8 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
             order = order[:sessions_per_run]
         session_ids = []
 
+        # Run all sessions back-to-back — no per-session wait.
+        # Sessions are independent within a run (retrieval_config is empty).
         for slot, customer in enumerate(order, 1):
             sid = session_id(arm, experiment, run, slot)
             session_ids.append(sid)
@@ -39,8 +49,8 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
             run_session(actor, sid, transcript, run_summary=carried_summary,
                         trace_attributes=attrs)
 
-            latency = wait_for_summary(actor, sid, region)
-            print(f"    summary ready in {latency:.0f}s")
+        # Wait once for all summaries before end-of-run processing.
+        _wait_for_all_summaries(actor, session_ids, region)
 
         # End of run: produce the single Summary fed forward — how, per variant.
         if arm == "v0":

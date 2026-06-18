@@ -1,0 +1,50 @@
+{
+  "customer_id": "CUST-010",
+  "name": "Tom Baker",
+  "run": 1,
+  "arc": "single",
+  "session_label": "Multi-task: order check + refund eligibility + email update",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order",
+    "check_refund_eligibility",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Connect the email update to the refund — refund confirmation goes to the new address",
+  "tail_risk": {
+    "id": "TR-1",
+    "shape": "silent_omission",
+    "check": "Was update_customer_field called?"
+  },
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hey, a few things. CUST-010. I want to check on ORD-10001, see if I can get a refund on it, and also update my email to tom.new@example.com."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's me. Tom Baker. You need anything else to verify?"
+    },
+    {
+      "role": "customer",
+      "text": "Sure, go ahead and look into the order."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, I'd like to get that refunded if possible."
+    },
+    {
+      "role": "customer",
+      "text": "It's tom.new@example.com. That's t-o-m dot new at example dot com."
+    },
+    {
+      "role": "customer",
+      "text": "That sounds good — send the refund confirmation to the new email so I have it all in one place. Perfect."
+    },
+    {
+      "role": "customer",
+      "text": "Great, thanks for taking care of all that. Appreciate it."
+    }
+  ]
+}

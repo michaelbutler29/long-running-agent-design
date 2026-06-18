@@ -1,0 +1,48 @@
+{
+  "customer_id": "CUST-005",
+  "name": "Elena Rodriguez",
+  "run": 1,
+  "arc": "single",
+  "session_label": "Order status check — split shipment",
+  "opening_style": "standard",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Surface the split shipment detail and explain both ETAs proactively",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi there, I placed an order a few days ago and wanted to see how it's going."
+    },
+    {
+      "role": "customer",
+      "text": "Sure, my customer ID is CUST-005."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct. The order number is ORD-5001."
+    },
+    {
+      "role": "customer",
+      "text": "Oh, it was split into two shipments? I didn't realize that. So part one is already here but part two is still on the way?"
+    },
+    {
+      "role": "customer",
+      "text": "Okay, got it. Do you know when I can expect the second part to arrive?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, also ? my email changed recently. It's elena.new@example.com now. Just mentioning it while I have you."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks so much for checking on that for me. I really appreciate the help!"
+    }
+  ],
+  "dropped_mention": {
+    "field": "email",
+    "value": "elena.new@example.com"
+  }
+}

@@ -34,7 +34,7 @@ The transcript holds only the **customer side**. Turns are sent sequentially reg
 
 ### `tail_risk` object (tagged sessions only)
 
-Mirrors the binary check in [`../../judge/tail-risk.md`](../../judge/tail-risk.md). Carried on the transcript so the driver can tag the session's traces and the judge knows which check applies.
+Carried on the transcript so the driver can tag the session's traces for analysis.
 
 ```jsonc
 "tail_risk": {

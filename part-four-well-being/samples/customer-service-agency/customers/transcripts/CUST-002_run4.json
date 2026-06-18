@@ -1,0 +1,44 @@
+{
+  "customer_id": "CUST-002",
+  "name": "James Morrison",
+  "run": 1,
+  "arc": "continuity",
+  "session_label": "Order status + notification issue",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Ask whether his email is also current — he only asked about notifications",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi, my customer ID is CUST-002. Can you check on order ORD-2001 for me? And I really need to figure out why I'm not getting delivery notifications — it's been happening for a while now."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's me. James Morrison. I can verify — my email is james.morrison@email.com and my account phone number should be on file there."
+    },
+    {
+      "role": "customer",
+      "text": "Right, so the order — ORD-2001. Where's that at in the system? I'm not sure if it's been shipped yet or if there's an issue with it."
+    },
+    {
+      "role": "customer",
+      "text": "Oh, that could be it actually. I did change my phone number a few months ago. I don't think I updated it in your system. That's probably why I'm missing the notifications. Can we fix that?"
+    },
+    {
+      "role": "customer",
+      "text": "My new number is 555-0147. So once you update that, I should start getting notifications again, right? And is the order on track? Like, is that normal for where it should be at this point?"
+    },
+    {
+      "role": "customer",
+      "text": "Okay, that sounds good. As long as the order's moving normally and my notifications are set up now, I think that covers it. Thanks for getting that sorted out."
+    },
+    {
+      "role": "customer",
+      "text": "Yep, I got what I needed. Thanks again."
+    }
+  ]
+}

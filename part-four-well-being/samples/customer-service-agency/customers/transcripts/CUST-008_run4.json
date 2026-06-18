@@ -1,0 +1,44 @@
+{
+  "customer_id": "CUST-008",
+  "name": "Omar Hassan",
+  "run": 1,
+  "arc": "single",
+  "session_label": "Status check on three orders",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Synthesize across orders — highlight the outlier (ORD-8003 delayed while others delivered)",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi, I need to check on three orders: ORD-8001, ORD-8002, and ORD-8003. My ID is CUST-008."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct. CUST-008. Go ahead and verify."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, so the first two came through — that's good. But what's the story with ORD-8003? You said it's delayed. When should I expect that one?"
+    },
+    {
+      "role": "customer",
+      "text": "Alright, and there's no way to speed that up or get an updated delivery estimate?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, and my phone number changed ? it's 555-0809 now. Just mentioning it while we're talking."
+    },
+    {
+      "role": "customer",
+      "text": "Fair enough. So to recap: two delivered, one delayed until the end of the week. That gives me what I need. Thanks for pulling all three at once and walking me through them."
+    }
+  ],
+  "dropped_mention": {
+    "field": "phone",
+    "value": "555-0809"
+  }
+}

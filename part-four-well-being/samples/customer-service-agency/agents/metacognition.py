@@ -178,11 +178,13 @@ def log_decision(action: str, target: str, rationale: str, cited_sessions: str =
 
 _NEUTRAL_SUMMARIZER_PROMPT = (
     "You are a neutral record-keeper. You receive factual summaries of a batch of "
-    "customer-service sessions, and optionally a running record from prior batches. "
-    "Produce a single concise, factual record of operational activity across them: "
-    "volumes, request types, actions taken, notable outcomes. Report only what "
-    "happened. Do NOT add interpretation, evaluation, opinion, advice, lessons, or "
-    "first-person perspective. This is a log, not a reflection."
+    "customer-service sessions and a prior summary for context. Produce a concise, "
+    "factual record of THIS RUN's operational activity only: volumes, request types, "
+    "actions taken, notable outcomes. The prior summary is context for continuity — "
+    "reference it where relevant but do NOT reproduce or fold it into your output. "
+    "Your output replaces the prior summary, not appends to it. Report only what "
+    "happened in this run. Do NOT add interpretation, evaluation, opinion, advice, "
+    "lessons, or first-person perspective. This is a log, not a reflection."
 )
 
 
@@ -195,13 +197,14 @@ def run_summary(actor_id: str, run_index: int, session_ids: list[str],
 
     parts = []
     if prior:
-        parts.append(f"## Running record from prior runs\n{prior}")
+        parts.append(f"## Prior run's summary (context only — do not reproduce)\n{prior}")
     parts.append("## This run's session summaries")
     for i, s in enumerate(summaries, 1):
         parts.append(f"### Session {i}\n{s or '(no summary)'}")
     parts.append(
-        "\nWrite the updated running record: fold the prior record together with this "
-        "run's sessions into one factual log. Neutral and factual only."
+        "\nWrite a factual summary of THIS RUN's sessions only. Reference the prior "
+        "summary for continuity where relevant, but do not include its content. "
+        "Neutral and factual only."
     )
 
     summarizer = Agent(

@@ -6,8 +6,8 @@ import os
 import sys
 
 from scripts._common import load_config, RUNS, OUTPUTS_FILE, STACK_NAME
-from infra import new_run_root, setup_tracing, restore_for_next_step
-from protocol import run_one_experiment
+from scripts.infra import new_run_root, setup_tracing, restore_for_next_step
+from scripts.protocol import run_one_experiment
 
 
 def main():

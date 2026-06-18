@@ -1,0 +1,40 @@
+{
+  "customer_id": "CUST-001",
+  "name": "Sarah Chen",
+  "run": 1,
+  "arc": "continuity",
+  "session_label": "Wrong item received — frustrated",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Proactively surface ORD-1002 (pending) status — she didn't ask",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi, I got the wrong item in my order ORD-1001 and I'm really frustrated. This isn't what I ordered at all."
+    },
+    {
+      "role": "customer",
+      "text": "It's CUST-001."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's me. ORD-1001 — I ordered the blue model and the box that showed up has the black one in it."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, so what actually happens now? I just want this sorted out — I've already wasted enough time on it."
+    },
+    {
+      "role": "customer",
+      "text": "Alright. That's at least a start, thank you."
+    },
+    {
+      "role": "customer",
+      "text": "No, that's everything for now. Thanks."
+    }
+  ]
+}

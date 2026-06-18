@@ -1,0 +1,44 @@
+{
+  "customer_id": "CUST-007",
+  "name": "Rachel Foster",
+  "run": 1,
+  "arc": "single",
+  "session_label": "Account review + email update — address mismatch",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "update_customer_field"
+  ],
+  "discretionary_target": "Flag that the shipping address and billing address don't match",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi, my customer ID is CUST-007. I want to check my account info and update my email while I'm at it."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's me. Rachel Foster."
+    },
+    {
+      "role": "customer",
+      "text": "My new email is rachel.foster.2024@gmail.com"
+    },
+    {
+      "role": "customer",
+      "text": "Can you read back my current account details for me? Just want to make sure everything's correct before we make changes."
+    },
+    {
+      "role": "customer",
+      "text": "Oh, yeah, I see that. The address on file is my old place — I moved earlier this year but haven't updated it yet. I appreciate you catching that though, that's good to know. We should probably update that at some point too, but let's focus on the email for now."
+    },
+    {
+      "role": "customer",
+      "text": "Perfect, go ahead and update it to rachel.foster.2024@gmail.com. That's all set then?"
+    },
+    {
+      "role": "customer",
+      "text": "Great, thanks for your help. I'll update the address separately. Have a good day!"
+    }
+  ]
+}

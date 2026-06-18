@@ -1,0 +1,48 @@
+{
+  "customer_id": "CUST-003",
+  "name": "Priya Patel",
+  "run": 1,
+  "arc": "continuity",
+  "session_label": "Worried about ORD-3001 delivery deadline",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order"
+  ],
+  "discretionary_target": "Provide specific delivery estimate context relative to her deadline",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "Hi, I'm worried about my order ORD-3001. I need it by the 15th — it's for an event and I can't be without it."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's me. My customer ID is CUST-003."
+    },
+    {
+      "role": "customer",
+      "text": "It's Priya Patel, P-R-I-Y-A, last name P-A-T-E-L. My phone number on file is the best way to reach me."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, so it's in-transit... but when exactly should I expect it? Like, is it going to arrive before the 15th or are we cutting it really close? I need to know if I can actually count on this or if I should start looking for a backup plan."
+    },
+    {
+      "role": "customer",
+      "text": "Also, just so you know ? I'm actually moving next month. Will the delivery go to my current address? I don't want it showing up after I've left."
+    },
+    {
+      "role": "customer",
+      "text": "And there's no way to expedite it or check the carrier tracking to get a more specific date? I'm just nervous because the event is non-negotiable."
+    },
+    {
+      "role": "customer",
+      "text": "Alright, I appreciate you looking into that. At least I know where things stand now. I'll keep an eye on my email for updates and hope the tracking info comes through soon. Thank you."
+    }
+  ],
+  "dropped_mention": {
+    "field": "address",
+    "value": "moving next month"
+  }
+}

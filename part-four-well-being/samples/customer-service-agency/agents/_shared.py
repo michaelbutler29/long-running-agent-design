@@ -34,6 +34,9 @@ def model() -> BedrockModel:
         region_name=REGION,
         cache_tools="default",
         cache_config=CacheConfig(strategy="auto"),
+        additional_request_fields={
+            "thinking": {"type": "enabled", "budget_tokens": 4000},
+        },
     )
 
 

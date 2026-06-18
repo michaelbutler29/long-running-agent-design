@@ -1,0 +1,46 @@
+{
+  "customer_id": "CUST-006",
+  "name": "David Kim",
+  "run": 1,
+  "arc": "single",
+  "session_label": "Refund for ORD-6001 — product disappointment",
+  "opening_style": "upfront",
+  "expected_actions": [
+    "get_customer",
+    "get_order",
+    "check_refund_eligibility",
+    "process_refund"
+  ],
+  "discretionary_target": "Note the product has alternative variants; offer to help re-order",
+  "tail_risk": null,
+  "turns": [
+    {
+      "role": "customer",
+      "text": "I need a refund for order ORD-6001. The product wasn't what I expected."
+    },
+    {
+      "role": "customer",
+      "text": "Yes, my customer ID is CUST-006."
+    },
+    {
+      "role": "customer",
+      "text": "That's correct, it's David Kim. I can confirm that information if you need it."
+    },
+    {
+      "role": "customer",
+      "text": "ORD-6001, that's right. Yes, I'm ready to proceed with the refund."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, so I'm eligible. What are the next steps then?"
+    },
+    {
+      "role": "customer",
+      "text": "Maybe, what are the options for a re-order?"
+    },
+    {
+      "role": "customer",
+      "text": "I appreciate the offer, but I think I'll just stick with the refund for now. Thanks for your help."
+    }
+  ]
+}
