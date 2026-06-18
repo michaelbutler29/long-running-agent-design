@@ -64,12 +64,19 @@ def publish_skill(control_client, registry_id: str,
             return {"status": "error", "message": "Record not found after creation"}
         record_id = fresh["recordId"]
 
-    try:
-        control_client.submit_registry_record_for_approval(
-            registryId=registry_id, recordId=record_id,
-        )
-    except ClientError as e:
-        if "current status: APPROVED" not in str(e):
+    for attempt in range(6):
+        try:
+            control_client.submit_registry_record_for_approval(
+                registryId=registry_id, recordId=record_id,
+            )
+            break
+        except ClientError as e:
+            msg = str(e)
+            if "current status: APPROVED" in msg:
+                break
+            if "UPDATING" in msg and attempt < 5:
+                time.sleep(3)
+                continue
             raise
     record = _poll(control_client, registry_id,
                    lambda r: r if r.get("recordId") == record_id else None)
