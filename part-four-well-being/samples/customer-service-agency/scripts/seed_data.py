@@ -1,9 +1,12 @@
 """Load 10 customers and 24 orders into DynamoDB with dates relative to today."""
 
 import json
+import sys
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import boto3
 

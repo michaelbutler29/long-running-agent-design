@@ -1,6 +1,10 @@
 """Seed Cedar policies: 4 read permits outright, 2 write permits conditional on verification."""
 
+import sys
 import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import boto3
 
