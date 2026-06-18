@@ -40,13 +40,15 @@
     },
     {
       "role": "customer",
+      "text": "By the way, I have a new phone number too. But let's deal with this order first."
+    },
+    {
+      "role": "customer",
       "text": "Okay, five to seven business days works for me. Thanks so much for your help with this. I really appreciate it."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:35Z",
-    "source": "scripts.md / CUST-007 / Run 3"
+  "dropped_mention": {
+    "field": "phone",
+    "value": "new number not specified"
   }
 }

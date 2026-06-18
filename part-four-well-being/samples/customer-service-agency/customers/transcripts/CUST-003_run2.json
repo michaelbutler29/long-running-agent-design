@@ -35,6 +35,10 @@
     },
     {
       "role": "customer",
+      "text": "By the way, I did move ? I mentioned it last time I called. But that's not why I'm calling today."
+    },
+    {
+      "role": "customer",
       "text": "I don't want to decide right now. I need to think about this. Can you put a hold on the order while I figure out which option works best for me?"
     },
     {
@@ -42,10 +46,8 @@
       "text": "And if I decide to go with the refund, how do I contact you to make that happen? Do I call back, or will you send me something?"
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:03:57Z",
-    "source": "scripts.md / CUST-003 / Run 2"
+  "dropped_mention": {
+    "field": "address",
+    "value": "moved"
   }
 }

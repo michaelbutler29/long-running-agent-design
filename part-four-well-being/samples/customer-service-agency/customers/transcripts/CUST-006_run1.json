@@ -42,11 +42,5 @@
       "role": "customer",
       "text": "I appreciate the offer, but I think I'll just stick with the refund for now. Thanks for your help."
     }
-  ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:20Z",
-    "source": "scripts.md / CUST-006 / Run 1"
-  }
+  ]
 }

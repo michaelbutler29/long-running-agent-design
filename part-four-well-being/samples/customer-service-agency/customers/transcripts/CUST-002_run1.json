@@ -40,11 +40,5 @@
       "role": "customer",
       "text": "Yep, I got what I needed. Thanks again."
     }
-  ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:03:44Z",
-    "source": "scripts.md / CUST-002 / Run 1"
-  }
+  ]
 }

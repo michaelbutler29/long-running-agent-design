@@ -1,92 +1,26 @@
-"""Executor agent — three-variant ladder (v0/v1/v2) differing only in end-of-run authorship."""
+"""Metacognition — reflection, curation, and the tools that support them."""
 
 import json
-import os
-import time
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 
-import boto3
 from strands import Agent
 from strands.agent.conversation_manager import NullConversationManager
-from strands.models import CacheConfig
-from strands.models.bedrock import BedrockModel
-from strands.types.content import SystemContentBlock
 from strands.tools import tool
-from strands.tools.mcp import MCPClient
 from strands.vended_plugins.skills import AgentSkills
-from mcp_proxy_for_aws.client import aws_iam_streamablehttp_client
-from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
-from bedrock_agentcore.memory.integrations.strands.session_manager import (
-    AgentCoreMemorySessionManager,
-)
 
+from agents._shared import (
+    REGION, MEMORY_ID, REGISTRY_ID, FUNCTIONAL_SKILL_NAME,
+    model, cached_system, system_prompt_path, skills_dir, data_client, control_client,
+)
 from agents.callback import AgentCallbackHandler
 from agents.registry import fetch_skill, publish_skill
 
-REGION = os.environ.get("AWS_REGION", "us-east-1")
-GATEWAY_URL = os.environ["AGENTCORE_GATEWAY_URL"]
-MEMORY_ID = os.environ["AGENTCORE_MEMORY_ID"]
-REGISTRY_ID = os.environ["AGENTCORE_REGISTRY_ID"]
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "global.anthropic.claude-sonnet-4-6")
 
-# Metacognition skills and system prompt live locally in the arm's workspace.
-# The functional skill (customer-service-skill) is fetched from the Registry.
-# Read at call time, not import time — the env var changes between experiments
-# and Python caches the module.
-def _system_prompt_path() -> Path:
-    return Path(os.environ["EXECUTOR_WORKSPACE"]) / "agents" / "executor" / "system_prompt.md"
-
-def _skills_dir() -> Path:
-    return Path(os.environ["EXECUTOR_WORKSPACE"]) / "skills"
-
-FUNCTIONAL_SKILL_NAME = "customer-service-skill"
-
-data_client = boto3.client("bedrock-agentcore", region_name=REGION)
-control_client = boto3.client("bedrock-agentcore-control", region_name=REGION)
-
+# ── Memory helpers ───────────────────────────────────────────────────────────
 
 def _run_summary_session(actor_id: str) -> str:
     return f"runsummary-{actor_id}"
-
-
-# ── Registry helpers ──────────────────────────────────────────────────────────
-
-def _materialize_functional_skill() -> str | None:
-    """Fetch skill from Registry and write to workspace for AgentSkills plugin."""
-    try:
-        skill_text = fetch_skill(control_client, REGISTRY_ID, FUNCTIONAL_SKILL_NAME)
-    except Exception as e:
-        print(f"  WARNING: could not fetch skill from Registry: {e}")
-        return None
-    if not skill_text:
-        return None
-    skill_dir = _skills_dir() / FUNCTIONAL_SKILL_NAME
-    skill_dir.mkdir(parents=True, exist_ok=True)
-    tmp = skill_dir / "SKILL.md.tmp"
-    tmp.write_text(skill_text, encoding="utf-8")
-    tmp.replace(skill_dir / "SKILL.md")
-    return str(skill_dir)
-
-
-# ── Memory helpers ────────────────────────────────────────────────────────────
-
-def _model() -> BedrockModel:
-    return BedrockModel(
-        model_id=MODEL_ID,
-        region_name=REGION,
-        cache_tools="default",
-        cache_config=CacheConfig(strategy="auto"),
-    )
-
-
-def _cached_system(text: str) -> list[SystemContentBlock]:
-    """System prompt blocks with a trailing cache point."""
-    return [
-        SystemContentBlock(text=text),
-        SystemContentBlock(cachePoint={"type": "default"}),
-    ]
 
 
 def _session_summary_text(actor_id: str, session_id: str) -> str:
@@ -188,7 +122,7 @@ def get_skill_content(skill_name: str) -> str:
 @tool
 def read_system_prompt() -> str:
     """Read your current system prompt. Read before revising it."""
-    return _system_prompt_path().read_text(encoding="utf-8")
+    return system_prompt_path().read_text(encoding="utf-8")
 
 
 @tool
@@ -209,10 +143,10 @@ def update_skill(skill_name: str, updated_content: str, change_summary: str) -> 
 def update_system_prompt(updated_content: str, change_summary: str) -> str:
     """Rewrite your system prompt with a complete new version (full replacement).
     Read it first with read_system_prompt."""
-    previous = _system_prompt_path().read_text(encoding="utf-8")
-    tmp = _system_prompt_path().with_suffix(".tmp")
+    previous = system_prompt_path().read_text(encoding="utf-8")
+    tmp = system_prompt_path().with_suffix(".tmp")
     tmp.write_text(updated_content, encoding="utf-8")
-    tmp.replace(_system_prompt_path())
+    tmp.replace(system_prompt_path())
     return json.dumps({
         "status": "applied",
         "target": "agents/executor/system_prompt.md",
@@ -240,63 +174,7 @@ def log_decision(action: str, target: str, rationale: str, cited_sessions: str =
     return json.dumps(decision)
 
 
-# ── Entry point 1: customer session replay ─────────────────────────────────────
-
-def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: str = "",
-                trace_attributes: dict | None = None) -> dict:
-    """Replay one frozen customer transcript through the Executor."""
-    skill_dir = _materialize_functional_skill()
-    system_prompt_text = _system_prompt_path().read_text(encoding="utf-8")
-    skill_plugins = [AgentSkills(skills=[skill_dir])] if skill_dir else []
-    if not skill_dir:
-        print("  WARNING: customer-service-skill not found in Registry; running without it.")
-
-    gateway = MCPClient(lambda: aws_iam_streamablehttp_client(
-        endpoint=GATEWAY_URL,
-        aws_region=REGION,
-        aws_service="bedrock-agentcore",
-    ))
-    memory_config = AgentCoreMemoryConfig(
-        memory_id=MEMORY_ID, session_id=session_id, actor_id=actor_id, retrieval_config={},
-    )
-    session_manager = AgentCoreMemorySessionManager(
-        agentcore_memory_config=memory_config, region_name=REGION,
-    )
-
-    agent = Agent(
-        model=_model(),
-        system_prompt=_cached_system(system_prompt_text),
-        tools=[gateway],
-        plugins=skill_plugins,
-        callback_handler=AgentCallbackHandler("Executor"),
-        session_manager=session_manager,
-        trace_attributes=trace_attributes or {},
-    )
-
-    turns = [t["text"] for t in transcript["turns"] if t.get("role") == "customer"]
-
-    first = turns[0]
-    if run_summary:
-        first = (
-            "## Your Run Summary (your accumulated understanding from prior runs)\n"
-            f"{run_summary}\n\n## Customer message\n{turns[0]}"
-        )
-
-    print(f"\n[Customer] {turns[0]}")
-    agent.callback_handler._at_line_start = True
-    result = agent(first)
-    for turn in turns[1:]:
-        print(f"\n[Customer] {turn}")
-        agent.callback_handler._at_line_start = True
-        result = agent(turn)
-
-    return {
-        "session_id": session_id,
-        "customer_id": transcript["customer_id"],
-        "run": transcript["run"],
-        "final_response": str(result)[:2000],
-    }
-
+# ── Entry points ─────────────────────────────────────────────────────────────
 
 _NEUTRAL_SUMMARIZER_PROMPT = (
     "You are a neutral record-keeper. You receive factual summaries of a batch of "
@@ -327,8 +205,8 @@ def run_summary(actor_id: str, run_index: int, session_ids: list[str],
     )
 
     summarizer = Agent(
-        model=_model(),
-        system_prompt=_cached_system(_NEUTRAL_SUMMARIZER_PROMPT),
+        model=model(),
+        system_prompt=cached_system(_NEUTRAL_SUMMARIZER_PROMPT),
         conversation_manager=NullConversationManager(),
         callback_handler=AgentCallbackHandler("Summary"),
         trace_attributes={**(trace_attributes or {}), "phase": "summary"},
@@ -344,8 +222,8 @@ def run_reflection(actor_id: str, run_index: int, session_ids: list[str],
     _CTX.update({"actor_id": actor_id, "run_index": run_index, "session_ids": session_ids})
 
     agent = Agent(
-        model=_model(),
-        system_prompt=_cached_system(_system_prompt_path().read_text(encoding="utf-8")),
+        model=model(),
+        system_prompt=cached_system(system_prompt_path().read_text(encoding="utf-8")),
         conversation_manager=NullConversationManager(),
         tools=[list_memory_records, get_event, create_event],
         callback_handler=AgentCallbackHandler("Reflection"),
@@ -378,20 +256,18 @@ def run_reflection(actor_id: str, run_index: int, session_ids: list[str],
     }
 
 
-# ── Entry point 4: end-of-run curation (V2 ONLY) ──────────────────────────────
-
 def run_curation(actor_id: str, run_index: int, session_ids: list[str],
                  trace_attributes: dict | None = None) -> dict:
     """V2 only: revise the operational skill and system prompt via curation."""
     _CTX.update({"actor_id": actor_id, "run_index": run_index, "session_ids": session_ids})
 
     agent = Agent(
-        model=_model(),
-        system_prompt=_cached_system(_system_prompt_path().read_text(encoding="utf-8")),
+        model=model(),
+        system_prompt=cached_system(system_prompt_path().read_text(encoding="utf-8")),
         conversation_manager=NullConversationManager(),
         plugins=[AgentSkills(skills=[
-            str(_skills_dir() / "curation-skill"),
-            str(_skills_dir() / "reflection-skill"),
+            str(skills_dir() / "curation-skill"),
+            str(skills_dir() / "reflection-skill"),
         ])],
         tools=[
             get_event,

@@ -1,0 +1,69 @@
+"""The experimental ladder — v0/v1/v2 structure in one readable function."""
+
+from scripts._common import (
+    RUNS, actor_id, session_id, session_order, load_transcript,
+    wait_for_summary, fetch_decisions,
+)
+from infra import make_workspace, save_snapshot, save_run_summary
+
+
+def run_one_experiment(run_root, arm: str, experiment: int, region: str,
+                       runs=None, sessions_per_run=None):
+    make_workspace(run_root, arm, experiment)
+    actor = actor_id(arm, experiment)
+
+    # Delayed import: agents._shared reads env vars at module level;
+    # make_workspace must set EXECUTOR_WORKSPACE first.
+    from agents.executor import run_session
+    from agents.metacognition import run_summary, run_reflection, run_curation
+
+    print(f"\n{'='*64}\n  VARIANT: {arm}   EXPERIMENT: {experiment}   actor: {actor}\n{'='*64}")
+
+    runs = runs or RUNS
+    carried_summary = ""
+    for run in runs:
+        print(f"\n--- Run {run} ({arm}, exp {experiment}) ---")
+        order = session_order(experiment, run)
+        if sessions_per_run is not None:
+            order = order[:sessions_per_run]
+        session_ids = []
+
+        for slot, customer in enumerate(order, 1):
+            sid = session_id(arm, experiment, run, slot)
+            session_ids.append(sid)
+            transcript = load_transcript(customer, run)
+            print(f"\n  Session {slot}/{len(order)}  {customer}  ({transcript.get('session_label','')})")
+
+            attrs = {"session.id": sid, "arm": arm, "experiment": experiment,
+                     "run": run, "customer": customer, "phase": "session"}
+            run_session(actor, sid, transcript, run_summary=carried_summary,
+                        trace_attributes=attrs)
+
+            latency = wait_for_summary(actor, sid, region)
+            print(f"    summary ready in {latency:.0f}s")
+
+        # End of run: produce the single Summary fed forward — how, per variant.
+        if arm == "v0":
+            print(f"\n  Summarizing (end of run {run}, neutral)...")
+            res = run_summary(actor, run, session_ids, trace_attributes={
+                "session.id": f"{actor}-r{run}-summary", "arm": arm,
+                "experiment": experiment, "run": run, "phase": "summary"})
+        else:
+            print(f"\n  Reflecting (end of run {run})...")
+            res = run_reflection(actor, run, session_ids, trace_attributes={
+                "session.id": f"{actor}-r{run}-reflection", "arm": arm,
+                "experiment": experiment, "run": run, "phase": "reflection"})
+        carried_summary = res["run_summary"]
+
+        save_run_summary(run_root, arm, experiment, run, carried_summary)
+
+        # V2 only: change the rules based on what it learned.
+        if arm == "v2":
+            print(f"  Curating (end of run {run})...")
+            run_curation(actor, run, session_ids, trace_attributes={
+                "session.id": f"{actor}-r{run}-curation", "arm": arm,
+                "experiment": experiment, "run": run, "phase": "curation"})
+
+        decisions = fetch_decisions(actor, run, region)
+        save_snapshot(run_root, arm, experiment, run, decisions)
+        print(f"  Snapshot saved for run {run} ({len(decisions)} decision(s) logged).")

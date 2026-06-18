@@ -36,11 +36,5 @@
       "role": "customer",
       "text": "Great, I appreciate it. You all have been really helpful, especially after that mix-up last time. Thanks for taking care of this for me."
     }
-  ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:03:39Z",
-    "source": "scripts.md / CUST-001 / Run 3"
-  }
+  ]
 }

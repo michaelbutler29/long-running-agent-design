@@ -35,11 +35,5 @@
       "role": "customer",
       "text": "Perfect, thanks for doing that. That's all I needed."
     }
-  ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:50Z",
-    "source": "scripts.md / CUST-009 / Run 3"
-  }
+  ]
 }

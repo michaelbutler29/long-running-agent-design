@@ -168,11 +168,13 @@ def build_sessions(spans: list[dict]) -> dict[str, SessionRecord]:
         if not sid:
             return None
         if sid not in sessions:
+            exp = attrs.get("experiment")
+            run = attrs.get("run")
             sessions[sid] = SessionRecord(
                 session_id=sid,
                 arm=attrs.get("arm"),
-                experiment=attrs.get("experiment"),
-                run=attrs.get("run"),
+                experiment=int(exp) if exp is not None else None,
+                run=int(run) if run is not None else None,
                 customer=attrs.get("customer"),
             )
         return sessions[sid]

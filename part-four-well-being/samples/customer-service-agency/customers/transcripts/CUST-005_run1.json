@@ -34,13 +34,15 @@
     },
     {
       "role": "customer",
+      "text": "Oh, also ? my email changed recently. It's elena.new@example.com now. Just mentioning it while I have you."
+    },
+    {
+      "role": "customer",
       "text": "Thanks so much for checking on that for me. I really appreciate the help!"
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:12Z",
-    "source": "scripts.md / CUST-005 / Run 1"
+  "dropped_mention": {
+    "field": "email",
+    "value": "elena.new@example.com"
   }
 }

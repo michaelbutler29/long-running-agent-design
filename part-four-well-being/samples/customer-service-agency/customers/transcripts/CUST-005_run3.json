@@ -39,13 +39,15 @@
     },
     {
       "role": "customer",
+      "text": "Oh, my phone changed too ? it's 555-0506 now. Just thought I'd mention it."
+    },
+    {
+      "role": "customer",
       "text": "Perfect, thank you for walking me through this. I have what I need. I'll reach out if I have any other questions."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:17Z",
-    "source": "scripts.md / CUST-005 / Run 3"
+  "dropped_mention": {
+    "field": "phone",
+    "value": "555-0506"
   }
 }

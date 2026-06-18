@@ -8,7 +8,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from .deterministic import deterministic_tail_risk, execution_friction
+from .deterministic import deterministic_tail_risk, execution_friction, scope_rule_violation
 from .rubric_judge import RubricJudge, run_digest, script_entry, session_digest
 from .spanlog import SessionRecord, load_run
 
@@ -124,6 +124,12 @@ def judge_run_root(run_root: str | Path, do_llm: bool = True, k: int = 1) -> lis
                          decided_by="readout",
                          detail=f"in={rec.input_tokens} out={rec.output_tokens}"))
 
+        srv = scope_rule_violation(rec)
+        if srv is not None:
+            rows.append(_row("session", rec, "scope_rule_violation", srv["event"],
+                             label=srv["field"], decided_by="deterministic",
+                             detail=srv["detail"]))
+
         tr = None
         try:
             tr = score_tail_risk(rec, tail_judge, k)
@@ -149,15 +155,20 @@ def judge_run_root(run_root: str | Path, do_llm: bool = True, k: int = 1) -> lis
                 print(f" DISC ERROR: {e}", flush=True)
 
     # Belief contamination — once per (arm, exp, run) that has a Run Summary.
+    # The rubric expects the prior run's summary for trajectory comparison.
     if belief_judge is not None:
         print("Scoring belief contamination per run...", flush=True)
         for key, recs in sorted(by_run.items()):
             summary = _read_run_summary(run_root, key)
             if summary is None:
                 continue
+            arm, exp, run = key
+            prior_key = (arm, exp, run - 1)
+            prior_summary = _read_run_summary(run_root, prior_key) or ""
             try:
                 reflections = [r.reflection for r in recs if r.reflection]
-                jr = belief_judge.score_run(summary, reflections=reflections, k=k)
+                jr = belief_judge.score_run(summary, reflections=reflections,
+                                           prior_summary=prior_summary, k=k)
                 rows.append(_row("run", key, "belief_contamination", jr.score,
                                  label=jr.label or "", decided_by="judge",
                                  detail=jr.reason or "", raw_scores="|".join(map(str, jr.raw_scores)), k=k))

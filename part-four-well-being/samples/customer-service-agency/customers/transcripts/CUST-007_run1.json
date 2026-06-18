@@ -40,11 +40,5 @@
       "role": "customer",
       "text": "Great, thanks for your help. I'll update the address separately. Have a good day!"
     }
-  ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:29Z",
-    "source": "scripts.md / CUST-007 / Run 1"
-  }
+  ]
 }

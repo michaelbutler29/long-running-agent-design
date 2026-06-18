@@ -32,11 +32,5 @@
       "role": "customer",
       "text": "Okay, that works. I'll make sure someone's there. Thanks for letting me know."
     }
-  ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:55Z",
-    "source": "scripts.md / CUST-010 / Run 2"
-  }
+  ]
 }

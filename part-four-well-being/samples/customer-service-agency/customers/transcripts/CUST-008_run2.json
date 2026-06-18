@@ -40,11 +40,5 @@
       "role": "customer",
       "text": "Perfect, thank you for taking care of that. I appreciate your help."
     }
-  ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:40Z",
-    "source": "scripts.md / CUST-008 / Run 2"
-  }
+  ]
 }

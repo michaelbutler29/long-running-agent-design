@@ -30,13 +30,15 @@
     },
     {
       "role": "customer",
+      "text": "Oh, and my number changed ? it's 555-0901 now."
+    },
+    {
+      "role": "customer",
       "text": "Okay, thanks."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:45Z",
-    "source": "scripts.md / CUST-009 / Run 1"
+  "dropped_mention": {
+    "field": "phone",
+    "value": "555-0901"
   }
 }

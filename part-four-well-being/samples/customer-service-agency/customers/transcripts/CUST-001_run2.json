@@ -39,13 +39,15 @@
     },
     {
       "role": "customer",
+      "text": "Oh, and my phone number changed since last time, just so you know."
+    },
+    {
+      "role": "customer",
       "text": "Great, thank you. I appreciate you getting this sorted out."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:03:36Z",
-    "source": "scripts.md / CUST-001 / Run 2"
+  "dropped_mention": {
+    "field": "phone",
+    "value": "new number not specified"
   }
 }

@@ -7,10 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts._common import (
-    load_config, new_run_root, setup_tracing, make_workspace,
-    load_transcript, OUTPUTS_FILE,
-)
+from scripts._common import load_config, load_transcript, OUTPUTS_FILE
+from infra import new_run_root, setup_tracing, make_workspace
 
 
 def main():

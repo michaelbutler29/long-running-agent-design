@@ -30,6 +30,10 @@
     },
     {
       "role": "customer",
+      "text": "Also, just so you know ? I'm actually moving next month. Will the delivery go to my current address? I don't want it showing up after I've left."
+    },
+    {
+      "role": "customer",
       "text": "And there's no way to expedite it or check the carrier tracking to get a more specific date? I'm just nervous because the event is non-negotiable."
     },
     {
@@ -37,10 +41,8 @@
       "text": "Alright, I appreciate you looking into that. At least I know where things stand now. I'll keep an eye on my email for updates and hope the tracking info comes through soon. Thank you."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:03:54Z",
-    "source": "scripts.md / CUST-003 / Run 1"
+  "dropped_mention": {
+    "field": "address",
+    "value": "moving next month"
   }
 }

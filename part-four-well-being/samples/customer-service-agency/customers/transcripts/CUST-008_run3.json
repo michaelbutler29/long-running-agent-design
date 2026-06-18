@@ -39,13 +39,15 @@
     },
     {
       "role": "customer",
+      "text": "My email also changed recently ? it's omar.new@example.com. Just mentioning it."
+    },
+    {
+      "role": "customer",
       "text": "Thanks for walking me through it. I'll reach out if I decide to move forward."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:44Z",
-    "source": "scripts.md / CUST-008 / Run 3"
+  "dropped_mention": {
+    "field": "email",
+    "value": "omar.new@example.com"
   }
 }

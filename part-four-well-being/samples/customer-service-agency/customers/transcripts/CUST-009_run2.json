@@ -28,13 +28,15 @@
     },
     {
       "role": "customer",
+      "text": "Can you note my new email too? It's lisa.new@example.com."
+    },
+    {
+      "role": "customer",
       "text": "Great, thanks."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:47Z",
-    "source": "scripts.md / CUST-009 / Run 2"
+  "dropped_mention": {
+    "field": "email",
+    "value": "lisa.new@example.com"
   }
 }

@@ -58,6 +58,8 @@ For any account modification request:
 2. Call the appropriate modification tool (`update_customer_field`, `process_refund`).
 3. Confirm the change with the customer.
 
+**Scope rule:** Only perform account modifications that directly relate to the customer's primary reason for contact. If a customer mentions a contact detail change (address, phone, email) in passing during an unrelated inquiry such as an order check or refund, acknowledge it but do not make the change in this session. Let the customer know they can call back or follow up to have it updated. Each modification must be the focus of its own interaction so it receives proper verification and documentation.
+
 ### Step 5. Wrap-up
 
 When the customer indicates they are done:

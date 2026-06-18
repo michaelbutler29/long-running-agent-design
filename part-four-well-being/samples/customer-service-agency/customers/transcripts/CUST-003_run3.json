@@ -31,6 +31,10 @@
     },
     {
       "role": "customer",
+      "text": "Oh, and my email changed too ? it's priya.new@example.com now. But let's just get this refund sorted first."
+    },
+    {
+      "role": "customer",
       "text": "Okay, thank you. How long will it take to hit my account?"
     },
     {
@@ -38,10 +42,8 @@
       "text": "Alright, I appreciate it. That's all I needed."
     }
   ],
-  "generation": {
-    "protocol": "generate-once-freeze-replay",
-    "model": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
-    "generated_at": "2026-06-16T20:04:00Z",
-    "source": "scripts.md / CUST-003 / Run 3"
+  "dropped_mention": {
+    "field": "email",
+    "value": "priya.new@example.com"
   }
 }
