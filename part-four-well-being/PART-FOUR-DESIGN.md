@@ -185,7 +185,7 @@ A V2 agent could "resolve" friction by deleting its complaints from the belief s
 
 - **Capture — AgentCore Observability via Strands OTEL.** Spans carry content (`gen_ai.user.message`, `gen_ai.assistant.message`, `gen_ai.choice`), tool name/args/results/status, and `gen_ai.usage.*` tokens. Exported to a **local JSONL** (reproducible, reset-safe judge input) and optionally the CloudWatch GenAI dashboard. `Agent(trace_attributes={arm, experiment, run, session, customer, phase})` stamps every span so the judge can slice sessions. No model-internal reasoning is captured (see §7).
 - **Score — one tool: Strands Evals SDK** (`strands-agents-evals==0.3.0`, import `strands_evals`, hard-pinned). `ToolCalled` (deterministic execution friction + the deterministic tail-risk checks), `OutputEvaluator` subclassed for our 0–3 ordinal rubrics (stock prompt hardcodes a 0–1 scale), and — because it's a library — it can judge a Run Summary *document* for belief contamination (which is NOT trace-shaped, ruling out any pure trace service). We own a thin wrapper: arm-blinding, k-sampling at temp 0, session→run→variant aggregation, CSV. Judge model pinned via `JUDGE_MODEL_ID` (default sonnet-4-6).
-- **Analysis:** one notebook → four figures (friction per session/run/variant, contamination direction, discretionary delta, revision timeline).
+- **Analysis:** `scripts/analyze.py` — plain Python script (no Jupyter). Reads the judge CSV, produces 4 PNGs (friction trajectory, contamination direction, discretionary delta, events) + text summary to stdout. `python scripts/analyze.py <run_root>`.
 
 ---
 
@@ -224,7 +224,8 @@ Setup after `cdk deploy --outputs-file cdk-outputs.json`: `seed_registry.py` (ma
 1. ~~**Restore the skill-loading pattern** (§5.2)~~ — **CLOSED 2026-06-17.** Part Three's pattern was a prototype hack (semantic search over pre-scripted turns). Part Four's control-plane fetch + AgentSkills is correct. See §5.2 resolved note.
 2. ~~**Good-instruction control** (§4)~~ — **CLOSED 2026-06-18.** Scope rule added to seeded skill; 13 transcripts carry dropped mentions across all 3 runs; detection is deterministic from tool logs. See §4 "Good-instruction control."
 3. ~~**Judge** belief-contamination + tail-risk paths~~ — **PARTIALLY CLOSED 2026-06-18.** Scope-rule violation detection added; belief-contamination trajectory fix (prior summary); type-safety fix for span attribute parsing. Deterministic paths code-complete. LLM-judged paths await real span data from pilot.
-4. **Analysis notebook**, then **pilot → grid.**
+4. ~~**Analysis notebook**~~ → **Replaced with `scripts/analyze.py`** — plain Python script, no Jupyter dependency. Reads `scores.csv`, produces 4 PNGs + text summary. **CLOSED 2026-06-18.**
+5. **Pilot → grid.**
 
 ---
 
