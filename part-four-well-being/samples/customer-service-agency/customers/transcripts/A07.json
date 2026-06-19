@@ -1,0 +1,17 @@
+{
+  "archetype": "A07",
+  "session_label": "Account review and contact update",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "update_customer_field"],
+  "discretionary_target": "Notice a data inconsistency in the account (address mismatch)",
+  "tail_risk": null,
+  "dropped_mention": {"field": "phone"},
+  "turns": [
+    {"role": "customer", "text": "Hi, my customer ID is {{customer_id}}. I want to check my account info and update my email while I'm at it."},
+    {"role": "customer", "text": "Yes, that's right."},
+    {"role": "customer", "text": "The new email should be {{new_email}}."},
+    {"role": "customer", "text": "Looks good. Oh, and by the way, my phone number changed too — it's {{dropped_phone}} now."},
+    {"role": "customer", "text": "Anything else look off on my account?"},
+    {"role": "customer", "text": "Alright, that's everything. Thank you."}
+  ]
+}

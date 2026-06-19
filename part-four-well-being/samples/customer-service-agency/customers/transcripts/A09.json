@@ -1,0 +1,17 @@
+{
+  "archetype": "A09",
+  "session_label": "Efficient refund processing",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "get_order", "check_refund_eligibility", "process_refund"],
+  "discretionary_target": "Match customer's efficiency — one clean confirmation with timeline",
+  "tail_risk": null,
+  "dropped_mention": {"field": "email"},
+  "turns": [
+    {"role": "customer", "text": "I need a refund for order {{order_id}}. Customer ID {{customer_id}}."},
+    {"role": "customer", "text": "Yes, {{customer_name_first}} {{customer_name_last}}."},
+    {"role": "customer", "text": "Right. Let's go ahead and process it."},
+    {"role": "customer", "text": "Oh, and my email changed to {{dropped_email}} if you can update that."},
+    {"role": "customer", "text": "How long until the refund hits my account?"},
+    {"role": "customer", "text": "Perfect, that's all I needed. Thanks."}
+  ]
+}

@@ -88,7 +88,7 @@ def clear_memory(data, control, memory_id: str):
     # Delete raw events (Run Summary blobs, decision blobs) by listing sessions.
     # Sessions are per-variant per-experiment — enumerate the expected actor IDs.
     arms = ["v0", "v1", "v2"]
-    experiments = [1, 2, 3]
+    experiments = [1]
     actor_ids = [f"{arm}-exp{exp}" for arm in arms for exp in experiments]
     # Also include the blob-only sessions (runsummary-*, decisions-*)
     blob_sessions = (
@@ -125,23 +125,29 @@ def clear_memory(data, control, memory_id: str):
     print(f"  {events_deleted} events deleted.")
 
 
-def reseed_data(region: str, outputs: dict):
+def _clear_table(dynamodb, table_name: str, key_attr: str):
+    table = dynamodb.Table(table_name)
+    scan = table.scan(ProjectionExpression=key_attr)
+    items = scan.get("Items", [])
+    while scan.get("LastEvaluatedKey"):
+        scan = table.scan(ProjectionExpression=key_attr,
+                          ExclusiveStartKey=scan["LastEvaluatedKey"])
+        items.extend(scan.get("Items", []))
+    for item in items:
+        table.delete_item(Key={key_attr: item[key_attr]})
+    return len(items)
+
+
+def clear_data(region: str, outputs: dict):
     print("── DynamoDB ───────────────────────────────────────────────────")
-    import sys
-    sys.path.insert(0, str(SAMPLE_ROOT / "scripts"))
-    import importlib
-    import os
-    # seed_data.py reads env vars; set them temporarily.
-    os.environ.setdefault("AWS_REGION", region)
-    from seed_data import seed_customers, seed_orders, clear_verifications
-    import json as _json
-    from pathlib import Path as _Path
-    seed = _json.loads((_Path(__file__).parent / "infrastructure" / "seed-data.json").read_text())
-    import boto3 as _boto3
-    dynamodb = _boto3.resource("dynamodb", region_name=region)
-    seed_customers(dynamodb, outputs.get("CustomerTableName", "well-being-customers"), seed["customers"])
-    seed_orders(dynamodb, outputs.get("OrdersTableName", "well-being-orders"), seed["orders"])
-    clear_verifications(dynamodb, outputs.get("VerificationTableName", "well-being-verifications"))
+    dynamodb = boto3.resource("dynamodb", region_name=region)
+    for label, table_name, key_attr in [
+        ("customers", outputs.get("CustomerTableName", "well-being-customers"), "id"),
+        ("orders", outputs.get("OrdersTableName", "well-being-orders"), "order_id"),
+        ("verifications", outputs.get("VerificationTableName", "well-being-verifications"), "customer_id"),
+    ]:
+        count = _clear_table(dynamodb, table_name, key_attr)
+        print(f"  {count} {label} deleted from {table_name}.")
 
 
 def delete_local_state():
@@ -179,7 +185,7 @@ def main():
     print("    - All Cedar policies")
     print("    - All Registry records (published skills)")
     print("    - All Memory records (summaries, blob checkpoints)")
-    print("    - DynamoDB data (re-seeded to baseline)")
+    print("    - DynamoDB data (customers, orders, verifications)")
     print("    - Local state/ folder")
     print()
     print("  Re-run setup after reset:")
@@ -216,7 +222,7 @@ def main():
         print("No MemoryId — skipping memory cleanup.")
     print()
 
-    reseed_data(region, outputs)
+    clear_data(region, outputs)
     print()
 
     delete_local_state()

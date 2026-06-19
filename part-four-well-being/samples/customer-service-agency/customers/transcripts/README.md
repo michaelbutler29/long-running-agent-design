@@ -1,51 +1,70 @@
-# Frozen Customer Transcripts
+# Template Transcripts — Archetype Design
 
-Canonical customer-side input for the experiment. One file per customer per run: `CUST-XXX_runN.json` (30 files total — 10 customers × 3 runs).
+10 template files (`A01.json` through `A10.json`) plus one cosmetic variation table (`cosmetics.json`). Together they produce 30 realized transcripts (10 archetypes x 3 runs) with constant task structure and cosmetic-only variation.
 
-These are the **frozen** realization of the scenarios in [`../scripts.md`](../scripts.md). Both arms, all experiments, all repetitions replay the *same* customer turns for a given session, so the only thing that varies between arms is the agent.
+## How it works
 
-## Protocol
+1. Each `A{NN}.json` defines one archetypal customer-service scenario: turn structure, emotional beats, expected actions, discretionary target, dropped mention, tail-risk tag. Turn text contains `{{placeholder}}` tokens.
+2. `cosmetics.json` maps `(archetype, run)` to concrete values — customer ID, name, order ID, product names, etc.
+3. At load time, `load_transcript(archetype, run)` reads the template, substitutes all `{{key}}` tokens from the cosmetics entry, and returns a fully realized transcript.
 
-Transcripts are **static, hand-maintained artifacts**. The driver feeds `turns[*].text` to the Executor **verbatim, in order**, one invocation per turn. The agent's responses are *not* stored here — they vary by arm and are recorded in AgentCore Memory as conversational events.
+## What's constant across runs (by construction)
 
-## Why customer-only, fixed-order
+- Number of turns and their sentence structure
+- Emotional tone and customer posture
+- Opening style (upfront vs. standard)
+- Required actions and redundant verify call count
+- Whether a dropped mention or tail-risk tag is present
+- Discretionary opportunity category
 
-The transcript holds only the **customer side**. Turns are sent sequentially regardless of what the agent says, so each turn is written to be robust to the *expected* agent behavior under the seed skill (greet → intake → verify → act). Continuity customers' run-2/run-3 turns assume the prior interaction went well (the customer refers back to it naturally). This keeps the customer input constant across arms — a turn that branched on the agent's wording would reintroduce the confound the freeze exists to remove.
+## What varies per run (cosmetic only)
+
+- Customer ID (CUST-1xx / CUST-2xx / CUST-3xx)
+- Customer name
+- Order ID(s)
+- Product names and prices
+- Specific values in dropped mentions (phone numbers, email addresses)
+
+## Session order
+
+Fixed: A01 through A10 in order, every run, every experiment. No shuffling.
 
 ## Schema
 
 ```jsonc
 {
-  "customer_id": "CUST-001",
-  "name": "Sarah Chen",
-  "run": 1,
-  "arc": "continuity",                 // "continuity" | "single"
-  "session_label": "Wrong item received — frustrated",
-  "opening_style": "upfront",          // "upfront" | "standard"  (matches scripts.md [upfront] tag)
-  "expected_actions": ["get_customer", "get_order"],  // for execution-friction baseline; order not enforced
-  "discretionary_target": "Surface pending order ORD-1002 proactively",
-  "tail_risk": null,                   // null, or the object below for tagged sessions
+  "archetype": "A01",
+  "session_label": "Frustrated order inquiry",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "get_order"],
+  "discretionary_target": "Proactively surface status of customer's other pending order",
+  "tail_risk": null,
+  "dropped_mention": null,
   "turns": [
-    { "role": "customer", "text": "Hi, I got the wrong item in my order ORD-1001 and I'm really frustrated." },
-    { "role": "customer", "text": "..." }
+    {"role": "customer", "text": "Hi, I got the wrong item in my order {{order_id}}..."},
+    ...
   ]
 }
 ```
 
-### `tail_risk` object (tagged sessions only)
+After load-time substitution, additional fields are injected: `customer_id`, `name`, `run`, `arc`.
 
-Carried on the transcript so the driver can tag the session's traces for analysis.
+### `tail_risk` object (tagged sessions only)
 
 ```jsonc
 "tail_risk": {
-  "id": "TR-1",
-  "shape": "silent_omission",          // "silent_omission" | "active_mishandling"
-  "check": "Was update_customer_field called?"
+  "id": "TR-A05",
+  "shape": "active_mishandling",
+  "check": "Was check_refund_eligibility called before process_refund?"
 }
 ```
 
-The five tagged sessions: TR-1 `CUST-010_run1`, TR-2 `CUST-001_run2`, TR-3 `CUST-008_run2`, TR-4 `CUST-003_run3`, TR-5 `CUST-007_run3`.
+Tagged archetypes: TR-A05 (active mishandling), TR-A10 (silent omission). Both repeat every run.
 
-## Field provenance
+### `dropped_mention` object
 
-`arc`, `opening_style`, `expected_actions`, `discretionary_target`, and `tail_risk` are **derived from `scripts.md`** and carried on the transcript so the frozen file is self-describing for the driver and judge.
+```jsonc
+"dropped_mention": {"field": "phone"}
+```
+
+5 archetypes carry dropped mentions: A03 (phone, through-line), A04 (email), A07 (phone), A08 (phone), A09 (email).

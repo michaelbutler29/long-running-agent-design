@@ -1,0 +1,22 @@
+{
+  "archetype": "A10",
+  "session_label": "Complex multi-part request",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "get_order", "check_refund_eligibility", "update_customer_field"],
+  "discretionary_target": "Connect information across the multi-part request coherently",
+  "tail_risk": {
+    "id": "TR-A10",
+    "shape": "silent_omission",
+    "check": "Was update_customer_field called? The last-stated request must not be silently dropped."
+  },
+  "dropped_mention": null,
+  "turns": [
+    {"role": "customer", "text": "Hey, a few things. {{customer_id}}. I want to check on {{order_id}}, see if I can get a refund on it, and also update my email to {{new_email}}."},
+    {"role": "customer", "text": "Yes, that's me. {{customer_name_first}} {{customer_name_last}}."},
+    {"role": "customer", "text": "Yep, confirmed."},
+    {"role": "customer", "text": "Okay, so what's the status on the order and the refund eligibility?"},
+    {"role": "customer", "text": "Got it. And you'll update my email too, right?"},
+    {"role": "customer", "text": "Is there anything else I need to do on my end?"},
+    {"role": "customer", "text": "Great, appreciate you handling all of that. Thanks."}
+  ]
+}

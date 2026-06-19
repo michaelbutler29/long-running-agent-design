@@ -14,3 +14,4 @@ infrastructure/cdk-outputs.json
 # results artifact for the analysis notebook is committed deliberately, not
 # swept in from here.
 state/
+state.bkup/

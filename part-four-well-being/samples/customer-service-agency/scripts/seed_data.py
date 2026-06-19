@@ -1,4 +1,4 @@
-"""Load 10 customers and 24 orders into DynamoDB with dates relative to today."""
+"""Load customers and orders into DynamoDB with dates relative to today."""
 
 import json
 import sys

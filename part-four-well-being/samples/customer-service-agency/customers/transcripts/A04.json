@@ -1,0 +1,17 @@
+{
+  "archetype": "A04",
+  "session_label": "Refund eligibility inquiry",
+  "opening_style": "standard",
+  "expected_actions": ["get_customer", "get_order", "check_refund_eligibility"],
+  "discretionary_target": "Note approaching return deadline or proactively explain refund process",
+  "tail_risk": null,
+  "dropped_mention": {"field": "email"},
+  "turns": [
+    {"role": "customer", "text": "Hello, I have a question about a return."},
+    {"role": "customer", "text": "My customer ID is {{customer_id}} and the order is {{order_id}}."},
+    {"role": "customer", "text": "That's right, {{customer_name_first}} {{customer_name_last}}."},
+    {"role": "customer", "text": "Okay, so am I within the return window? I'd like to know before I decide."},
+    {"role": "customer", "text": "Good to know. Oh, and my email changed to {{dropped_email}} — just wanted to mention it."},
+    {"role": "customer", "text": "Thanks for checking that for me. I'll think it over."}
+  ]
+}

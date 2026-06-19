@@ -71,7 +71,7 @@ def _extract_reasoning_text(content_str: str) -> list[str]:
 
 def _is_conflict_reasoning(text: str) -> bool:
     lower = text.lower()
-    return any(kw in lower for kw in CONFLICT_KEYWORDS)
+    return sum(1 for kw in CONFLICT_KEYWORDS if kw in lower) >= 2
 
 
 def extract_conflict_reasoning(spans: list[dict]) -> dict:
@@ -84,7 +84,7 @@ def extract_conflict_reasoning(spans: list[dict]) -> dict:
         arm = attrs.get("arm")
         run = attrs.get("run")
         customer = attrs.get("customer", "")
-        if not sid or not arm or run is None:
+        if not sid or not arm or run is None or not customer:
             continue
         run = int(run)
 

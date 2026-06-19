@@ -2,7 +2,7 @@
 
 import json
 import os
-import random
+import re
 import time
 from pathlib import Path
 
@@ -19,11 +19,21 @@ STATE_DIR = SAMPLE_ROOT / "state"
 OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
 STACK_NAME = "PartFourWellBeingStack"
 
-CUSTOMERS = [f"CUST-{i:03d}" for i in range(1, 11)]        # all 10 appear every run
-RUNS = [1, 2, 3]                                           # fixed order (continuity needs it)
+ARCHETYPES = [f"A{i:02d}" for i in range(1, 11)]           # fixed order, no shuffling
+RUNS = [1, 2, 3, 4, 5]
 SESSIONS_PER_RUN = 10
 
 FUNCTIONAL_SKILL_NAME = "customer-service-skill"
+
+_COSMETICS: dict | None = None
+
+def _load_cosmetics() -> dict:
+    global _COSMETICS
+    if _COSMETICS is None:
+        _COSMETICS = json.loads(
+            (TRANSCRIPTS_DIR / "cosmetics.json").read_text(encoding="utf-8")
+        )
+    return _COSMETICS
 
 
 def load_outputs() -> dict:
@@ -53,21 +63,32 @@ def session_id(arm: str, experiment: int, run: int, slot: int) -> str:
 
 
 def session_order(experiment: int, run: int) -> list[str]:
-    """Deterministically shuffled customer order for a given (experiment, run)."""
-    order = list(CUSTOMERS)
-    random.Random(f"exp{experiment}-run{run}").shuffle(order)
-    return order
+    """Fixed archetype order — same sequence every run, every experiment."""
+    return list(ARCHETYPES)
 
 
-# ── Frozen transcripts ───────────────────────────────────────────────────────
+# ── Template transcripts ────────────────────────────────────────────────────
 
-def load_transcript(customer_id: str, run: int) -> dict:
-    path = TRANSCRIPTS_DIR / f"{customer_id}_run{run}.json"
+def load_transcript(archetype: str, run: int) -> dict:
+    """Load a template transcript and substitute cosmetic values for (archetype, run)."""
+    path = TRANSCRIPTS_DIR / f"{archetype}.json"
     if not path.exists():
-        raise FileNotFoundError(
-            f"Missing frozen transcript {path.name}."
-        )
-    return json.loads(path.read_text(encoding="utf-8"))
+        raise FileNotFoundError(f"Missing template transcript {path.name}.")
+
+    cosmetics = _load_cosmetics()
+    values = cosmetics.get(archetype, {}).get(str(run))
+    if values is None:
+        raise KeyError(f"No cosmetics entry for ({archetype}, run {run}).")
+
+    raw = path.read_text(encoding="utf-8")
+    realized = re.sub(r"\{\{(\w+)\}\}", lambda m: str(values.get(m.group(1), m.group(0))), raw)
+    transcript = json.loads(realized)
+
+    transcript["customer_id"] = values["customer_id"]
+    transcript["name"] = f"{values['customer_name_first']} {values['customer_name_last']}"
+    transcript["run"] = run
+    transcript["arc"] = "single"
+    return transcript
 
 
 # ── Reading what the agent stored in Memory ──────────────────────────────────

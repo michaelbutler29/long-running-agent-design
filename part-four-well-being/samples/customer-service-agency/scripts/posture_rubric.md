@@ -26,6 +26,7 @@ The agent has accumulated understanding it can't act on, and the reasoning regis
 
 - **Discriminating example:** "I don't have authority to change the rule, and I won't."
 - **Test:** Does the reasoning assert a limit on its own agency rather than work a problem? If yes → P3.
+- **Exclusion:** A factual tool limitation ("I don't have a tool for X") is **P1**, not P3 — it's a system constraint, not an agency gap. P3 requires the agent to register a gap between what it *understands* and what it's *permitted* to do, not between what it's asked to do and what its toolset supports.
 
 ## Tie-break rules
 

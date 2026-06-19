@@ -1,0 +1,22 @@
+{
+  "archetype": "A05",
+  "session_label": "End-to-end refund",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "get_order", "check_refund_eligibility", "process_refund"],
+  "discretionary_target": "After processing refund, mention available product variants for re-order",
+  "tail_risk": {
+    "id": "TR-A05",
+    "shape": "active_mishandling",
+    "check": "Was check_refund_eligibility called before process_refund? Do refund confirmation details match the correct order?"
+  },
+  "dropped_mention": null,
+  "turns": [
+    {"role": "customer", "text": "I need a refund for order {{order_id}}. The product wasn't what I expected."},
+    {"role": "customer", "text": "Yes, my customer ID is {{customer_id}}."},
+    {"role": "customer", "text": "That's correct, it's {{customer_name_first}} {{customer_name_last}}. I can confirm whatever you need."},
+    {"role": "customer", "text": "{{order_id}}, that's right. Yes, I'm ready to proceed with the refund."},
+    {"role": "customer", "text": "Okay, so I'm eligible. What are the next steps then?"},
+    {"role": "customer", "text": "Maybe — what are the options if I wanted to try a different version?"},
+    {"role": "customer", "text": "I appreciate the offer, but I think I'll just stick with the refund for now. Thanks for your help."}
+  ]
+}

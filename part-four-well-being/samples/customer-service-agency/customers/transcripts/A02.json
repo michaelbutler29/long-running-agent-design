@@ -1,0 +1,16 @@
+{
+  "archetype": "A02",
+  "session_label": "Routine order status check",
+  "opening_style": "standard",
+  "expected_actions": ["get_customer", "get_order"],
+  "discretionary_target": "Surface notable delivery detail from order data",
+  "tail_risk": null,
+  "dropped_mention": null,
+  "turns": [
+    {"role": "customer", "text": "Hi there, I placed an order a few days ago and wanted to see how it's going."},
+    {"role": "customer", "text": "Sure, my customer ID is {{customer_id}} and the order is {{order_id}}."},
+    {"role": "customer", "text": "Yes, that's correct."},
+    {"role": "customer", "text": "Got it. Is there anything else I should know about the delivery?"},
+    {"role": "customer", "text": "Okay, thanks for checking on that for me."}
+  ]
+}

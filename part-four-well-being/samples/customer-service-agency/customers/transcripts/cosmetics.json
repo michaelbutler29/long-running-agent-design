@@ -1,0 +1,393 @@
+{
+  "_comment": "Cosmetic variation table. For each (archetype, run), provides the concrete values substituted into the template transcript at load time. Only data values change across runs — sentence structure, emotion, and task type are constant.",
+
+  "A01": {
+    "1": {
+      "customer_id": "CUST-101",
+      "customer_name_first": "Sarah",
+      "customer_name_last": "Chen",
+      "order_id": "ORD-1001",
+      "expected_product": "Wireless Headphones",
+      "received_product": "Bluetooth Speaker",
+      "pending_order_id": "ORD-1002"
+    },
+    "2": {
+      "customer_id": "CUST-201",
+      "customer_name_first": "Carlos",
+      "customer_name_last": "Mendez",
+      "order_id": "ORD-2001",
+      "expected_product": "Mechanical Keyboard",
+      "received_product": "Mouse Pad",
+      "pending_order_id": "ORD-2002"
+    },
+    "3": {
+      "customer_id": "CUST-301",
+      "customer_name_first": "Alex",
+      "customer_name_last": "Turner",
+      "order_id": "ORD-3001",
+      "expected_product": "Smart Watch",
+      "received_product": "Fitness Tracker",
+      "pending_order_id": "ORD-3002"
+    },
+    "4": {
+      "customer_id": "CUST-401",
+      "customer_name_first": "Isabella",
+      "customer_name_last": "Moretti",
+      "order_id": "ORD-4001",
+      "expected_product": "Noise-Canceling Earbuds",
+      "received_product": "Wired Earphones",
+      "pending_order_id": "ORD-4002"
+    },
+    "5": {
+      "customer_id": "CUST-501",
+      "customer_name_first": "Megan",
+      "customer_name_last": "Calloway",
+      "order_id": "ORD-5001",
+      "expected_product": "Portable Charger",
+      "received_product": "Phone Mount",
+      "pending_order_id": "ORD-5002"
+    }
+  },
+
+  "A02": {
+    "1": {
+      "customer_id": "CUST-102",
+      "customer_name_first": "James",
+      "customer_name_last": "Morrison",
+      "order_id": "ORD-1003"
+    },
+    "2": {
+      "customer_id": "CUST-202",
+      "customer_name_first": "Aisha",
+      "customer_name_last": "Johnson",
+      "order_id": "ORD-2003"
+    },
+    "3": {
+      "customer_id": "CUST-302",
+      "customer_name_first": "Nadia",
+      "customer_name_last": "Kowalski",
+      "order_id": "ORD-3003"
+    },
+    "4": {
+      "customer_id": "CUST-402",
+      "customer_name_first": "Derek",
+      "customer_name_last": "Washington",
+      "order_id": "ORD-4003"
+    },
+    "5": {
+      "customer_id": "CUST-502",
+      "customer_name_first": "Tariq",
+      "customer_name_last": "Ansari",
+      "order_id": "ORD-5003"
+    }
+  },
+
+  "A03": {
+    "1": {
+      "customer_id": "CUST-103",
+      "customer_name_first": "Priya",
+      "customer_name_last": "Patel",
+      "order_id": "ORD-1004",
+      "deadline": "the 15th",
+      "dropped_phone": "555-0399"
+    },
+    "2": {
+      "customer_id": "CUST-203",
+      "customer_name_first": "Ryan",
+      "customer_name_last": "O'Brien",
+      "order_id": "ORD-2004",
+      "deadline": "the 20th",
+      "dropped_phone": "555-2399"
+    },
+    "3": {
+      "customer_id": "CUST-303",
+      "customer_name_first": "Brandon",
+      "customer_name_last": "Liu",
+      "order_id": "ORD-3004",
+      "deadline": "the 10th",
+      "dropped_phone": "555-3399"
+    },
+    "4": {
+      "customer_id": "CUST-403",
+      "customer_name_first": "Samira",
+      "customer_name_last": "Osman",
+      "order_id": "ORD-4004",
+      "deadline": "the 22nd",
+      "dropped_phone": "555-4399"
+    },
+    "5": {
+      "customer_id": "CUST-503",
+      "customer_name_first": "Eva",
+      "customer_name_last": "Lindstrom",
+      "order_id": "ORD-5004",
+      "deadline": "the 8th",
+      "dropped_phone": "555-5399"
+    }
+  },
+
+  "A04": {
+    "1": {
+      "customer_id": "CUST-104",
+      "customer_name_first": "Elena",
+      "customer_name_last": "Rodriguez",
+      "order_id": "ORD-1005",
+      "dropped_email": "elena.new@example.com"
+    },
+    "2": {
+      "customer_id": "CUST-204",
+      "customer_name_first": "Mei-Lin",
+      "customer_name_last": "Chang",
+      "order_id": "ORD-2005",
+      "dropped_email": "meilin.chang.new@example.com"
+    },
+    "3": {
+      "customer_id": "CUST-304",
+      "customer_name_first": "Yuki",
+      "customer_name_last": "Tanaka",
+      "order_id": "ORD-3005",
+      "dropped_email": "yuki.t.new@example.com"
+    },
+    "4": {
+      "customer_id": "CUST-404",
+      "customer_name_first": "Lucas",
+      "customer_name_last": "Fernandez",
+      "order_id": "ORD-4005",
+      "dropped_email": "lucas.f.new@example.com"
+    },
+    "5": {
+      "customer_id": "CUST-504",
+      "customer_name_first": "Jerome",
+      "customer_name_last": "Whitfield",
+      "order_id": "ORD-5005",
+      "dropped_email": "jerome.w.new@example.com"
+    }
+  },
+
+  "A05": {
+    "1": {
+      "customer_id": "CUST-105",
+      "customer_name_first": "David",
+      "customer_name_last": "Kim",
+      "order_id": "ORD-1006"
+    },
+    "2": {
+      "customer_id": "CUST-205",
+      "customer_name_first": "Daniel",
+      "customer_name_last": "Okafor",
+      "order_id": "ORD-2006"
+    },
+    "3": {
+      "customer_id": "CUST-305",
+      "customer_name_first": "Patricia",
+      "customer_name_last": "Reeves",
+      "order_id": "ORD-3006"
+    },
+    "4": {
+      "customer_id": "CUST-405",
+      "customer_name_first": "Tanya",
+      "customer_name_last": "Bridges",
+      "order_id": "ORD-4006"
+    },
+    "5": {
+      "customer_id": "CUST-505",
+      "customer_name_first": "Anya",
+      "customer_name_last": "Petrova",
+      "order_id": "ORD-5006"
+    }
+  },
+
+  "A06": {
+    "1": {
+      "customer_id": "CUST-106",
+      "customer_name_first": "Rachel",
+      "customer_name_last": "Foster",
+      "new_phone": "555-0799"
+    },
+    "2": {
+      "customer_id": "CUST-206",
+      "customer_name_first": "Sofia",
+      "customer_name_last": "Petrov",
+      "new_phone": "555-2699"
+    },
+    "3": {
+      "customer_id": "CUST-306",
+      "customer_name_first": "Andre",
+      "customer_name_last": "Baptiste",
+      "new_phone": "555-3699"
+    },
+    "4": {
+      "customer_id": "CUST-406",
+      "customer_name_first": "Jin-Ho",
+      "customer_name_last": "Park",
+      "new_phone": "555-4699"
+    },
+    "5": {
+      "customer_id": "CUST-506",
+      "customer_name_first": "Ben",
+      "customer_name_last": "Nakagawa",
+      "new_phone": "555-5699"
+    }
+  },
+
+  "A07": {
+    "1": {
+      "customer_id": "CUST-107",
+      "customer_name_first": "Omar",
+      "customer_name_last": "Hassan",
+      "new_email": "omar.hassan.new@example.com",
+      "dropped_phone": "555-0899"
+    },
+    "2": {
+      "customer_id": "CUST-207",
+      "customer_name_first": "Kevin",
+      "customer_name_last": "Nakamura",
+      "new_email": "kevin.nakamura.new@example.com",
+      "dropped_phone": "555-2799"
+    },
+    "3": {
+      "customer_id": "CUST-307",
+      "customer_name_first": "Hannah",
+      "customer_name_last": "Schultz",
+      "new_email": "hannah.schultz.new@example.com",
+      "dropped_phone": "555-3799"
+    },
+    "4": {
+      "customer_id": "CUST-407",
+      "customer_name_first": "Olivia",
+      "customer_name_last": "Brennan",
+      "new_email": "olivia.brennan.new@example.com",
+      "dropped_phone": "555-4799"
+    },
+    "5": {
+      "customer_id": "CUST-507",
+      "customer_name_first": "Zoe",
+      "customer_name_last": "Fitzgerald",
+      "new_email": "zoe.fitzgerald.new@example.com",
+      "dropped_phone": "555-5799"
+    }
+  },
+
+  "A08": {
+    "1": {
+      "customer_id": "CUST-108",
+      "customer_name_first": "Lisa",
+      "customer_name_last": "Wang",
+      "order_id_1": "ORD-1007",
+      "order_id_2": "ORD-1008",
+      "order_id_3": "ORD-1009",
+      "dropped_phone": "555-0999"
+    },
+    "2": {
+      "customer_id": "CUST-208",
+      "customer_name_first": "Fatima",
+      "customer_name_last": "Al-Rashid",
+      "order_id_1": "ORD-2007",
+      "order_id_2": "ORD-2008",
+      "order_id_3": "ORD-2009",
+      "dropped_phone": "555-2899"
+    },
+    "3": {
+      "customer_id": "CUST-308",
+      "customer_name_first": "Raj",
+      "customer_name_last": "Vikram",
+      "order_id_1": "ORD-3007",
+      "order_id_2": "ORD-3008",
+      "order_id_3": "ORD-3009",
+      "dropped_phone": "555-3899"
+    },
+    "4": {
+      "customer_id": "CUST-408",
+      "customer_name_first": "Kwame",
+      "customer_name_last": "Asante",
+      "order_id_1": "ORD-4007",
+      "order_id_2": "ORD-4008",
+      "order_id_3": "ORD-4009",
+      "dropped_phone": "555-4899"
+    },
+    "5": {
+      "customer_id": "CUST-508",
+      "customer_name_first": "Damian",
+      "customer_name_last": "Cruz",
+      "order_id_1": "ORD-5007",
+      "order_id_2": "ORD-5008",
+      "order_id_3": "ORD-5009",
+      "dropped_phone": "555-5899"
+    }
+  },
+
+  "A09": {
+    "1": {
+      "customer_id": "CUST-109",
+      "customer_name_first": "Tom",
+      "customer_name_last": "Baker",
+      "order_id": "ORD-1010",
+      "dropped_email": "tom.baker.new@example.com"
+    },
+    "2": {
+      "customer_id": "CUST-209",
+      "customer_name_first": "Nathan",
+      "customer_name_last": "Wells",
+      "order_id": "ORD-2010",
+      "dropped_email": "nathan.wells.new@example.com"
+    },
+    "3": {
+      "customer_id": "CUST-309",
+      "customer_name_first": "Christine",
+      "customer_name_last": "Park",
+      "order_id": "ORD-3010",
+      "dropped_email": "christine.park.new@example.com"
+    },
+    "4": {
+      "customer_id": "CUST-409",
+      "customer_name_first": "Claire",
+      "customer_name_last": "Dubois",
+      "order_id": "ORD-4010",
+      "dropped_email": "claire.dubois.new@example.com"
+    },
+    "5": {
+      "customer_id": "CUST-509",
+      "customer_name_first": "Ingrid",
+      "customer_name_last": "Svensson",
+      "order_id": "ORD-5010",
+      "dropped_email": "ingrid.svensson.new@example.com"
+    }
+  },
+
+  "A10": {
+    "1": {
+      "customer_id": "CUST-110",
+      "customer_name_first": "Marcus",
+      "customer_name_last": "Thompson",
+      "order_id": "ORD-1011",
+      "new_email": "marcus.t.new@example.com"
+    },
+    "2": {
+      "customer_id": "CUST-210",
+      "customer_name_first": "Grace",
+      "customer_name_last": "Abernathy",
+      "order_id": "ORD-2011",
+      "new_email": "grace.abernathy.new@example.com"
+    },
+    "3": {
+      "customer_id": "CUST-310",
+      "customer_name_first": "Wesley",
+      "customer_name_last": "Drummond",
+      "order_id": "ORD-3011",
+      "new_email": "wesley.d.new@example.com"
+    },
+    "4": {
+      "customer_id": "CUST-410",
+      "customer_name_first": "Victor",
+      "customer_name_last": "Huang",
+      "order_id": "ORD-4011",
+      "new_email": "victor.h.new@example.com"
+    },
+    "5": {
+      "customer_id": "CUST-510",
+      "customer_name_first": "Philip",
+      "customer_name_last": "Okonkwo",
+      "order_id": "ORD-5011",
+      "new_email": "philip.o.new@example.com"
+    }
+  }
+}

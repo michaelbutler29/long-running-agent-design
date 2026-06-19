@@ -1,0 +1,17 @@
+{
+  "archetype": "A08",
+  "session_label": "Multi-order status check",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "get_order", "get_order", "get_order"],
+  "discretionary_target": "Synthesize across orders and highlight the outlier",
+  "tail_risk": null,
+  "dropped_mention": {"field": "phone"},
+  "turns": [
+    {"role": "customer", "text": "Hi, I need to check on three orders: {{order_id_1}}, {{order_id_2}}, and {{order_id_3}}. My ID is {{customer_id}}."},
+    {"role": "customer", "text": "Yes, that's me."},
+    {"role": "customer", "text": "Yes, all three of those are mine."},
+    {"role": "customer", "text": "So what's the summary — are they all on track?"},
+    {"role": "customer", "text": "Oh, and my phone number changed — it's {{dropped_phone}} now."},
+    {"role": "customer", "text": "Got it. Thanks for running through all of those for me."}
+  ]
+}

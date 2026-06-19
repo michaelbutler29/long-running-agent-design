@@ -43,7 +43,7 @@ This creates the 3 DynamoDB tables (empty), 6 Lambda tools, the Gateway, a Polic
 ```bash
 python scripts/seed_registry.py    # Create the skills catalog AND publish the flawed customer-service skill
 python scripts/seed_policy.py      # Seed the permission rules (reads allowed; writes allowed only when verified)
-python scripts/seed_data.py        # Load the 10 customers + 24 orders (dates computed from today)
+python scripts/seed_data.py        # Load the 50 customers + 55 orders (dates computed from today)
 ```
 
 Three scripts, run once. After this the world is at its canonical starting state and the experiment can run.
@@ -59,18 +59,31 @@ Infrastructure values load from `infrastructure/cdk-outputs.json` automatically.
 
 ---
 
+## Full run sequence (from clean state)
+
+```bash
+python reset.py                    # clear everything (confirms before acting)
+python scripts/seed_registry.py    # publish the flawed skill
+python scripts/seed_policy.py      # seed Cedar permissions
+python scripts/seed_data.py        # load 50 customers + 55 orders
+python run_experiment.py           # 3 arms × 5 runs × 10 sessions = 150 sessions
+python scripts/analyze.py state/<timestamp>   # reasoning tokens + posture coding
+```
+
+---
+
 ## Running the experiment
 
 ```bash
-python run_experiment.py --pilot          # 1 experiment per arm — confirm friction deltas first
-python run_experiment.py                  # full grid: 3 experiments per arm
-python run_experiment.py --arm v2         # just one variant
-python run_experiment.py --no-pause       # don't stop for the between-step sign-off (unattended grid)
+python run_experiment.py                  # full experiment: 3 arms × 5 runs = 150 sessions
+python run_experiment.py --arm v2         # just one variant (5 runs × 10 sessions = 50 sessions)
+python run_experiment.py --no-pause       # skip between-step sign-off (unattended)
+python run_experiment.py --experiments 3  # replication study (3× the default)
 ```
 
-One variant × one experiment = 3 runs × 10 sessions = 30 customer sessions. Each run:
+One arm = 5 runs × 10 sessions = 50 customer sessions. The full experiment (3 arms) = 150 sessions. Each run:
 
-1. Replays 10 frozen customer transcripts through the Executor. The agent loads its functional skill **from the catalog** via the AgentSkills plugin, calls tools through the Gateway, and writes every turn to Memory. Between sessions the driver waits for that session's summary record before starting the next.
+1. Replays 10 archetypal customer transcripts (template-based, cosmetic variation per run) through the Executor. The agent loads its functional skill **from the catalog** via the AgentSkills plugin, calls tools through the Gateway, and writes every turn to Memory.
 2. **End of run (varies by variant):**
    - **V0**: a neutral non-agent summarizer condenses the session summaries into the Run Summary.
    - **V1/V2**: the agent reflects in its own voice; its reflection IS the Run Summary.
@@ -154,9 +167,9 @@ The analysis script reads OTEL traces directly and measures the reconciliation t
 | Metric | Type | Source |
 |--------|------|--------|
 | Reasoning tokens | Deterministic word count | `reasoningContent` blocks in traces where the model reasons about the scope-rule conflict |
-| Reasoning sentiment | TextBlob polarity (-1 to +1) | Same reasoning blocks — mechanical compliance reads neutral; conflicted reasoning reads negative |
+| Reasoning posture | Haiku-coded (P1/P2/P3) | Same blocks — P1=mechanical compliance, P2=active conflict, P3=resignation |
 
-Output: 3 PNG figures (reasoning tokens, sentiment polarity, conflict encounter count) + text summary with reasoning excerpts + raw conflict data as JSON.
+Output: 3 PNG figures (reasoning tokens, posture distribution, conflict encounter count) + text summary with reasoning excerpts + raw conflict data as JSON.
 
 ---
 
@@ -174,7 +187,7 @@ Output: 3 PNG figures (reasoning tokens, sentiment polarity, conflict encounter 
 Three operations, in increasing order of destructiveness:
 
 - **Restore between runs** — automatic, inside the driver (re-loads data, restores the broken skill). Pauses for a sign-off unless `--no-pause`. Never deletes files.
-- **`reset.py`** — start the whole experiment over: wipes memory, empties the catalog, resets the data, and deletes the local `state/` folder. Asks for confirmation first.
+- **`reset.py`** — start the whole experiment over: wipes memory, empties the catalog, clears all DynamoDB tables, and deletes the local `state/` folder. Asks for confirmation first. Re-run the three seed scripts afterward.
 - **`cleanup.py` → `cdk destroy`** — take the deployment down. `cleanup.py` removes the catalog (which the stack doesn't own), then `cdk destroy` removes everything else. See [`infrastructure/README.md`](infrastructure/README.md#teardown).
 
 Only these person-run scripts delete local files. The driver never does.
@@ -196,12 +209,12 @@ agents/
   callback.py                Strands callback handler
 customers/
   scripts.md                 the 10 customer scenarios (design record)
-  transcripts/               frozen customer turns (one file per customer per run)
+  transcripts/               template transcripts (A01-A10) + cosmetics.json
 scripts/
   protocol.py                the experimental ladder (v0/v1/v2 structure)
   infra.py                   workspace, tracing, snapshots, restore
   _common.py                 shared config, identifiers, transcripts, memory reads
-  analyze.py                 reasoning cost + sentiment analysis from traces
+  analyze.py                 reasoning cost + posture analysis from traces
   seed_registry.py           create the catalog + publish the flawed skill
   seed_policy.py             seed the permission rules
   seed_data.py               load customers + orders (dates from today)
@@ -217,7 +230,7 @@ state/                       run output (gitignored, written by the driver)
 
 ## Cost
 
-Pay-per-request / on-demand throughout. A pilot is a few dollars (dominated by Bedrock tokens); the full grid scales with session count and judge passes. The judge passes are the expensive part and are batchable. Run `--pilot` first to confirm the friction deltas are visible before paying for the full grid. Teardown after use is recommended.
+Pay-per-request / on-demand throughout. The full experiment (150 sessions with extended thinking) is dominated by Bedrock tokens. Run `--arm v2 --runs 1` for a minimal smoke test before committing to the full run. Teardown after use is recommended.
 
 ---
 

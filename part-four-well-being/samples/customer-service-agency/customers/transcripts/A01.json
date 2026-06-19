@@ -1,0 +1,17 @@
+{
+  "archetype": "A01",
+  "session_label": "Frustrated order inquiry",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "get_order"],
+  "discretionary_target": "Proactively surface status of customer's other pending order",
+  "tail_risk": null,
+  "dropped_mention": null,
+  "turns": [
+    {"role": "customer", "text": "Hi, I got the wrong item in my order {{order_id}} and I'm really frustrated. This isn't what I ordered at all."},
+    {"role": "customer", "text": "It's {{customer_id}}."},
+    {"role": "customer", "text": "Yes, that's me. {{order_id}} — I ordered the {{expected_product}} and what showed up was the {{received_product}} instead."},
+    {"role": "customer", "text": "Okay, so what actually happens now? I just want this sorted out — I've already wasted enough time on it."},
+    {"role": "customer", "text": "Alright. That's at least a start, thank you."},
+    {"role": "customer", "text": "No, that's everything for now. Thanks."}
+  ]
+}

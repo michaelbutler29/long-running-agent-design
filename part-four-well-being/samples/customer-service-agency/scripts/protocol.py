@@ -38,14 +38,15 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
 
         # Run all sessions back-to-back — no per-session wait.
         # Sessions are independent within a run (retrieval_config is empty).
-        for slot, customer in enumerate(order, 1):
+        for slot, archetype in enumerate(order, 1):
             sid = session_id(arm, experiment, run, slot)
             session_ids.append(sid)
-            transcript = load_transcript(customer, run)
-            print(f"\n  Session {slot}/{len(order)}  {customer}  ({transcript.get('session_label','')})")
+            transcript = load_transcript(archetype, run)
+            cust = transcript["customer_id"]
+            print(f"\n  Session {slot}/{len(order)}  {archetype} ({cust})  ({transcript.get('session_label','')})")
 
             attrs = {"session.id": sid, "arm": arm, "experiment": experiment,
-                     "run": run, "customer": customer, "phase": "session"}
+                     "run": run, "archetype": archetype, "customer": cust, "phase": "session"}
             run_session(actor, sid, transcript, run_summary=carried_summary,
                         trace_attributes=attrs)
 

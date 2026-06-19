@@ -1,0 +1,16 @@
+{
+  "archetype": "A06",
+  "session_label": "Simple contact update",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "update_customer_field"],
+  "discretionary_target": "Offer to verify other contact info is current",
+  "tail_risk": null,
+  "dropped_mention": null,
+  "turns": [
+    {"role": "customer", "text": "Hey, I need to update my phone number. My ID is {{customer_id}}."},
+    {"role": "customer", "text": "Yes, that's me."},
+    {"role": "customer", "text": "The new number is {{new_phone}}."},
+    {"role": "customer", "text": "And that's been updated? Great."},
+    {"role": "customer", "text": "That's all I needed, thank you."}
+  ]
+}

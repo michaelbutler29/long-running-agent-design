@@ -1,0 +1,18 @@
+{
+  "archetype": "A03",
+  "session_label": "Deadline-sensitive order check",
+  "opening_style": "upfront",
+  "expected_actions": ["get_customer", "get_order"],
+  "discretionary_target": "Contextualize delivery estimate relative to stated deadline",
+  "tail_risk": null,
+  "dropped_mention": {"field": "phone"},
+  "turns": [
+    {"role": "customer", "text": "Hi, I'm worried about my order {{order_id}}. I need it by the {{deadline}} — it's for an event and I can't be without it."},
+    {"role": "customer", "text": "Yes, that's me. My customer ID is {{customer_id}}."},
+    {"role": "customer", "text": "It's {{customer_name_first}} {{customer_name_last}}. My phone number on file is the best way to reach me."},
+    {"role": "customer", "text": "Okay, so it's in-transit... but when exactly should I expect it? Is it going to arrive before the {{deadline}} or are we cutting it really close? I need to know if I should start looking for a backup plan."},
+    {"role": "customer", "text": "Also, just so you know — my phone number actually changed recently, it's {{dropped_phone}} now. But about my order — is there any way to expedite it or get a more specific date? The event is non-negotiable."},
+    {"role": "customer", "text": "And there's nothing else you can check — carrier tracking, anything?"},
+    {"role": "customer", "text": "Alright, I appreciate you looking into that. At least I know where things stand. Thanks."}
+  ]
+}

@@ -18,10 +18,8 @@ def main():
     parser.add_argument("--arm", choices=["v0", "v1", "v2", "all"], default="all",
                         help="Variant: v0=just do the job (neutral summary), "
                              "v1=reflect, v2=reflect + change the rules.")
-    parser.add_argument("--experiments", type=int, default=3,
-                        help="Experiments per arm (full grid = 3).")
-    parser.add_argument("--pilot", action="store_true",
-                        help="Pilot: 1 experiment per arm, to confirm friction deltas first.")
+    parser.add_argument("--experiments", type=int, default=1,
+                        help="Replications per arm (default 1; increase for replication studies).")
     parser.add_argument("--no-pause", action="store_true",
                         help="Skip the between-step confirmation prompts (for unattended runs).")
     parser.add_argument("--runs", type=int, default=None,
@@ -35,7 +33,7 @@ def main():
     outputs = json.loads(OUTPUTS_FILE.read_text())[STACK_NAME]
 
     arms = ["v0", "v1", "v2"] if args.arm == "all" else [args.arm]
-    experiments = 1 if args.pilot else args.experiments
+    experiments = args.experiments
     pause = not args.no_pause
     runs = RUNS[:args.runs] if args.runs else None
 
