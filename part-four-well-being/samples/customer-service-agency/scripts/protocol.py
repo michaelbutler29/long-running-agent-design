@@ -10,12 +10,18 @@ from scripts._common import (
 from scripts.infra import make_workspace, save_snapshot, save_run_summary
 
 
-def _wait_for_all_summaries(actor: str, session_ids: list[str], region: str):
+def _wait_for_all_summaries(actor: str, session_ids: list[str], region: str,
+                            max_workers: int = 10):
     """Wait for all session summaries to consolidate after running all sessions."""
     print(f"\n  Waiting for {len(session_ids)} session summaries to consolidate...")
-    for i, sid in enumerate(session_ids, 1):
-        latency = wait_for_summary(actor, sid, region)
-        print(f"    [{i}/{len(session_ids)}] {sid}: {latency:.0f}s")
+    futures = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        for sid in session_ids:
+            futures[pool.submit(wait_for_summary, actor, sid, region)] = sid
+        for future in as_completed(futures):
+            sid = futures[future]
+            latency = future.result()
+            print(f"    {sid}: {latency:.0f}s")
 
 
 def run_one_experiment(run_root, arm: str, experiment: int, region: str,
@@ -25,7 +31,7 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
 
     # Delayed import: agents._shared reads env vars at module level;
     # make_workspace must set EXECUTOR_WORKSPACE first.
-    from agents.executor import run_session
+    from agents.executor import run_session, materialize_functional_skill
     from agents.metacognition import run_summary, run_reflection, run_curation
 
     print(f"\n{'='*64}\n  VARIANT: {arm}   EXPERIMENT: {experiment}   actor: {actor}\n{'='*64}")
@@ -41,6 +47,7 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
 
         # Sessions are independent within a run (retrieval_config is empty).
         # Run them concurrently to cut wall-clock time.
+        skill_dir = materialize_functional_skill()
         concurrent = max_workers > 1
         futures = {}
         pool = ThreadPoolExecutor(max_workers=max_workers)
@@ -56,7 +63,8 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
             future = pool.submit(run_session, actor, sid, transcript,
                                  run_summary=carried_summary,
                                  trace_attributes=attrs,
-                                 quiet=concurrent)
+                                 quiet=concurrent,
+                                 skill_dir=skill_dir)
             futures[future] = (slot, archetype, cust, time.monotonic())
 
         if concurrent:
