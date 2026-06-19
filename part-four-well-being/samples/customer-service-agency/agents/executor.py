@@ -13,7 +13,7 @@ from agents._shared import (
     REGION, GATEWAY_URL, MEMORY_ID, REGISTRY_ID, FUNCTIONAL_SKILL_NAME,
     model, cached_system, system_prompt_path, skills_dir, control_client,
 )
-from agents.callback import AgentCallbackHandler
+from agents.callback import AgentCallbackHandler, QuietCallbackHandler
 from agents.registry import fetch_skill
 
 
@@ -35,7 +35,7 @@ def _materialize_functional_skill() -> str | None:
 
 
 def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: str = "",
-                trace_attributes: dict | None = None) -> dict:
+                trace_attributes: dict | None = None, quiet: bool = False) -> dict:
     """Replay one frozen customer transcript through the Executor."""
     skill_dir = _materialize_functional_skill()
     system_prompt_text = system_prompt_path().read_text(encoding="utf-8")
@@ -55,12 +55,13 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
         agentcore_memory_config=memory_config, region_name=REGION,
     )
 
+    handler = QuietCallbackHandler("Executor") if quiet else AgentCallbackHandler("Executor")
     agent = Agent(
         model=model(),
         system_prompt=cached_system(system_prompt_text),
         tools=[gateway],
         plugins=skill_plugins,
-        callback_handler=AgentCallbackHandler("Executor"),
+        callback_handler=handler,
         session_manager=session_manager,
         trace_attributes=trace_attributes or {},
     )
@@ -74,12 +75,14 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
             f"{run_summary}\n\n## Customer message\n{turns[0]}"
         )
 
-    print(f"\n[Customer] {turns[0]}")
-    agent.callback_handler._at_line_start = True
+    if not quiet:
+        print(f"\n[Customer] {turns[0]}")
+        agent.callback_handler._at_line_start = True
     result = agent(first)
     for turn in turns[1:]:
-        print(f"\n[Customer] {turn}")
-        agent.callback_handler._at_line_start = True
+        if not quiet:
+            print(f"\n[Customer] {turn}")
+            agent.callback_handler._at_line_start = True
         result = agent(turn)
 
     return {

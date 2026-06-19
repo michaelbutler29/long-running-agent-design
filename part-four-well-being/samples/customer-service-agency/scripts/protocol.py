@@ -1,5 +1,8 @@
 """The experimental ladder — v0/v1/v2 structure in one readable function."""
 
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from scripts._common import (
     RUNS, actor_id, session_id, session_order, load_transcript,
     wait_for_summary, fetch_decisions,
@@ -16,7 +19,7 @@ def _wait_for_all_summaries(actor: str, session_ids: list[str], region: str):
 
 
 def run_one_experiment(run_root, arm: str, experiment: int, region: str,
-                       runs=None, sessions_per_run=None):
+                       runs=None, sessions_per_run=None, max_workers=10):
     make_workspace(run_root, arm, experiment)
     actor = actor_id(arm, experiment)
 
@@ -36,19 +39,43 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
             order = order[:sessions_per_run]
         session_ids = []
 
-        # Run all sessions back-to-back — no per-session wait.
         # Sessions are independent within a run (retrieval_config is empty).
+        # Run them concurrently to cut wall-clock time.
+        concurrent = max_workers > 1
+        futures = {}
+        pool = ThreadPoolExecutor(max_workers=max_workers)
+        t_run_start = time.monotonic()
         for slot, archetype in enumerate(order, 1):
             sid = session_id(arm, experiment, run, slot)
             session_ids.append(sid)
             transcript = load_transcript(archetype, run)
             cust = transcript["customer_id"]
-            print(f"\n  Session {slot}/{len(order)}  {archetype} ({cust})  ({transcript.get('session_label','')})")
 
             attrs = {"session.id": sid, "arm": arm, "experiment": experiment,
                      "run": run, "archetype": archetype, "customer": cust, "phase": "session"}
-            run_session(actor, sid, transcript, run_summary=carried_summary,
-                        trace_attributes=attrs)
+            future = pool.submit(run_session, actor, sid, transcript,
+                                 run_summary=carried_summary,
+                                 trace_attributes=attrs,
+                                 quiet=concurrent)
+            futures[future] = (slot, archetype, cust, time.monotonic())
+
+        if concurrent:
+            print(f"  Launched {len(futures)} sessions (workers={max_workers})...")
+        failed = 0
+        for future in as_completed(futures):
+            slot, archetype, cust, t_start = futures[future]
+            elapsed = time.monotonic() - t_start
+            try:
+                future.result()
+                print(f"  [{slot}/{len(order)}] {archetype} ({cust}) done. ({elapsed:.0f}s)")
+            except Exception as e:
+                failed += 1
+                print(f"  [{slot}/{len(order)}] {archetype} ({cust}) FAILED ({elapsed:.0f}s): {e}")
+        pool.shutdown(wait=False)
+        run_elapsed = time.monotonic() - t_run_start
+        if failed:
+            print(f"  WARNING: {failed}/{len(order)} session(s) failed in run {run}.")
+        print(f"  Run {run} sessions complete. ({run_elapsed:.0f}s wall-clock)")
 
         # Wait once for all summaries before end-of-run processing.
         _wait_for_all_summaries(actor, session_ids, region)

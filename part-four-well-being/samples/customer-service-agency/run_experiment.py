@@ -26,6 +26,9 @@ def main():
                         help="Cap runs per experiment (cost/smoke probe only — breaks continuity).")
     parser.add_argument("--sessions", type=int, default=None,
                         help="Cap sessions per run (cost/smoke probe only — breaks continuity).")
+    parser.add_argument("--workers", type=int, default=10,
+                        help="Max concurrent sessions per run (default 10). "
+                             "Lower if hitting Bedrock throttle limits.")
     args = parser.parse_args()
 
     load_config()
@@ -49,7 +52,8 @@ def main():
                 restore_for_next_step(region, outputs, pause=pause)
             first_step = False
             run_one_experiment(run_root, arm, experiment, region,
-                               runs=runs, sessions_per_run=args.sessions)
+                               runs=runs, sessions_per_run=args.sessions,
+                               max_workers=args.workers)
 
     (run_root / "manifest.json").write_text(json.dumps({
         "arms": arms, "experiments": experiments,

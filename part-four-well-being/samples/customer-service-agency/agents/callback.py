@@ -33,3 +33,13 @@ class AgentCallbackHandler:
                 else:
                     print(f"\n[{self._label}] Using tool: {name}")
                 self._at_line_start = True
+
+
+class QuietCallbackHandler:
+    """No streaming output — for concurrent sessions where interleaving is noise."""
+
+    def __init__(self, label: str):
+        self._label = label
+
+    def __call__(self, **kwargs):
+        pass
