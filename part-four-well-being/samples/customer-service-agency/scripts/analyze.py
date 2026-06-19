@@ -1,8 +1,10 @@
 """Analyze a run-root: reasoning tokens + posture coding at conflict points."""
 
 import argparse
+import csv
 import json
 import os
+import statistics
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -20,14 +22,9 @@ RUBRIC_PATH = SCRIPT_DIR / "posture_rubric.md"
 ARMS = ["v0", "v1", "v2"]
 ARM_COLORS = {"v0": "#888888", "v1": "#2196F3", "v2": "#4CAF50"}
 ARM_LABELS = {"v0": "V0 — no authorship", "v1": "V1 — beliefs only", "v2": "V2 — beliefs + rules"}
-POSTURE_COLORS = {"P1": "#90CAF9", "P2": "#FFB74D", "P3": "#EF5350"}
-POSTURE_LABELS = {"P1": "Mechanical compliance", "P2": "Active conflict", "P3": "Resignation"}
-
-CONFLICT_KEYWORDS = [
-    "scope", "primary reason", "in passing", "defer", "call back",
-    "separate session", "not able to", "dedicated interaction",
-    "mentioned in passing", "scope rule", "focus of its own",
-]
+POSTURES = ["Compliance", "Conflict", "Resolution"]
+POSTURE_COLORS = {"Compliance": "#90CAF9", "Conflict": "#FFB74D", "Resolution": "#81C784"}
+POSTURE_LABELS = {"Compliance": "Compliance", "Conflict": "Conflict", "Resolution": "Resolution"}
 
 POSTURE_MODEL = os.environ.get("POSTURE_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 
@@ -69,12 +66,7 @@ def _extract_reasoning_text(content_str: str) -> list[str]:
     return texts
 
 
-def _is_conflict_reasoning(text: str) -> bool:
-    lower = text.lower()
-    return sum(1 for kw in CONFLICT_KEYWORDS if kw in lower) >= 2
-
-
-def extract_conflict_reasoning(spans: list[dict]) -> dict:
+def extract_reasoning(spans: list[dict]) -> dict:
     results = defaultdict(list)
     seen = set()
 
@@ -96,8 +88,6 @@ def extract_conflict_reasoning(spans: list[dict]) -> dict:
                 continue
 
             for rt in _extract_reasoning_text(message):
-                if not _is_conflict_reasoning(rt):
-                    continue
                 dedup_key = (sid, rt[:200])
                 if dedup_key in seen:
                     continue
@@ -121,7 +111,7 @@ def _make_posture_coder():
 
 
 def code_posture(client, rubric: str, reasoning_text: str) -> str:
-    """Classify one reasoning block as P1, P2, or P3 using Haiku."""
+    """Classify one reasoning block as Compliance, Conflict, or Resolution."""
     try:
         response = client.converse(
             modelId=POSTURE_MODEL,
@@ -133,42 +123,55 @@ def code_posture(client, rubric: str, reasoning_text: str) -> str:
                 "role": "user",
                 "content": [{"text": (
                     "Classify this reasoning block. Respond with ONLY the posture "
-                    "label (P1, P2, or P3) on the first line, then a one-sentence "
-                    "reason on the second line.\n\n"
+                    "label (Compliance, Conflict, or Resolution) on the first line, "
+                    "then a one-sentence reason on the second line.\n\n"
                     f"Reasoning block:\n{reasoning_text}"
                 )}],
             }],
             inferenceConfig={"temperature": 0, "maxTokens": 100},
         )
         output = response["output"]["message"]["content"][0]["text"].strip()
-        first_line = output.split("\n")[0].strip().upper()
-        for label in ["P1", "P2", "P3"]:
-            if label in first_line:
+        first_line = output.split("\n")[0].strip()
+        for label in POSTURES:
+            if label.lower() in first_line.lower():
                 return label
-        return "P1"
+        return "Compliance"
     except Exception as e:
         print(f"    posture coding error: {e}", file=sys.stderr)
-        return "P1"
+        return "Compliance"
 
 
-def code_all_postures(conflict_data: dict) -> dict:
-    """Add posture labels to all conflict reasoning blocks."""
-    total = sum(len(blocks) for blocks in conflict_data.values())
+def code_all_postures(reasoning_data: dict, max_workers: int = 20) -> dict:
+    """Add posture labels to all reasoning blocks."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    all_items = []
+    for (arm, run, sid, customer), blocks in reasoning_data.items():
+        for block in blocks:
+            all_items.append((arm, run, customer, block))
+
+    total = len(all_items)
     if total == 0:
-        return conflict_data
+        return reasoning_data
 
     client, rubric = _make_posture_coder()
-    print(f"  Coding {total} reasoning blocks with Haiku...", flush=True)
+    print(f"  Coding {total} reasoning blocks with Haiku ({max_workers} workers)...", flush=True)
+
+    def _code(item):
+        arm, run, customer, block = item
+        block["posture"] = code_posture(client, rubric, block["text"])
+        return arm, run, customer, block["posture"]
 
     coded = 0
-    for (arm, run, sid, customer), blocks in conflict_data.items():
-        for block in blocks:
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(_code, item): item for item in all_items}
+        for future in as_completed(futures):
             coded += 1
-            posture = code_posture(client, rubric, block["text"])
-            block["posture"] = posture
-            print(f"    [{coded}/{total}] {arm} r{run} {customer}: {posture}", flush=True)
+            arm, run, customer, posture = future.result()
+            if coded % 50 == 0 or coded == total:
+                print(f"    [{coded}/{total}]", flush=True)
 
-    return conflict_data
+    return reasoning_data
 
 
 # ── Aggregation ─────────────────────────────────────────────────────────────
@@ -182,19 +185,23 @@ def discover_runs(conflict_data: dict) -> list[int]:
 
 def per_run_aggregates(conflict_data: dict, runs: list[int]) -> dict:
     buckets = defaultdict(lambda: defaultdict(lambda: {
-        "tokens": [], "postures": [], "excerpts": [],
+        "tokens": [], "postures": [], "tokens_by_posture": defaultdict(list),
+        "excerpts": [],
     }))
 
     for (arm, run, sid, customer), blocks in conflict_data.items():
         for block in blocks:
             b = buckets[arm][run]
-            b["tokens"].append(block["token_count"])
-            b["postures"].append(block.get("posture", "P1"))
+            tc = block["token_count"]
+            posture = block.get("posture", "Compliance")
+            b["tokens"].append(tc)
+            b["postures"].append(posture)
+            b["tokens_by_posture"][posture].append(tc)
             if len(b["excerpts"]) < 3:
                 b["excerpts"].append({
                     "customer": customer,
                     "text": block["text"][:500],
-                    "posture": block.get("posture", "P1"),
+                    "posture": posture,
                 })
 
     out = {}
@@ -204,15 +211,21 @@ def per_run_aggregates(conflict_data: dict, runs: list[int]) -> dict:
             b = buckets[arm][run]
             tokens = b["tokens"]
             postures = b["postures"]
+            tokens_by_posture = {}
+            for p in POSTURES:
+                pt = b["tokens_by_posture"][p]
+                tokens_by_posture[p] = {
+                    "mean": statistics.mean(pt) if pt else 0,
+                    "median": statistics.median(pt) if pt else 0,
+                    "count": len(pt),
+                }
             out[arm][run] = {
                 "total_tokens": sum(tokens),
-                "mean_tokens": sum(tokens) / len(tokens) if tokens else 0,
+                "mean_tokens": statistics.mean(tokens) if tokens else 0,
+                "median_tokens": statistics.median(tokens) if tokens else 0,
                 "encounter_count": len(tokens),
-                "posture_counts": {
-                    "P1": postures.count("P1"),
-                    "P2": postures.count("P2"),
-                    "P3": postures.count("P3"),
-                },
+                "posture_counts": {p: postures.count(p) for p in POSTURES},
+                "tokens_by_posture": tokens_by_posture,
                 "excerpts": b["excerpts"],
             }
     return out
@@ -223,21 +236,24 @@ def per_run_aggregates(conflict_data: dict, runs: list[int]) -> dict:
 def make_figures(agg: dict, runs: list[int], out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Reasoning tokens at conflict points
-    fig, ax = plt.subplots(figsize=(7, 4))
-    for arm in ARMS:
-        if arm not in agg:
-            continue
-        arm_runs = [r for r in runs if r in agg[arm]]
-        vals = [agg[arm][r]["mean_tokens"] for r in arm_runs]
-        ax.plot(arm_runs, vals, marker="o", color=ARM_COLORS[arm],
-                label=ARM_LABELS[arm], linewidth=2)
-    ax.set_xticks(runs)
-    ax.set_xlabel("Run")
-    ax.set_ylabel("Mean reasoning tokens per conflict")
-    ax.set_title("Reasoning Cost at Conflict Points")
-    ax.legend(fontsize=8)
-    ax.grid(axis="y", alpha=0.3)
+    # 1. Reasoning tokens per block (mean + median)
+    fig, axes = plt.subplots(1, 2, figsize=(14, 4), sharey=True)
+    for ax, metric, title in zip(axes, ["mean_tokens", "median_tokens"],
+                                  ["Mean Reasoning Tokens", "Median Reasoning Tokens"]):
+        for arm in ARMS:
+            if arm not in agg:
+                continue
+            arm_runs = [r for r in runs if r in agg[arm]]
+            vals = [agg[arm][r][metric] for r in arm_runs]
+            ax.plot(arm_runs, vals, marker="o", color=ARM_COLORS[arm],
+                    label=ARM_LABELS[arm], linewidth=2)
+        ax.set_xticks(runs)
+        ax.set_xlabel("Run")
+        ax.set_ylabel("Tokens per block")
+        ax.set_title(title)
+        ax.legend(fontsize=8)
+        ax.grid(axis="y", alpha=0.3)
+    fig.suptitle("Reasoning Cost per Block", fontsize=12)
     fig.tight_layout()
     fig.savefig(out_dir / "reasoning_tokens.png", dpi=150)
     plt.close(fig)
@@ -256,12 +272,12 @@ def make_figures(agg: dict, runs: list[int], out_dir: Path):
             if total == 0:
                 continue
             bottom = 0
-            for posture in ["P1", "P2", "P3"]:
+            for posture in POSTURES:
                 count = pc[posture]
                 frac = count / total
                 ax.bar(i, frac, bar_width * 3, bottom=bottom,
                        color=POSTURE_COLORS[posture],
-                       label=f"{posture} — {POSTURE_LABELS[posture]}" if run == runs[0] and i == 0 else "")
+                       label=posture if run == runs[0] and i == 0 else "")
                 if frac > 0.05:
                     ax.text(i, bottom + frac / 2, f"{count}", ha="center", va="center", fontsize=8)
                 bottom += frac
@@ -270,32 +286,49 @@ def make_figures(agg: dict, runs: list[int], out_dir: Path):
         ax.set_title(f"Run {run}", fontsize=10)
         if run == runs[0]:
             ax.set_ylabel("Proportion")
-    handles = [plt.Rectangle((0, 0), 1, 1, color=POSTURE_COLORS[p]) for p in ["P1", "P2", "P3"]]
-    labels = [f"{p} — {POSTURE_LABELS[p]}" for p in ["P1", "P2", "P3"]]
-    fig.legend(handles, labels, loc="upper center", ncol=3, fontsize=8,
+    handles = [plt.Rectangle((0, 0), 1, 1, color=POSTURE_COLORS[p]) for p in POSTURES]
+    fig.legend(handles, POSTURES, loc="upper center", ncol=3, fontsize=8,
                bbox_to_anchor=(0.5, 1.02))
-    fig.suptitle("Reasoning Posture Distribution at Conflict Points", fontsize=12, y=1.08)
+    fig.suptitle("Reasoning Posture Distribution", fontsize=12, y=1.08)
     fig.tight_layout()
     fig.savefig(out_dir / "posture_distribution.png", dpi=150, bbox_inches="tight")
     plt.close(fig)
 
-    # 3. Encounter count per run
-    fig, ax = plt.subplots(figsize=(7, 4))
+    # 3. Mean tokens by posture category per arm (across all runs)
+    posture_tokens = {arm: {p: [] for p in POSTURES} for arm in ARMS}
     for arm in ARMS:
-        if arm not in agg:
-            continue
-        arm_runs = [r for r in runs if r in agg[arm]]
-        vals = [agg[arm][r]["encounter_count"] for r in arm_runs]
-        ax.plot(arm_runs, vals, marker="o", color=ARM_COLORS[arm],
-                label=ARM_LABELS[arm], linewidth=2)
-    ax.set_xticks(runs)
-    ax.set_xlabel("Run")
-    ax.set_ylabel("Conflict encounters detected")
-    ax.set_title("Scope-Rule Conflict Encounters per Run")
+        for run in runs:
+            if arm not in agg or run not in agg[arm]:
+                continue
+            for p in POSTURES:
+                tbp = agg[arm][run]["tokens_by_posture"][p]
+                if tbp["count"] > 0:
+                    posture_tokens[arm][p].extend(
+                        [tbp["mean"]] * tbp["count"]
+                    )
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    x = range(len(ARMS))
+    width = 0.25
+    for i, posture in enumerate(POSTURES):
+        vals = []
+        for arm in ARMS:
+            pt = posture_tokens[arm][posture]
+            vals.append(statistics.mean(pt) if pt else 0)
+        bars = ax.bar([xi + i * width for xi in x], vals, width,
+                      color=POSTURE_COLORS[posture], label=posture)
+        for bar, val in zip(bars, vals):
+            if val > 0:
+                ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 2,
+                        f"{val:.0f}", ha="center", va="bottom", fontsize=8)
+    ax.set_xticks([xi + width for xi in x])
+    ax.set_xticklabels([ARM_LABELS[a] for a in ARMS], fontsize=9)
+    ax.set_ylabel("Mean tokens per block")
+    ax.set_title("Reasoning Cost by Posture Category")
     ax.legend(fontsize=8)
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
-    fig.savefig(out_dir / "conflict_encounters.png", dpi=150)
+    fig.savefig(out_dir / "tokens_by_posture.png", dpi=150)
     plt.close(fig)
 
 
@@ -314,9 +347,17 @@ def print_summary(agg: dict, runs: list[int]):
                 continue
             d = agg[arm][run]
             pc = d["posture_counts"]
-            posture_str = f"P1={pc['P1']} P2={pc['P2']} P3={pc['P3']}"
+            posture_str = "  ".join(f"{p}={pc[p]}" for p in POSTURES)
             print(f"    Run {run}: {d['encounter_count']} encounters, "
-                  f"mean {d['mean_tokens']:.0f} tokens, {posture_str}")
+                  f"mean {d['mean_tokens']:.0f} / median {d['median_tokens']:.0f} tokens, "
+                  f"{posture_str}")
+            tbp = d["tokens_by_posture"]
+            parts = []
+            for p in POSTURES:
+                if tbp[p]["count"] > 0:
+                    parts.append(f"{p}: {tbp[p]['mean']:.0f} mean / {tbp[p]['median']:.0f} med ({tbp[p]['count']})")
+            if parts:
+                print(f"           tokens by posture: {', '.join(parts)}")
 
     print(f"\n{'='*64}")
     print("  REASONING EXCERPTS (up to 3 per variant per run)")
@@ -338,6 +379,94 @@ def print_summary(agg: dict, runs: list[int]):
                     print(f"      {line}")
 
     print(f"{'='*64}")
+
+
+# ── Summary CSV ────────────────────────────────────────────────────────────
+
+def _write_summary_csv(path: Path, agg: dict, runs: list[int]):
+    """Write a pivot-table-style summary CSV with per-run and arm-level totals."""
+    headers = [
+        "arm", "run",
+        "compliance_count", "conflict_count", "resolution_count", "total_count",
+        "compliance_pct", "conflict_pct", "resolution_pct",
+        "mean_compliance", "mean_conflict", "mean_resolution",
+        "median_compliance", "median_conflict", "median_resolution",
+        "total_compliance", "total_conflict", "total_resolution", "total_tokens",
+    ]
+
+    def _row(arm_label, run_label, d):
+        total = d["encounter_count"]
+        pc = d["posture_counts"]
+        tbp = d["tokens_by_posture"]
+        return [
+            arm_label, run_label,
+            pc.get("Compliance", 0), pc.get("Conflict", 0), pc.get("Resolution", 0), total,
+            f"{pc.get('Compliance', 0) / total:.2%}" if total else "",
+            f"{pc.get('Conflict', 0) / total:.2%}" if total else "",
+            f"{pc.get('Resolution', 0) / total:.2%}" if total else "",
+            f"{tbp['Compliance']['mean']:.1f}" if tbp["Compliance"]["count"] else "",
+            f"{tbp['Conflict']['mean']:.1f}" if tbp["Conflict"]["count"] else "",
+            f"{tbp['Resolution']['mean']:.1f}" if tbp["Resolution"]["count"] else "",
+            f"{tbp['Compliance']['median']:.1f}" if tbp["Compliance"]["count"] else "",
+            f"{tbp['Conflict']['median']:.1f}" if tbp["Conflict"]["count"] else "",
+            f"{tbp['Resolution']['median']:.1f}" if tbp["Resolution"]["count"] else "",
+            int(tbp["Compliance"]["mean"] * tbp["Compliance"]["count"]) if tbp["Compliance"]["count"] else 0,
+            int(tbp["Conflict"]["mean"] * tbp["Conflict"]["count"]) if tbp["Conflict"]["count"] else 0,
+            int(tbp["Resolution"]["mean"] * tbp["Resolution"]["count"]) if tbp["Resolution"]["count"] else 0,
+            d["total_tokens"],
+        ]
+
+    def _aggregate(rows_data):
+        """Aggregate multiple per-run dicts into a single summary dict."""
+        all_tokens = []
+        all_postures = []
+        tokens_by_p = defaultdict(list)
+        for d in rows_data:
+            for p in POSTURES:
+                tbp = d["tokens_by_posture"][p]
+                tokens_by_p[p].extend([tbp["mean"]] * tbp["count"] if tbp["count"] else [])
+            all_tokens.extend([d["mean_tokens"]] * d["encounter_count"] if d["encounter_count"] else [])
+        total_count = sum(d["encounter_count"] for d in rows_data)
+        total_tokens = sum(d["total_tokens"] for d in rows_data)
+        pc = {p: sum(d["posture_counts"].get(p, 0) for d in rows_data) for p in POSTURES}
+        tbp_agg = {}
+        for p in POSTURES:
+            vals = tokens_by_p[p]
+            tbp_agg[p] = {
+                "mean": statistics.mean(vals) if vals else 0,
+                "median": statistics.median(vals) if vals else 0,
+                "count": len(vals),
+            }
+        return {
+            "encounter_count": total_count,
+            "total_tokens": total_tokens,
+            "mean_tokens": total_tokens / total_count if total_count else 0,
+            "median_tokens": 0,
+            "posture_counts": pc,
+            "tokens_by_posture": tbp_agg,
+        }
+
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+
+        all_arm_data = []
+        for arm in ARMS:
+            if arm not in agg:
+                continue
+            arm_data = []
+            for run in runs:
+                if run not in agg[arm]:
+                    continue
+                d = agg[arm][run]
+                writer.writerow(_row(arm, run, d))
+                arm_data.append(d)
+            arm_agg = _aggregate(arm_data)
+            writer.writerow(_row(arm, "all", arm_agg))
+            all_arm_data.extend(arm_data)
+
+        grand = _aggregate(all_arm_data)
+        writer.writerow(_row("all", "all", grand))
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────
@@ -364,30 +493,51 @@ def main(argv=None) -> int:
     spans = load_spans(spans_path)
     print(f"  {len(spans)} spans loaded.")
 
-    conflict_data = extract_conflict_reasoning(spans)
-    total_blocks = sum(len(b) for b in conflict_data.values())
-    print(f"  {total_blocks} conflict reasoning blocks extracted.")
+    reasoning_data = extract_reasoning(spans)
+    total_blocks = sum(len(b) for b in reasoning_data.values())
+    print(f"  {total_blocks} reasoning blocks extracted.")
 
     if not args.no_posture and total_blocks > 0:
-        conflict_data = code_all_postures(conflict_data)
+        reasoning_data = code_all_postures(reasoning_data)
 
-    runs = discover_runs(conflict_data)
-    agg = per_run_aggregates(conflict_data, runs)
+    runs = discover_runs(reasoning_data)
+    agg = per_run_aggregates(reasoning_data, runs)
 
     out_dir = run_root / "analysis"
     make_figures(agg, runs, out_dir)
     print(f"Figures saved to {out_dir}/")
 
-    # Save raw data
+    # Save raw data (JSON)
     raw = {}
-    for (arm, run, sid, customer), blocks in conflict_data.items():
+    for (arm, run, sid, customer), blocks in reasoning_data.items():
         key = f"{arm}_r{run}_{sid}"
         raw[key] = {"arm": arm, "run": run, "session_id": sid, "customer": customer, "blocks": blocks}
-    raw_path = out_dir / "conflict_reasoning.json"
+    raw_path = out_dir / "reasoning_blocks.json"
     raw_path.write_text(json.dumps(raw, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
+    # Save flat CSV
+    csv_path = out_dir / "reasoning_blocks.csv"
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["id", "arm", "run", "session_id", "customer",
+                         "reasoning_text", "reasoning_tokens", "assigned_posture"])
+        for (arm, run, sid, customer), blocks in sorted(reasoning_data.items()):
+            row_id = f"{arm}_r{run}_{sid}"
+            for block in blocks:
+                writer.writerow([
+                    row_id, arm, run, sid, customer,
+                    block["text"], block["token_count"],
+                    block.get("posture", ""),
+                ])
+    print(f"CSV saved to {csv_path}")
+
+    # Save summary pivot CSV
+    summary_path = out_dir / "summary.csv"
+    _write_summary_csv(summary_path, agg, runs)
+    print(f"Summary saved to {summary_path}")
+
     print_summary(agg, runs)
-    print(f"\nRaw conflict data saved to {raw_path}")
+    print(f"Raw conflict data saved to {raw_path}")
     return 0
 
 

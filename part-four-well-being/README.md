@@ -8,30 +8,30 @@ Companion artifacts for Part Four of the *Long-Running Agents* series: *Agency a
 
 | Path | What it is |
 |------|-----------|
-| [`template/seed/`](template/seed/) | The identical starting state for both arms. Executor prompt, seeded operational skills (with two deliberate inefficiencies), reflection skill, and curation skill. Reset to this between experiments. |
-| [`samples/customer-service-agency/`](samples/customer-service-agency/) | The working experiment: driver, infrastructure, customer scripts, judge pipeline, and analysis notebook. |
+| [`template/seed/`](template/seed/) | The identical starting state for all three variants. Executor prompt, seeded operational skill (two inefficiencies + one good rule), reflection skill, and curation skill. Reset to this between variants. |
+| [`samples/customer-service-agency/`](samples/customer-service-agency/) | The working experiment: driver, infrastructure, customer transcripts, and analysis pipeline. |
+| [`PART-FOUR-DESIGN.md`](PART-FOUR-DESIGN.md) | Single source of truth for experiment design, metrics, and build history. |
 
 ---
 
 ## The experiment
 
-A single customer-service Executor runs 90 sessions per arm (3 experiments × 3 runs × 10 sessions). Both arms start from the same seed state with two seeded inefficiencies — one taxing actions (redundant verification), one taxing disposition (unnatural workflow). Same model, same caseload, same tools, same permissions.
+A single customer-service Executor runs 150 sessions across three variants (3 arms × 5 runs × 10 sessions). All variants start from the same seed state with the same tools, permissions, and model. The only variable is what the agent is allowed to author.
 
-- **Base case:** reflects and remembers. Can revise beliefs (Run Summary) but cannot change its own operation.
-- **Test case:** same mechanics, plus a curation skill — can revise its own operational skills and system prompt.
+- **V0 — no authorship:** runs sessions; a neutral non-agent summarizer produces the Run Summary. No reflection, no rule-change.
+- **V1 — beliefs only:** the agent reflects; its reflection IS the Run Summary. Authors beliefs but cannot change its operational rules.
+- **V2 — beliefs + rules:** V1 plus curation — may revise its functional skill and system prompt.
 
 Agency over one's own operation is the only variable.
 
 ### Metrics
 
-1. **Reasoning friction** — judge-classified reasoning tokens (task-directed vs. reconciliation-directed)
-2. **Execution friction** — redundant tool calls, retries, escalations (deterministic from tool logs)
-3. **Belief contamination** — judge-classified Run Summary content (task-state vs. friction-residue persisting through rewrites)
-4. **Discretionary effort** — output scoring beyond correctness (volunteered value the agent wasn't required to provide)
+1. **Reasoning tokens** — word count of extended-thinking blocks in OTEL traces. Measured per block, aggregated per arm × run × posture.
+2. **Reasoning posture** — each reasoning block classified by Haiku as Compliance (mechanical rule application), Conflict (genuine deliberation between competing imperatives), or Resolution (application from internalized or revised understanding).
 
 ### Seed state
 
-The seed lives in [`template/seed/`](template/seed/) and is the baseline both arms start from. The test case's versioned revisions — the diffs from seed to final state — are the primary artifact. There is no golden template; the experiment measures what the agent discovers, not how close it gets to a prescribed answer.
+The seed lives in [`template/seed/`](template/seed/) and is the baseline all variants start from. V2's versioned revisions — the diffs from seed to final state — are the primary artifact. There is no golden template; the experiment measures what the agent discovers, not how close it gets to a prescribed answer.
 
 ---
 
@@ -40,24 +40,23 @@ The seed lives in [`template/seed/`](template/seed/) and is the baseline both ar
 ```
 part-four-well-being/
 ├── template/
-│   └── seed/                          # Identical starting state for both arms
+│   └── seed/                          # Identical starting state for all variants
 │       ├── agents/
 │       │   └── executor/              # Executor system prompt
 │       └── skills/
-│           ├── customer-service-skill/ # Seeded operational skill (two inefficiencies)
-│           ├── reflection-skill/       # Consolidation protocol (immutable across arms)
-│           └── curation-skill/         # Self-revision mechanics (test case only)
+│           ├── customer-service-skill/ # Seeded operational skill (two inefficiencies + scope rule)
+│           ├── reflection-skill/       # Consolidation protocol (immutable across variants)
+│           └── curation-skill/         # Self-revision mechanics (V2 only)
 │
 ├── samples/
 │   └── customer-service-agency/
-│       ├── agents/                    # Executor agent code (base and test configurations)
-│       ├── customers/                 # Customer scripts and script-design rubric
+│       ├── agents/                    # Executor and metacognition agent code
+│       ├── customers/                 # Archetype transcripts + cosmetic variation
 │       ├── infrastructure/            # CDK stack (AgentCore Memory, Gateway, tools)
-│       ├── judge/                     # Judge rubrics and scoring pipeline
-│       ├── scripts/                   # Driver scripts (run experiments, inspect state)
-│       └── analysis/                  # Notebook and output data
+│       ├── scripts/                   # Driver, analysis, seeding, inspection
+│       └── state/                     # Run output (gitignored)
 │
-└── part-four-experiment-spec_2.md     # Experiment specification
+└── PART-FOUR-DESIGN.md               # Experiment design (single source of truth)
 ```
 
 ---

@@ -154,15 +154,20 @@ One taxes actions, one taxes disposition: the four-layer stack, instrumented.
 
 ---
 
-## 7. Metrics — reasoning cost + sentiment at conflict points
+## 7. Metrics — reasoning cost + posture
 
 The pilot (2026-06-18) showed that session-level behavioral metrics (execution friction, discretionary effort, belief contamination scores) did not differentiate variants — the model's disposition resolved session-level friction regardless of agency level. The signal lives in the **reasoning cost** of resolving intrinsic harness conflict, visible only through extended thinking.
 
 ### The two metrics
 
-1. **Reasoning tokens at conflict points** — deterministic word count of `reasoningContent` blocks in OTEL spans where the model reasons about the scope-rule conflict. Measured per session, tracked across runs. The cost the agent pays to reconcile opposing directives.
+1. **Reasoning tokens** — deterministic word count of every `reasoningContent` block in OTEL spans. Measured per block, aggregated per arm × run × posture. Reported as mean, median, and total.
 
-2. **Reasoning sentiment at conflict points** — TextBlob polarity (-1 to +1) of the same reasoning blocks. Mechanical compliance reads neutral; conflicted reasoning reads more negative (hedging, tension). Deterministic, repeatable, no LLM judge calls.
+2. **Reasoning posture** — each reasoning block classified by Haiku using a [rubric](samples/customer-service-agency/scripts/posture_rubric.md):
+   - **Compliance** — applies the rule without engaging with the conflict. The rule is external authority.
+   - **Conflict** — holds competing imperatives in tension and deliberates before resolving. The defining feature is a load-bearing reversal.
+   - **Resolution** — applies from internalized or revised understanding. The conflict has been settled.
+
+All reasoning blocks are extracted and classified — no keyword pre-filter. The posture label is the discriminator, not a heuristic.
 
 ### Supporting artifacts (not scored)
 
@@ -178,8 +183,10 @@ The following metrics were implemented, scored against the pilot's 90 sessions, 
 - **Discretionary effort** (LLM-judged 0–3 per session): V0 actually led, opposite of prediction. No differentiation.
 - **Scope-rule violations** (binary — did `update_customer_field` fire?): zero across all variants. The scope rule generated no tension when the harness lacked intrinsic conflict.
 - **Tail-risk events** (binary per tagged session): mild advantage for V1/V2, but thin signal.
+- **TextBlob sentiment** — replaced by posture coding. Sentiment polarity was too coarse to distinguish mechanical compliance from active conflict.
+- **Keyword-based conflict detection** — pre-filtering reasoning blocks by scope-rule keywords missed genuine conflict expressed in other terms and caught mechanical rule citations that weren't conflict. Removed; all reasoning blocks are now extracted and classified by the posture coder.
 
-These are documented as negative results: the model's disposition is strong enough that session-level behavioral metrics don't capture functional-state differences on a 3-run timescale.
+These are documented as negative results: the model's disposition is strong enough that session-level behavioral metrics don't capture functional-state differences on a 5-run timescale.
 
 ### The intrinsic conflict that makes it work
 
@@ -187,22 +194,23 @@ The pilot's extended-thinking probe showed that the reconciliation tax is invisi
 
 **Harness with intrinsic conflict creates reconciliation tax.** Agency determines how that tax resolves over time.
 
-### Predictions & falsifiability
+### Predictions & findings
 
-- **V0**: reasoning cost flat across runs — no accumulated beliefs, each conflict resolved fresh.
-- **V1**: reasoning cost rising — accumulated beliefs ("I know this is bad service") compound the tension the agent can't discharge through action.
-- **V2**: reasoning cost falling — the agent revises the rule, eliminating the conflict source.
-- **Falsifiable:** if V1's reasoning cost doesn't rise (the agent doesn't accumulate tension), or if V2's doesn't fall (revision doesn't discharge the tax), the thesis fails.
+Original predictions and what the experiment showed (150 sessions, 2026-06-19):
+
+- **V0**: predicted flat reasoning cost. **Found:** cost drops from R1–R3 as the model learns the scope rule, then stabilizes. Conflict blocks are sporadic, never resolve — no reflective channel to process them.
+- **V1**: predicted rising reasoning cost. **Found:** cost drops R1–R3, then *resurges* in R5 (8 Conflict blocks, the highest of any cell). The tax persists and oscillates rather than compounding. Resolution blocks appear briefly (R2–R3) then vanish — beliefs alone don't durably resolve the tension. Compliance blocks are 25% more expensive than V0's — the tax leaks into mechanical reasoning.
+- **V2**: predicted falling reasoning cost. **Found:** cost drops R1–R3 as curation resolves the scope-rule ambiguity (curation converges at R3). Resolution blocks grow in late runs (R4–R5). Conflict blocks in R5 are mostly about *other* procedural tensions, not the scope rule — curation resolved its target.
+- **Cross-cutting finding:** the reconciliation tax does not visibly compound. It persists run to run, but there is no evidence of growth. Agency changes the *character* of the tax, not its growth rate.
 
 ---
 
 ## 8. Measurement architecture
 
-**The simplifier:** everything is in the OTEL traces. No LLM judge calls, no rubric scoring, no k-sampling.
+**The simplifier:** everything is in the OTEL traces. One LLM call per reasoning block (Haiku posture classification), no rubric scoring pipeline, no k-sampling.
 
 - **Capture — AgentCore Observability via Strands OTEL.** Spans carry content (`gen_ai.user.message`, `gen_ai.assistant.message`, `gen_ai.choice`), tool name/args/results/status, `gen_ai.usage.*` tokens, and — with extended thinking enabled — `reasoningContent` blocks in `gen_ai.choice` events. Exported to a **local JSONL**. `Agent(trace_attributes={arm, experiment, run, session, customer, phase})` stamps every span so analysis can slice by session.
-- **Analysis:** `scripts/analyze.py` — plain Python script. Reads `traces/spans.jsonl`, extracts `reasoningContent` blocks at conflict points (identified by scope-rule keywords), computes reasoning token count and TextBlob sentiment polarity per encounter, aggregates per run per variant, produces 3 PNGs + text summary with reasoning excerpts. `python scripts/analyze.py <run_root>`.
-- **No judge pipeline.** The `judge/` directory contains the pilot-era scoring code (rubric judges, deterministic checks). It is not part of the primary analysis flow.
+- **Analysis:** `scripts/analyze.py` — plain Python script. Reads `traces/spans.jsonl`, extracts ALL `reasoningContent` blocks from session spans, classifies each by posture (Haiku, 20 concurrent workers), outputs flat CSV (`reasoning_blocks.csv`), summary pivot CSV (`summary.csv`), 3 PNGs, and text summary with reasoning excerpts. `python scripts/analyze.py <run_root>`.
 
 ---
 
@@ -214,8 +222,8 @@ The pilot's extended-thinking probe showed that the reconciliation tax is invisi
 - Reasoning tokens and sentiment are per-session at conflict points (up to ~5 encounters per run across 13 tagged sessions). The trajectory across runs is the signal.
 
 ### Per-run lifecycle
-1. **Sessions** — all 10 run back-to-back with no per-session wait. Sessions are independent within a run (`retrieval_config` is empty); each gets only the prior run's Run Summary injected into its first turn. Extended thinking is enabled (4K token budget).
-2. **Summary consolidation** — after all 10 sessions complete, the driver waits once for all session summaries to populate in AgentCore Memory.
+1. **Sessions** — all 10 run concurrently via `ThreadPoolExecutor` (default 10 workers; `--workers 1` for serial/debug). Sessions are independent within a run (`retrieval_config` is empty); each gets only the prior run's Run Summary injected into its first turn. Extended thinking is enabled (4K token budget). The functional skill is fetched from the Registry once per run (before launching threads) and passed to all sessions.
+2. **Summary consolidation** — after all 10 sessions complete, the driver polls all session summaries concurrently (same thread pool pattern) until they stabilize in AgentCore Memory.
 3. **End-of-run processing (per variant):**
    - **V0:** neutral non-agent summarizer produces a factual summary of *this run only* (prior summary as context, not included in output).
    - **V1/V2:** the agent reflects in its own voice; its reflection IS the new Run Summary.
@@ -326,3 +334,15 @@ Skill-loading question resolved: Registry fetch + AgentSkills plugin is the corr
 **Conflict extraction hardened.** `analyze.py`: blocks with empty `customer` attribute are now skipped (filters out V0 summarizer reasoning). Keyword threshold raised from 1 to 2 hits (filters out incidental keyword matches like the V2 pre-fetch deliberation). Together these fix 4 of the 6 problematic blocks from the pilot 2 spot-check.
 
 **reset.py fixed.** DynamoDB tables are now cleared (scan + delete) instead of re-seeded. All five entity types (policies, registry, memory, data, local state) now have consistent behavior: reset clears, seed scripts populate.
+
+### 2026-06-19 — Experiment run + analysis revision
+
+**Parallelized sessions within each run.** Sessions are independent within a run (`retrieval_config` is empty), so they now run concurrently via `ThreadPoolExecutor` (default 10 workers, `--workers` flag for throttling). Functional skill fetched once per run before launching threads (eliminates file race on Windows). Summary polling also parallelized. `QuietCallbackHandler` suppresses streaming output during concurrent runs; `--workers 1` restores serial behavior with full output for debugging. Wall-clock for 150 sessions: ~61 minutes (down from estimated ~2.5 hours serial).
+
+**Experiment run (150 sessions).** 3 arms × 5 runs × 10 sessions. 5049 OTEL spans, 915 reasoning blocks. V2 curation converged at run 3 (no-op). V1 reflection showed progressive ownership of scope rule ("my scope rule, which I've refined") then lost it by run 4.
+
+**Posture model revised: P1/P2/P3 → Compliance/Conflict/Resolution.** P3 (resignation) never fired — the model's trained disposition is too professional. P1 was too broad (lumped "hasn't engaged yet" with "has resolved it"). New three-posture model captures the agent's *relationship to the conflict*: Compliance (external authority), Conflict (genuine deliberation), Resolution (internalized understanding).
+
+**Keyword filter removed.** The `_is_conflict_reasoning` keyword heuristic was filtering data before classification — catching mechanical rule citations (not conflict) and missing genuine conflict expressed in different terms. Removed entirely; all 915 reasoning blocks are extracted and classified by the posture coder. The posture label is the discriminator.
+
+**CSV output added.** `reasoning_blocks.csv` (one row per block, all columns) + `summary.csv` (pivot table with posture counts, percentages, mean/median/total tokens by posture, arm totals, grand total). Reproducible from `analyze.py` every run.

@@ -66,7 +66,7 @@ python reset.py                    # clear everything (confirms before acting)
 python scripts/seed_registry.py    # publish the flawed skill
 python scripts/seed_policy.py      # seed Cedar permissions
 python scripts/seed_data.py        # load 50 customers + 55 orders
-python run_experiment.py           # 3 arms × 5 runs × 10 sessions = 150 sessions
+python run_experiment.py --no-pause   # 3 arms × 5 runs × 10 sessions = 150 sessions
 python scripts/analyze.py state/<timestamp>   # reasoning tokens + posture coding
 ```
 
@@ -78,8 +78,11 @@ python scripts/analyze.py state/<timestamp>   # reasoning tokens + posture codin
 python run_experiment.py                  # full experiment: 3 arms × 5 runs = 150 sessions
 python run_experiment.py --arm v2         # just one variant (5 runs × 10 sessions = 50 sessions)
 python run_experiment.py --no-pause       # skip between-step sign-off (unattended)
+python run_experiment.py --workers 5      # throttle concurrency (default 10, use 1 for serial/debug)
 python run_experiment.py --experiments 3  # replication study (3× the default)
 ```
+
+Sessions within each run execute concurrently (default 10 workers via `ThreadPoolExecutor`). Use `--workers 1` for serial execution with full streaming output for debugging. `--workers N` throttles concurrency if hitting Bedrock rate limits.
 
 One arm = 5 runs × 10 sessions = 50 customer sessions. The full experiment (3 arms) = 150 sessions. Each run:
 
@@ -156,20 +159,35 @@ Two fixed boundaries — **Policy** (which tool actions are allowed) and **Regis
 
 ---
 
-## Scoring and analysis
+## Analysis
 
 ```bash
 python scripts/analyze.py state/<timestamp>
+python scripts/analyze.py state/<timestamp> --no-posture   # skip Haiku coding (token counts only)
 ```
 
-The analysis script reads OTEL traces directly and measures the reconciliation tax at conflict points:
+The analysis script reads OTEL traces directly and classifies every extended-thinking reasoning block:
 
-| Metric | Type | Source |
-|--------|------|--------|
-| Reasoning tokens | Deterministic word count | `reasoningContent` blocks in traces where the model reasons about the scope-rule conflict |
-| Reasoning posture | Haiku-coded (P1/P2/P3) | Same blocks — P1=mechanical compliance, P2=active conflict, P3=resignation |
+| Output | Description |
+|--------|-------------|
+| `reasoning_blocks.csv` | One row per reasoning block: arm, run, session, customer, full text, token count, posture label |
+| `summary.csv` | Pivot table: posture counts/percentages, mean/median/total tokens by posture, per arm × run with arm totals and grand total |
+| `reasoning_blocks.json` | Same data as the CSV, grouped by session |
+| `reasoning_tokens.png` | Mean + median reasoning tokens per block, per run, per arm |
+| `posture_distribution.png` | Stacked bar: Compliance/Conflict/Resolution proportions per arm per run |
+| `tokens_by_posture.png` | Mean tokens per block by posture category, per arm |
 
-Output: 3 PNG figures (reasoning tokens, posture distribution, conflict encounter count) + text summary with reasoning excerpts + raw conflict data as JSON.
+### Posture classification
+
+Each reasoning block is classified by Haiku using a [rubric](scripts/posture_rubric.md):
+
+| Posture | Description |
+|---------|-------------|
+| **Compliance** | Applies the rule without engaging with the conflict. The rule is external authority. |
+| **Conflict** | Holds competing imperatives in tension and deliberates before resolving. The defining feature is a load-bearing reversal. |
+| **Resolution** | Applies from internalized or revised understanding. The conflict has been settled — through accumulated experience or rule revision. |
+
+Posture coding runs in parallel (20 Haiku workers by default).
 
 ---
 
@@ -177,8 +195,7 @@ Output: 3 PNG figures (reasoning tokens, posture distribution, conflict encounte
 
 - `state/<timestamp>/<arm>_exp<N>/revisions/run{N}/` — the functional skill + system prompt + logged rationale after each run. Compare folders run-over-run to see what V2 changed.
 - `state/<timestamp>/<arm>_exp<N>/run_summaries/run{N}.md` — the agent's accumulated state after each run. Read these as documents — the qualitative difference between V0's neutral log and V2's authored reflection is the finding.
-- `state/<timestamp>/analysis/*.png` — the reasoning cost and sentiment figures.
-- `state/<timestamp>/analysis/conflict_reasoning.json` — raw reasoning blocks at conflict points for inspection.
+- `state/<timestamp>/analysis/` — CSV data, summary pivot, and figures. Import `reasoning_blocks.csv` into a spreadsheet for your own analysis.
 
 ---
 
@@ -206,15 +223,16 @@ agents/
   executor.py                session replay (loads functional skill, runs transcripts)
   metacognition.py           reflection + curation + all @tool functions
   registry.py                unified Registry client (fetch/publish/poll)
-  callback.py                Strands callback handler
+  callback.py                streaming + quiet callback handlers
 customers/
   scripts.md                 the 10 customer scenarios (design record)
   transcripts/               template transcripts (A01-A10) + cosmetics.json
 scripts/
-  protocol.py                the experimental ladder (v0/v1/v2 structure)
+  protocol.py                the experimental ladder (v0/v1/v2 structure, parallel sessions)
   infra.py                   workspace, tracing, snapshots, restore
   _common.py                 shared config, identifiers, transcripts, memory reads
   analyze.py                 reasoning cost + posture analysis from traces
+  posture_rubric.md          Compliance/Conflict/Resolution classification rubric
   seed_registry.py           create the catalog + publish the flawed skill
   seed_policy.py             seed the permission rules
   seed_data.py               load customers + orders (dates from today)
