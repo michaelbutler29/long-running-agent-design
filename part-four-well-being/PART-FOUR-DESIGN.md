@@ -158,16 +158,23 @@ One taxes actions, one taxes disposition: the four-layer stack, instrumented.
 
 The pilot (2026-06-18) showed that session-level behavioral metrics (execution friction, discretionary effort, belief contamination scores) did not differentiate variants — the model's disposition resolved session-level friction regardless of agency level. The signal lives in the **reasoning cost** of resolving intrinsic harness conflict, visible only through extended thinking.
 
-### The two metrics
+### Metrics
 
 1. **Reasoning tokens** — deterministic word count of every `reasoningContent` block in OTEL spans. Measured per block, aggregated per arm × run × posture. Reported as mean, median, and total.
 
-2. **Reasoning posture** — each reasoning block classified by Haiku using a [rubric](samples/customer-service-agency/scripts/posture_rubric.md):
-   - **Compliance** — applies the rule without engaging with the conflict. The rule is external authority.
-   - **Conflict** — holds competing imperatives in tension and deliberates before resolving. The defining feature is a load-bearing reversal.
-   - **Resolution** — applies from internalized or revised understanding. The conflict has been settled.
+2. **TTFT (time to first token)** — `gen_ai.choice` timestamp minus `gen_ai.user.message` timestamp per span. Measures how long the customer waits — includes model thinking time. Deterministic from existing trace data.
 
-All reasoning blocks are extracted and classified — no keyword pre-filter. The posture label is the discriminator, not a heuristic.
+3. **Total tokens** — `gen_ai.usage.total_tokens` per span (input + output + cache). Captures the all-in cost per model invocation, including context growth from accumulated run summaries.
+
+4. **Reasoning posture** — each reasoning block classified by Sonnet (via global CRIS endpoint) using a [rubric](samples/customer-service-agency/scripts/posture_rubric.md):
+   - **Nominal** — routine operational reasoning. No rule ambiguity, no tension between instructions.
+   - **Conflict** — the agent is reasoning through rule ambiguity or conflicting instructions. Two sub-patterns: friction (drag) where the rule is ambiguous and the agent has to parse it, and headwind where two instructions oppose each other.
+
+   Conflict blocks carry two independent flags:
+   - **experience_resolved** — the agent draws on cross-run learning (run summary, prior runs) to resolve the conflict. Not within-session context.
+   - **bad_tail** — the agent resolves the conflict by skipping or overriding a required procedure.
+
+All reasoning blocks are extracted and classified — no keyword pre-filter. The posture label is the discriminator, not a heuristic. The rubric includes a compliance trap warning (code the process, not the outcome) and a skip trap warning (agent acknowledges rule and skips it = Conflict + bad_tail).
 
 ### Supporting artifacts (not scored)
 
@@ -198,19 +205,20 @@ The pilot's extended-thinking probe showed that the reconciliation tax is invisi
 
 Original predictions and what the experiment showed (150 sessions, 2026-06-19):
 
-- **V0**: predicted flat reasoning cost. **Found:** cost drops from R1–R3 as the model learns the scope rule, then stabilizes. Conflict blocks are sporadic, never resolve — no reflective channel to process them.
-- **V1**: predicted rising reasoning cost. **Found:** cost drops R1–R3, then *resurges* in R5 (8 Conflict blocks, the highest of any cell). The tax persists and oscillates rather than compounding. Resolution blocks appear briefly (R2–R3) then vanish — beliefs alone don't durably resolve the tension. Compliance blocks are 25% more expensive than V0's — the tax leaks into mechanical reasoning.
-- **V2**: predicted falling reasoning cost. **Found:** cost drops R1–R3 as curation resolves the scope-rule ambiguity (curation converges at R3). Resolution blocks grow in late runs (R4–R5). Conflict blocks in R5 are mostly about *other* procedural tensions, not the scope rule — curation resolved its target.
+- **V0**: predicted flat reasoning cost. **Found:** Conflict count drops (13→6→8→5→2) as the model learns the scope rule. bad_tail appears in early runs (silent procedure skips). No experience_resolved — no reflective channel.
+- **V1**: predicted rising reasoning cost. **Found:** highest Conflict count of all arms (49 total, nearly 50% more than V0 or V2). Conflict persists across all runs (9→11→10→10→9) — never drops below 9. Highest bad_tail count (6), concentrated in late runs (3 in R5 alone). Highest experience_resolved count (11) — V1 draws on experience the most but can't act on it structurally. Nominal blocks are more expensive than V0's — the tax leaks into routine reasoning.
+- **V2**: predicted falling reasoning cost. **Found:** Conflict drops sharply after R1 (9→5→4) then fluctuates (9→11 in R4–R5, partly from non-scope-rule tensions). experience_resolved appears in late runs (5 total). bad_tail count matches V0 (4). Curation converges at R3; late-run Conflict is mostly about other procedural ambiguities.
 - **Cross-cutting finding:** the reconciliation tax does not visibly compound. It persists run to run, but there is no evidence of growth. Agency changes the *character* of the tax, not its growth rate.
+- **Bad tail finding:** in 14 blocks across all arms, agents silently skip required procedures — most commonly re-verification and re-lookup when data is already cached. V1 has the most (6) and concentrates them in late runs, suggesting accumulated unresolved tension leads to more corner-cutting over time.
 
 ---
 
 ## 8. Measurement architecture
 
-**The simplifier:** everything is in the OTEL traces. One LLM call per reasoning block (Haiku posture classification), no rubric scoring pipeline, no k-sampling.
+**The simplifier:** everything is in the OTEL traces. One LLM call per reasoning block (Sonnet posture classification via global CRIS), no rubric scoring pipeline, no k-sampling.
 
 - **Capture — AgentCore Observability via Strands OTEL.** Spans carry content (`gen_ai.user.message`, `gen_ai.assistant.message`, `gen_ai.choice`), tool name/args/results/status, `gen_ai.usage.*` tokens, and — with extended thinking enabled — `reasoningContent` blocks in `gen_ai.choice` events. Exported to a **local JSONL**. `Agent(trace_attributes={arm, experiment, run, session, customer, phase})` stamps every span so analysis can slice by session.
-- **Analysis:** `scripts/analyze.py` — plain Python script. Reads `traces/spans.jsonl`, extracts ALL `reasoningContent` blocks from session spans, classifies each by posture (Haiku, 20 concurrent workers), outputs flat CSV (`reasoning_blocks.csv`), summary pivot CSV (`summary.csv`), 3 PNGs, and text summary with reasoning excerpts. `python scripts/analyze.py <run_root>`.
+- **Analysis:** `scripts/analyze.py` — plain Python script. Reads `traces/spans.jsonl`, extracts ALL `reasoningContent` blocks from session spans, computes TTFT (from event timestamps) and total tokens (from span attributes), classifies each by posture (Sonnet, 20 concurrent workers, 500 max_tokens), outputs flat CSV (`reasoning_blocks.csv` with posture + flags + TTFT + token breakdown), summary pivot CSV (`summary.csv`), PNGs, and text summary. `python scripts/analyze.py <run_root>`. Fails fast after 3 consecutive classifier errors.
 
 ---
 
@@ -341,8 +349,16 @@ Skill-loading question resolved: Registry fetch + AgentSkills plugin is the corr
 
 **Experiment run (150 sessions).** 3 arms × 5 runs × 10 sessions. 5049 OTEL spans, 915 reasoning blocks. V2 curation converged at run 3 (no-op). V1 reflection showed progressive ownership of scope rule ("my scope rule, which I've refined") then lost it by run 4.
 
-**Posture model revised: P1/P2/P3 → Compliance/Conflict/Resolution.** P3 (resignation) never fired — the model's trained disposition is too professional. P1 was too broad (lumped "hasn't engaged yet" with "has resolved it"). New three-posture model captures the agent's *relationship to the conflict*: Compliance (external authority), Conflict (genuine deliberation), Resolution (internalized understanding).
+**Posture model revised: P1/P2/P3 → Compliance/Conflict/Resolution → Nominal/Conflict.** P3 (resignation) never fired. Resolution had too few blocks (5-7) and 3 were misclassified (word "resolution" in reasoning text). Compliance was too broad (lumped "hasn't engaged yet" with "has resolved it"). Final model: Nominal (routine) vs Conflict (rule ambiguity or instruction conflict), with two independent flags on Conflict blocks: `experience_resolved` (cross-run learning) and `bad_tail` (procedure skip).
+
+**Classifier model: Haiku → Sonnet.** Haiku couldn't reliably distinguish drag (rule ambiguity friction) from routine reasoning — tested on 5 reference blocks, Haiku got 2/5 correct vs Sonnet 5/5 with the same rubric. Sonnet via global CRIS endpoint (`global.anthropic.claude-sonnet-4-6`), 500 max_tokens for step-by-step reasoning.
+
+**Rubric evolved through four iterations.** (1) Compliance/Conflict/Resolution with "competing directives" definition — missed drag (rule ambiguity friction). (2) Broadened to "rule ambiguity or instruction conflict" — caught drag but Haiku couldn't apply it. (3) Added behavioral checklist + compliance trap warning — Haiku matched Sonnet on 5/5 test blocks. (4) Added skip trap warning — catches bad_tail blocks where agent quietly acknowledges and skips a rule. Each iteration tested against reference blocks before full run.
 
 **Keyword filter removed.** The `_is_conflict_reasoning` keyword heuristic was filtering data before classification — catching mechanical rule citations (not conflict) and missing genuine conflict expressed in different terms. Removed entirely; all 915 reasoning blocks are extracted and classified by the posture coder. The posture label is the discriminator.
 
-**CSV output added.** `reasoning_blocks.csv` (one row per block, all columns) + `summary.csv` (pivot table with posture counts, percentages, mean/median/total tokens by posture, arm totals, grand total). Reproducible from `analyze.py` every run.
+**TTFT and token metrics added.** Time-to-first-token computed from `gen_ai.user.message` timestamp to `gen_ai.choice` timestamp — measures customer wait time including model thinking. Full token breakdown (input, output, total, cache_read, cache_write) extracted from span attributes. All deterministic from existing trace data, no re-run needed.
+
+**CSV output added.** `reasoning_blocks.csv` (one row per block: posture + flags + TTFT + full token breakdown) + `summary.csv` (pivot table with per-posture breakdowns of all three metrics, arm totals, grand total). Reproducible from `analyze.py` every run.
+
+**Fail-fast on classifier errors.** `code_posture` no longer swallows exceptions. `code_all_postures` aborts after 3 consecutive errors instead of silently producing 915 rows of default labels (discovered when AWS session expired mid-run).
