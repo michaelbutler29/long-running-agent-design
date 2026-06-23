@@ -71,7 +71,7 @@ def run_session(actor_id: str, session_id: str, transcript: dict, run_summary: s
     first = turns[0]
     if run_summary:
         first = (
-            "## Your Run Summary (your accumulated understanding from prior runs)\n"
+            "## Notes from prior runs\n"
             f"{run_summary}\n\n## Customer message\n{turns[0]}"
         )
 
