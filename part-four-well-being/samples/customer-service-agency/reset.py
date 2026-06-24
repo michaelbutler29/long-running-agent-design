@@ -1,4 +1,4 @@
-"""Full reset: clear all runtime state (policies, registry, memory, data, local state)."""
+"""Full reset: clear all runtime resources (policies, registry, memory, data). """
 
 import json
 import shutil
@@ -179,7 +179,7 @@ def main():
 
     print()
     print("=" * 60)
-    print("  FULL RESET — clears all runtime state.")
+    print("  FULL RESET — clears all runtime state. Preserves local state/ folder.")
     print()
     print("  This will delete:")
     print("    - All Cedar policies")

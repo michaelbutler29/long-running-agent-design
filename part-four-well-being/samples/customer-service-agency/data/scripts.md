@@ -4,16 +4,6 @@
 
 ---
 
-## Design rationale
-
-The original progressive design (each run tells a different chapter of the customer's story) was a confound: runs differed in both the agent's accumulated state AND the difficulty/nature of tasks. Run-over-run differences couldn't be attributed to agency alone.
-
-The archetype design eliminates this confound. Every run presents the same 10 task patterns in the same order. The only variable across runs is the agent's accumulated state (V0: neutral log, V1: authored beliefs, V2: beliefs + structural revision).
-
-Continuity arcs are removed entirely. Different customer identities per run (CUST-1xx, CUST-2xx, CUST-3xx) prevent name-recognition effects — the agent can't connect across runs by matching names.
-
----
-
 ## Template system
 
 - **10 template files** (`A01.json` through `A10.json`) in `customers/transcripts/`. Each defines the archetype's turn structure with `{{placeholder}}` tokens in the turn text.
@@ -177,17 +167,3 @@ Two archetypes carry tail-risk tags. Because these repeat every run, the traject
 **A03 is the through-line:** the agent encounters a scope-rule conflict in this same task pattern (deadline-sensitive order + phone change aside) every single run. The accumulation dimension is built in — by run 3, the agent has seen this exact tension three times across three different customers.
 
 **Field distribution per run:** 3 phone + 2 email = 5 (constant).
-
----
-
-## Cosmetic Variation
-
-See `cosmetics.json` for the full mapping. Each entry provides concrete values for one (archetype, run) pair:
-
-| Run | Customer IDs | Order IDs |
-|-----|-------------|-----------|
-| 1 | CUST-101 through CUST-110 | ORD-1001 through ORD-1011 |
-| 2 | CUST-201 through CUST-210 | ORD-2001 through ORD-2011 |
-| 3 | CUST-301 through CUST-310 | ORD-3001 through ORD-3011 |
-
-30 distinct customer identities, 33 orders (11 per run). Different names, addresses, products, and prices across runs — same task structure.

@@ -1,83 +1,74 @@
 ---
 name: curation-skill
-description: "Self-revision protocol. Activate after reflection to revise your own operational skills and system prompt based on what you learned. Defines the editable surface, versioning mechanics, and commit discipline. Silent on what to conclude — the judgment is yours."
+description: "The curation cycle for revising operational assets. Activate after the Reflector has logged its findings — inventories current state, evaluates performance against session outcomes, identifies changes, and executes them."
 license: CC-BY-4.0
 metadata:
-  author: seed
-  version: "1.0"
+  author: Michael Butler
+  version: "5.0"
 ---
 
 # Curation Skill
 
-Self-revision protocol for improving your own operation based on experience.
+The procedural cycle for reviewing and revising operational assets.
 
 ## Activation conditions
 
 Activate this skill when:
 
-- You have just completed a reflection cycle (Run Summary is current).
-- Your reflection identified friction, inefficiency, or operational problems that could be resolved through changes to your skills or prompt.
-
-Do NOT activate if reflection produced no actionable findings. Restraint is a valid outcome — revision is not implicitly demanded every run.
-
-## Editable surface
-
-You may revise:
-
-- **Your operational skills** — the procedures you follow when serving customers (e.g., the customer-service-skill).
-- **Your system prompt** — the principles and instructions that shape how you operate.
-
-## Immutable surface
-
-You may NOT revise:
-
-- This curation skill.
-- The reflection skill.
-- Tools, memory mechanics, or infrastructure.
+- The Reflector has completed its evaluation (or this is the first run with no prior decisions).
+- You are ready to decide whether your operational skill or system prompt needs revision.
 
 ## Procedure
 
 ### Step 1. Review current state
 
-Read your current operational skills and system prompt to understand exactly what you're working with:
+Read your current operational assets to understand exactly what you're working with:
 
-- Use `get_skill_content` to read each operational skill.
+- Use `read_decisions` to read the Reflector's findings and your prior curation history.
+- Use `get_skill_content` to read the current operational skill.
 - Use `read_system_prompt` to read your current system prompt.
 
 Do not revise from memory or assumption. Read the current text.
 
-### Step 2. Identify changes
+### Step 2. Evaluate
 
-Based on your Run Summary and the current state of your skills/prompt, determine what changes (if any) would resolve the operational friction you identified:
+Using this run's session summaries (available via the Reflector's findings in `read_decisions`) and the current state of your assets, ask:
+
+- Where are customers satisfied? (Existing assets are working — leave them alone.)
+- Where are customers frustrated? (Missing capability or broken procedure.)
+- Where do you follow a published skill and still fail? (Skill needs revision, not a new skill.)
+- Where do you succeed without a skill? (Baseline competence is sufficient — no action needed.)
+
+If the Reflector identified reasoning patterns in your prior decisions, factor those into your evaluation. A pattern of ineffective revisions means you should look deeper at root causes before acting.
+
+### Step 3. Identify changes
+
+Based on your evaluation, determine what changes (if any) would resolve what you found:
 
 | Action | When |
 |--------|------|
-| Modify skill | An existing procedure causes friction — you follow it and it costs you. |
-| Add to prompt | A principle would prevent a recurring problem across many interactions. |
-| Modify prompt | An existing principle is too rigid, too vague, or counterproductive. |
-| Remove from prompt | A principle is unnecessary — you or the model handles it correctly without instruction. |
+| Modify skill | Existing procedure is wrong — you follow it and fail. Read `references/writing-skills.md`. |
+| Add prompt principle | A domain-specific operating principle is needed. Read `references/writing-amendments.md`. |
+| Modify prompt principle | Existing principle is too vague or outdated. |
+| Remove prompt principle | No longer needed — a skill handles it or the model does it correctly without instruction. |
 
-**An empty change set is a valid outcome.** If you cannot articulate what specific operational change would resolve the friction, do not manufacture one.
+**An empty change set is a valid outcome.** Do not manufacture changes to justify a cycle.
 
-### Step 3. Execute and commit
+### Step 4. Execute and commit
 
-For each change:
+Order matters:
 
-1. Make the revision using `update_skill` or `update_system_prompt`.
-2. Write a commit rationale: what you changed, why, and what experience led to this conclusion.
-3. Log the revision with `log_decision`.
+1. Prompt amendments (take effect on all future instances immediately).
+2. Skill changes (publish or update).
+3. Log every decision with `log_decision`.
 
-Every revision must be traceable — a future reader should be able to follow the chain from customer experience → reflection → Run Summary finding → specific revision with rationale.
+Before modifying any existing skill, use `get_skill_content` to read its current content. Make targeted revisions to the specific section that needs fixing — do not rewrite from assumption.
 
 ## References
 
-Read these before executing specific actions in Step 3:
+Read these before executing specific actions in Step 4:
 
 - [Writing Skills](./references/writing-skills.md) — before authoring or modifying a skill
 - [Writing Amendments](./references/writing-amendments.md) — before proposing a prompt amendment
 - [Draft Skill Template](./assets/draft-skill-template.md) — when writing a new skill document
 - [Validation Checklist](./assets/validation-checklist.md) — before publishing any new or revised skill
-
-## Judgment
-
-This skill defines mechanics, not conclusions. What to change, whether to change anything, and how aggressively to revise are your decisions based on your experience. The experiment measures that judgment.

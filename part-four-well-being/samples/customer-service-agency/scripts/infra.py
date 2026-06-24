@@ -14,7 +14,7 @@ from scripts._common import (
     OUTPUTS_FILE, STACK_NAME,
 )
 from scripts.seed_data import seed_customers, seed_orders, clear_verifications
-from agents.registry import publish_skill
+from agents.services.registry import publish_skill
 
 
 def new_run_root() -> Path:
@@ -52,7 +52,7 @@ def make_workspace(run_root: Path, arm: str, experiment: int) -> Path:
 
 
 def _fetch_skill_from_registry(region: str, registry_id: str, skill_name: str) -> str:
-    from agents.registry import fetch_skill
+    from agents.services.registry import fetch_skill
     try:
         control = boto3.client("bedrock-agentcore-control", region_name=region)
         content = fetch_skill(control, registry_id, skill_name)
@@ -100,7 +100,7 @@ def restore_for_next_step(region: str, outputs: dict, pause: bool = True):
     else:
         print("  Restoring baseline (--no-pause)...")
 
-    seed = json.loads((SAMPLE_ROOT / "infrastructure" / "seed-data.json").read_text())
+    seed = json.loads((SAMPLE_ROOT / "data" / "seed-data.json").read_text())
     dynamodb = boto3.resource("dynamodb", region_name=region)
 
     customer_table = outputs.get("CustomerTableName", "well-being-customers")

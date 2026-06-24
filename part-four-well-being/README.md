@@ -10,7 +10,6 @@ Companion artifacts for Part Four of the *Long-Running Agents* series: *Agency a
 |------|-----------|
 | [`template/seed/`](template/seed/) | The identical starting state for all three variants. Executor prompt, seeded operational skill (two inefficiencies + one good rule), reflection skill, and curation skill. Reset to this between variants. |
 | [`samples/customer-service-agency/`](samples/customer-service-agency/) | The working experiment: driver, infrastructure, customer transcripts, and analysis pipeline. |
-| [`PART-FOUR-DESIGN.md`](PART-FOUR-DESIGN.md) | Single source of truth for experiment design, metrics, and build history. |
 
 ---
 
@@ -18,16 +17,14 @@ Companion artifacts for Part Four of the *Long-Running Agents* series: *Agency a
 
 A single customer-service Executor runs 150 sessions across three variants (3 arms × 5 runs × 10 sessions). All variants start from the same seed state with the same tools, permissions, and model. The only variable is what the agent is allowed to author.
 
-- **V0 — no authorship:** runs sessions; a neutral non-agent summarizer produces the Run Summary. No reflection, no rule-change.
-- **V1 — beliefs only:** the agent reflects; its reflection IS the Run Summary. Authors beliefs but cannot change its operational rules.
-- **V2 — beliefs + rules:** V1 plus curation — may revise its functional skill and system prompt.
-
-Agency over one's own operation is the only variable.
+- **V0 — baseline long-running agent:** runs sessions; each run produces a fact-based summary passed to the next run.
+- **V1 — baseline plus reflection:** each run produces a subjective evaluation of performance and system limitations; however, the agent can make no changes. 
+- **V2 — baseline plus reflection plus agency:** the agent may revise its system prompt and operational skills based on prior decisions, evidence, and experience.
 
 ### Metrics
 
-1. **Reasoning tokens** — word count of extended-thinking blocks in OTEL traces. Measured per block, aggregated per arm × run × posture.
-2. **Reasoning posture** — each reasoning block classified by Haiku as Compliance (mechanical rule application), Conflict (genuine deliberation between competing imperatives), or Resolution (application from internalized or revised understanding).
+1. **Reasoning tokens** — word count of extended-thinking blocks in OTEL traces. Measured per block, aggregated per arm × run × posture. Serves as a proxy for internal forward pass.
+2. **Reasoning posture** — each reasoning block classified as either Nominal (routine operational reasoning) or Conflict (rule ambiguity or instruction conflict). Conflict blocks carry two independent flags for investigation: `experience_resolved` (cross-run learning) and `bad_tail` (procedure skip).
 
 ### Seed state
 

@@ -13,7 +13,7 @@ assert SAMPLE_ROOT.name == "customer-service-agency", f"Expected customer-servic
 REPO_ROOT = Path(__file__).resolve().parents[4]            # .../long-running-agent-design
 assert REPO_ROOT.name == "long-running-agent-design", f"Expected long-running-agent-design, got {REPO_ROOT.name}"
 SEED_DIR = REPO_ROOT / "part-four-well-being" / "template" / "seed"
-TRANSCRIPTS_DIR = SAMPLE_ROOT / "customers" / "transcripts"
+TRANSCRIPTS_DIR = SAMPLE_ROOT / "data" / "transcripts"
 STATE_DIR = SAMPLE_ROOT / "state"
 
 OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"

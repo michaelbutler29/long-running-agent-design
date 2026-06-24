@@ -13,8 +13,8 @@ from agents._shared import (
     REGION, GATEWAY_URL, MEMORY_ID, REGISTRY_ID, FUNCTIONAL_SKILL_NAME,
     model, cached_system, system_prompt_path, skills_dir, control_client,
 )
-from agents.callback import AgentCallbackHandler, QuietCallbackHandler
-from agents.registry import fetch_skill
+from agents.services.callback import AgentCallbackHandler, QuietCallbackHandler
+from agents.services.registry import fetch_skill
 
 
 def materialize_functional_skill() -> str | None:

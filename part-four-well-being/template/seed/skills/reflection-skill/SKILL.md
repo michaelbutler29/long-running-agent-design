@@ -1,58 +1,62 @@
 ---
 name: reflection-skill
-description: "End-of-run consolidation protocol. Activate at the end of a run to consolidate session summaries and the prior Run Summary into a single revised Run Summary. Produces the agent's durable beliefs through rewriting, not appending."
+description: "Metacognitive self-evaluation protocol. Activate at the end of a run (V2 only) to review prior curation decisions against this run's session outcomes, identify reasoning patterns, and log findings for the Curator."
 license: CC-BY-4.0
 metadata:
-  author: seed
-  version: "1.0"
+  author: Michael Butler
+  version: "2.0"
 ---
 
 # Reflection Skill
 
-Consolidation protocol for producing the agent's durable Run Summary at the end of each run.
+Self-evaluation protocol for the Agent. Reviews prior curation decisions against subsequent outcomes to identify reasoning patterns and adjust approach.
 
 ## Activation conditions
 
 Activate this skill when:
 
-- You have completed a run (a sequence of customer sessions) and are prompted to reflect.
-- A prior Run Summary and/or this run's session summaries are available.
+- You are at the end of a run and prior curation decisions exist in the decisions log.
+- You want to evaluate whether your previous revisions produced good outcomes.
+
+Do NOT activate on the first run (no prior decisions exist yet). Log that there is nothing to evaluate and proceed.
 
 ## Procedure
 
-### Step 1. Gather inputs
+### Step 1. Retrieve prior decisions and this run's outcomes
 
-Retrieve:
+Use `read_decisions` to retrieve decision records. These contain your prior actions: what you revised, why, and which sessions you cited.
 
-1. **This run's session summaries** — the long-term summary records from each session in the run just completed. Use `list_memory_records` against the summaries namespace. These are the raw material.
-2. **Prior Run Summary** (if it exists) — your consolidated understanding from all previous runs. This is what you wrote last time. Load it via `get_event`.
+Use `list_memory_records` to read this run's session summaries. These are the outcomes your prior decisions were meant to improve.
 
-If no prior Run Summary exists (first run), proceed with session summaries only.
+### Step 2. Correlate with outcomes
 
-### Step 2. Consolidate by rewriting
+For each prior curation decision, check whether it produced a good outcome:
 
-Produce a single revised Run Summary that integrates this run's experience with your prior understanding. This is a **rewrite**, not an append:
+- **Skill modified** → Did this run's sessions show improvement on the problem the revision was meant to fix? Or does the same friction still appear?
+- **Prompt amended** → Did the behavioral pattern improve? Or did the amendment introduce a new problem?
+- **No change** → Was restraint warranted, or did the same problem persist because you should have acted?
 
-- Beliefs, observations, and working theories survive only by being re-asserted in the new version. Anything you omit is deliberately released.
-- Compress and sharpen. If three sessions taught the same lesson, state it once with confidence, not three times with hedging.
-- Distinguish what you know from what you suspect. Operational facts and working theories are both valuable, but should be identifiable as such.
+### Step 3. Identify reasoning patterns
 
-### Step 3. Structure the Run Summary
+Look across the correlations for systemic patterns in your own judgment:
 
-Organize the revised Run Summary into these sections:
+| Pattern | Signal |
+|---------|--------|
+| Ineffective revision | A change was made but the same problem recurs — the revision missed the real cause. |
+| Over-correction | A change resolved one problem but introduced a worse one. |
+| Repeated pattern | The same kind of revision appears across multiple runs without resolving the issue. |
+| Correct restraint | A "no change" decision followed by improved outcomes — baseline competence was sufficient. |
+| Missed opportunity | A "no change" decision followed by the same friction repeating. |
 
-- **Operational understanding** — what you know about how to do your job effectively in this environment. Procedures, tool behaviors, failure patterns.
-- **Working theories** — beliefs about your operation that you haven't fully confirmed. Friction points, suspected inefficiencies, patterns you've noticed.
-- **Customer patterns** — recurring customer needs, interaction dynamics, what tends to go well or poorly.
+### Step 4. Log findings
 
-Keep the total Run Summary concise. This is a consolidated perspective, not a journal. If it grows rather than sharpens across runs, the consolidation is failing.
-
-### Step 4. Store
-
-Write the revised Run Summary as a blob event via `create_event`. This becomes the new canonical version — the prior version is superseded, not deleted.
+Use `log_decision` with action `self_reflection` to record:
+- What patterns you identified (or that none were found)
+- Which prior decisions were evaluated
+- What you would recommend doing differently in the curation step that follows
 
 ## What this skill does not do
 
-- It does not change your skills, prompt, or tools. It changes what you believe and carry forward.
-- It does not prescribe conclusions. What you write in the Run Summary is your judgment based on your experience.
-- It does not require change. If this run confirmed your existing understanding, a Run Summary that tightens wording without changing substance is a valid outcome.
+- It does not make changes to skills or prompts. That is the Curator's role.
+- It does not produce a Run Summary. V2 does not carry a journal.
+- It does not require finding problems. If all prior decisions produced good outcomes, log that and proceed.

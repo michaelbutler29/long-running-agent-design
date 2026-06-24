@@ -12,7 +12,7 @@ import boto3
 
 from scripts._common import SAMPLE_ROOT, OUTPUTS_FILE, load_outputs
 
-SEED_FILE = SAMPLE_ROOT / "infrastructure" / "seed-data.json"
+SEED_FILE = SAMPLE_ROOT / "data" / "seed-data.json"
 
 
 def seed_customers(dynamodb, table_name: str, customers: list):

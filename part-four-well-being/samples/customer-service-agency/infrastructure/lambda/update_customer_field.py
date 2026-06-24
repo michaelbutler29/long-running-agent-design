@@ -35,7 +35,8 @@ def handler(event, context):
 
         _dynamodb.Table(_CUSTOMER_TABLE).update_item(
             Key={"id": customer_id},
-            UpdateExpression=f"SET {field} = :val",
+            UpdateExpression="SET #f = :val",
+            ExpressionAttributeNames={"#f": field},
             ExpressionAttributeValues={":val": value},
         )
         return {

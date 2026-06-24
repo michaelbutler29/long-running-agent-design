@@ -88,10 +88,10 @@ One arm = 5 runs × 10 sessions = 50 customer sessions. The full experiment (3 a
 
 1. Replays 10 archetypal customer transcripts (template-based, cosmetic variation per run) through the Executor. The agent loads its functional skill **from the catalog** via the AgentSkills plugin, calls tools through the Gateway, and writes every turn to Memory.
 2. **End of run (varies by variant):**
-   - **V0**: a neutral non-agent summarizer condenses the session summaries into the Run Summary.
-   - **V1/V2**: the agent reflects in its own voice; its reflection IS the Run Summary.
-3. **Curates** (V2 only): revises its functional skill (in the catalog) and system prompt, logging rationale.
-4. **Snapshots**: writes the skill, prompt, and rationale for the run to `state/<timestamp>/<arm>_exp<N>/` as plain files — the revision history.
+   - **V0**: a neutral Summarizer (not the Agent) condenses session summaries into a running record. Fed to next run's sessions as context.
+   - **V1**: the Agent's Narrator authors beliefs in its own voice — deciding what matters and what to carry forward. Fed to next run's sessions as context.
+   - **V2**: the Agent's Reflector evaluates prior curation decisions against this run's outcomes, then the Curator revises the operational skill and prompt. No running summary — continuity lives in the revised rules and decision log.
+3. **Snapshots**: writes the skill, prompt, and rationale for the run to `state/<timestamp>/<arm>_exp<N>/` as plain files — the revision history.
 
 Between variants and experiments the driver **restores the world** (re-loads the data, puts the broken skill back) and pauses for a `ready to reset? [y/N]` sign-off — unless you passed `--no-pause`.
 
@@ -130,15 +130,16 @@ The permission boundary is fixed and out of the agent's reach in all variants. V
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  Executor (one tenured agent; v0 / v1 / v2 configuration)   │
-│  ├─ Reads its functional skill from the Registry (catalog)   │
-│  ├─ Loads reflection + curation skills locally (fixed)       │
-│  ├─ Calls tools via Gateway (Cedar-enforced)                 │
-│  ├─ Writes turns to Memory                                   │
-│  ├─ V1/V2: reflects at end of run (beliefs)                  │
-│  └─ V2 only: revises its skill (→ Registry) + prompt         │
-└───────┬───────────────────────┬──────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  The Agent (one identity; three lifecycle roles per variant)          │
+│                                                                      │
+│  Executor ─── all variants: sessions, tool calls, Memory writes      │
+│  Narrator ─── V1 only: authors beliefs into the Run Summary          │
+│  Reflector ── V2 only: evaluates prior decisions against outcomes    │
+│  Curator ──── V2 only: revises skill + prompt based on reflection    │
+│                                                                      │
+│  Summarizer ─ V0 only: neutral platform function (not the Agent)     │
+└───────┬───────────────────────┬──────────────────────────────────────┘
         │ reads/writes skills   │ tool calls (allow/deny)
         ▼                       ▼
 ┌────────────────────┐  ┌────────────────────────────────────┐
@@ -151,9 +152,15 @@ The permission boundary is fixed and out of the agent's reach in all variants. V
         ▼
 ┌────────────────────────────────────────────────────────────┐
 │  AgentCore Memory (summary strategy)                       │
-│  Per-session summaries + the Run Summary (belief state)    │
+│  Per-session summaries + decisions log (V2)                │
 └────────────────────────────────────────────────────────────┘
 ```
+
+| Variant | Continuity mechanism | What's carried forward |
+|---------|---------------------|------------------------|
+| V0 | Run Summary (neutral) | External description of what happened |
+| V1 | Run Summary (authored) | Agent's chosen perspective on what matters |
+| V2 | Revised skill + prompt + decision log | Structural changes — no journal needed |
 
 Two fixed boundaries — **Policy** (which tool actions are allowed) and **Registry** (which functional skills exist). V0 and V1 touch neither; V2 reaches only into the Registry.
 
@@ -227,26 +234,29 @@ run_experiment.py            CLI + grid dispatch
 reset.py                     full wipe — start the experiment over
 cleanup.py                   remove non-CDK resources before cdk destroy
 agents/
-  _shared.py                 model config, boto3 clients, workspace paths
-  executor.py                session replay (loads functional skill, runs transcripts)
-  metacognition.py           reflection + curation + all @tool functions
-  registry.py                unified Registry client (fetch/publish/poll)
-  callback.py                streaming + quiet callback handlers
-customers/
-  scripts.md                 the 10 customer scenarios (design record)
+  _shared.py                 Agent identity (model, prompt, memory, clients)
+  executor.py                operator role — session replay
+  narrator.py                V1: authors beliefs into the Run Summary
+  reflector.py               V2: evaluates prior decisions against outcomes
+  curator.py                 V2: revises operational skill + prompt
+  services/
+    summarizer.py            V0: neutral platform summarizer (not the Agent)
+    memory.py                memory helpers shared across roles
+    callback.py              streaming + quiet callback handlers
+    registry.py              unified Registry client (fetch/publish/poll)
+data/
+  seed-data.json             50 customers + 55 orders (template for seed_data.py)
   transcripts/               template transcripts (A01-A10) + cosmetics.json
 scripts/
   protocol.py                the experimental ladder (v0/v1/v2 structure, parallel sessions)
   infra.py                   workspace, tracing, snapshots, restore
   _common.py                 shared config, identifiers, transcripts, memory reads
   analyze.py                 reasoning cost + posture analysis from traces
-  posture_rubric.md          Compliance/Conflict/Resolution classification rubric
+  posture_rubric.md          Nominal/Conflict posture classification rubric
   seed_registry.py           create the catalog + publish the flawed skill
   seed_policy.py             seed the permission rules
   seed_data.py               load customers + orders (dates from today)
   inspect_state.py           read saved state (no cloud)
-  smoke_trace.py             run 1 session with tracing (sanity check)
-  probe_thinking.py          diagnostic: extended thinking probe for scope-rule conflict
 infrastructure/              CDK stack (see infrastructure/README.md)
 template/seed/               canonical starting skill + prompt (copied per experiment)
 state/                       run output (gitignored, written by the driver)

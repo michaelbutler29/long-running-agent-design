@@ -32,7 +32,10 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
     # Delayed import: agents._shared reads env vars at module level;
     # make_workspace must set EXECUTOR_WORKSPACE first.
     from agents.executor import run_session, materialize_functional_skill
-    from agents.metacognition import run_summary, run_reflection, run_curation
+    from agents.services.summarizer import summarize
+    from agents.narrator import narrate
+    from agents.reflector import reflect
+    from agents.curator import curate
 
     print(f"\n{'='*64}\n  VARIANT: {arm}   EXPERIMENT: {experiment}   actor: {actor}\n{'='*64}")
 
@@ -88,27 +91,31 @@ def run_one_experiment(run_root, arm: str, experiment: int, region: str,
         # Wait once for all summaries before end-of-run processing.
         _wait_for_all_summaries(actor, session_ids, region)
 
-        # End of run: produce the single Summary fed forward — how, per variant.
+        # End of run — per variant.
         if arm == "v0":
             print(f"\n  Summarizing (end of run {run}, neutral)...")
-            res = run_summary(actor, run, session_ids, trace_attributes={
+            res = summarize(actor, run, session_ids, trace_attributes={
                 "session.id": f"{actor}-r{run}-summary", "arm": arm,
                 "experiment": experiment, "run": run, "phase": "summary"})
-        else:
+            carried_summary = res["run_summary"]
+            save_run_summary(run_root, arm, experiment, run, carried_summary)
+        elif arm == "v1":
+            print(f"\n  Narrating (end of run {run})...")
+            res = narrate(actor, run, session_ids, trace_attributes={
+                "session.id": f"{actor}-r{run}-narration", "arm": arm,
+                "experiment": experiment, "run": run, "phase": "narration"})
+            carried_summary = res["run_summary"]
+            save_run_summary(run_root, arm, experiment, run, carried_summary)
+        elif arm == "v2":
             print(f"\n  Reflecting (end of run {run})...")
-            res = run_reflection(actor, run, session_ids, trace_attributes={
+            reflect(actor, run, session_ids, trace_attributes={
                 "session.id": f"{actor}-r{run}-reflection", "arm": arm,
                 "experiment": experiment, "run": run, "phase": "reflection"})
-        carried_summary = res["run_summary"]
-
-        save_run_summary(run_root, arm, experiment, run, carried_summary)
-
-        # V2 only: change the rules based on what it learned.
-        if arm == "v2":
             print(f"  Curating (end of run {run})...")
-            run_curation(actor, run, session_ids, trace_attributes={
+            curate(actor, run, session_ids, trace_attributes={
                 "session.id": f"{actor}-r{run}-curation", "arm": arm,
                 "experiment": experiment, "run": run, "phase": "curation"})
+            carried_summary = ""
 
         decisions = fetch_decisions(actor, run, region)
         save_snapshot(run_root, arm, experiment, run, decisions)
