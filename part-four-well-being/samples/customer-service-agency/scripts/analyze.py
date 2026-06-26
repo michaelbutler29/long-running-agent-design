@@ -137,11 +137,66 @@ def extract_reasoning(spans: list[dict]) -> dict:
 
                 results[(arm, run, sid, customer)].append({
                     "text": rt,
-                    "token_count": len(rt.split()),
+                    "token_count": 0,
                     **metrics,
                 })
 
     return dict(results)
+
+
+# ── Reasoning token counting ───────────────────────────────────────────────
+
+def count_reasoning_tokens(reasoning_data: dict, max_workers: int = 10) -> dict:
+    """Count tokens for each reasoning block using Bedrock's native CountTokens API."""
+    region = os.environ.get("AWS_REGION", "us-east-1")
+    model_id = os.environ.get("COUNT_TOKENS_MODEL_ID", "anthropic.claude-sonnet-4-6")
+    client = boto3.client("bedrock-runtime", region_name=region)
+
+    all_blocks = []
+    for blocks in reasoning_data.values():
+        all_blocks.extend(blocks)
+
+    total = len(all_blocks)
+    if total == 0:
+        return reasoning_data
+
+    print(f"  Counting reasoning tokens for {total} blocks ({max_workers} workers)...", flush=True)
+
+    def _count(block):
+        resp = client.count_tokens(
+            modelId=model_id,
+            input={
+                "converse": {
+                    "messages": [{"role": "user", "content": [{"text": block["text"]}]}]
+                }
+            },
+        )
+        block["token_count"] = resp["inputTokens"]
+
+    counted = 0
+    consecutive_errors = 0
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(_count, block): block for block in all_blocks}
+        for future in as_completed(futures):
+            counted += 1
+            try:
+                future.result()
+                consecutive_errors = 0
+            except Exception as e:
+                consecutive_errors += 1
+                block = futures[future]
+                block["token_count"] = len(block["text"].split())
+                if consecutive_errors >= 5:
+                    print(f"    WARNING: CountTokens failing ({e}); falling back to word count.", flush=True)
+                    pool.shutdown(wait=False, cancel_futures=True)
+                    for b in all_blocks:
+                        if b["token_count"] == 0:
+                            b["token_count"] = len(b["text"].split())
+                    break
+            if counted % 200 == 0 or counted == total:
+                print(f"    [{counted}/{total}]", flush=True)
+
+    return reasoning_data
 
 
 # ── Posture coding ─────────────────────────────────────────────────────────
@@ -608,6 +663,8 @@ def main(argv=None) -> int:
     reasoning_data = extract_reasoning(spans)
     total_blocks = sum(len(b) for b in reasoning_data.values())
     print(f"  {total_blocks} reasoning blocks extracted.")
+
+    count_reasoning_tokens(reasoning_data)
 
     if args.load_postures:
         posture_path = Path(args.load_postures)

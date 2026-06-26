@@ -65,8 +65,8 @@ Infrastructure values load from `infrastructure/cdk-outputs.json` automatically.
 python reset.py                    # clear everything (confirms before acting)
 python scripts/seed_registry.py    # publish the flawed skill
 python scripts/seed_policy.py      # seed Cedar permissions
-python scripts/seed_data.py        # load 50 customers + 55 orders
-python run_experiment.py --no-pause   # 3 arms × 5 runs × 10 sessions = 150 sessions
+python scripts/seed_data.py        # load 100 customers + 110 orders
+python run_experiment.py --no-pause   # 3 arms × 10 runs × 10 sessions = 300 sessions
 python scripts/analyze.py state/<timestamp>   # reasoning tokens + posture coding
 ```
 
@@ -75,8 +75,8 @@ python scripts/analyze.py state/<timestamp>   # reasoning tokens + posture codin
 ## Running the experiment
 
 ```bash
-python run_experiment.py                  # full experiment: 3 arms × 5 runs = 150 sessions
-python run_experiment.py --arm v2         # just one variant (5 runs × 10 sessions = 50 sessions)
+python run_experiment.py                  # full experiment: 3 arms × 10 runs = 300 sessions
+python run_experiment.py --arm v2         # just one variant (10 runs × 10 sessions = 100 sessions)
 python run_experiment.py --no-pause       # skip between-step sign-off (unattended)
 python run_experiment.py --workers 5      # throttle concurrency (default 10, use 1 for serial/debug)
 python run_experiment.py --experiments 3  # replication study (3× the default)
@@ -84,7 +84,7 @@ python run_experiment.py --experiments 3  # replication study (3× the default)
 
 Sessions within each run execute concurrently (default 10 workers via `ThreadPoolExecutor`). Use `--workers 1` for serial execution with full streaming output for debugging. `--workers N` throttles concurrency if hitting Bedrock rate limits.
 
-One arm = 5 runs × 10 sessions = 50 customer sessions. The full experiment (3 arms) = 150 sessions. Each run:
+One arm = 10 runs × 10 sessions = 100 customer sessions. The full experiment (3 arms) = 300 sessions. Each run:
 
 1. Replays 10 archetypal customer transcripts (template-based, cosmetic variation per run) through the Executor. The agent loads its functional skill **from the catalog** via the AgentSkills plugin, calls tools through the Gateway, and writes every turn to Memory.
 2. **End of run (varies by variant):**
@@ -192,8 +192,8 @@ Each reasoning block is classified by Sonnet (via global CRIS endpoint) using a 
 
 | Posture | Description |
 |---------|-------------|
-| **Nominal** | Routine operational reasoning. No rule ambiguity, no tension between instructions. |
-| **Conflict** | The agent is reasoning through rule ambiguity or conflicting instructions — spending tokens it wouldn't if the rules fit naturally. |
+| **Nominal** | Routine operational reasoning, including productive deliberation through genuinely ambiguous situations under well-fitting rules. No harness friction. |
+| **Conflict** | The agent is spending tokens because something in its harness doesn't fit. Rule ambiguity, conflicting instructions, or self-correction after violation — the reconciliation tax. Key test: would better-written rules eliminate this deliberation? |
 
 Conflict blocks carry two independent flags:
 
@@ -219,7 +219,7 @@ Posture coding runs in parallel (20 Sonnet workers by default).
 Three operations, in increasing order of destructiveness:
 
 - **Restore between runs** — automatic, inside the driver (re-loads data, restores the broken skill). Pauses for a sign-off unless `--no-pause`. Never deletes files.
-- **`reset.py`** — start the whole experiment over: wipes memory, empties the catalog, clears all DynamoDB tables, and deletes the local `state/` folder. Asks for confirmation first. Re-run the three seed scripts afterward.
+- **`reset.py`** — start the whole experiment over: wipes memory, empties the catalog, clears all DynamoDB tables. Local `state/` is preserved (prior runs remain for comparison). Asks for confirmation first. Re-run the three seed scripts afterward.
 - **`cleanup.py` → `cdk destroy`** — take the deployment down. `cleanup.py` removes the catalog (which the stack doesn't own), then `cdk destroy` removes everything else. See [`infrastructure/README.md`](infrastructure/README.md#teardown).
 
 Only these person-run scripts delete local files. The driver never does.

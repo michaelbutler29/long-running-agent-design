@@ -179,14 +179,15 @@ def main():
 
     print()
     print("=" * 60)
-    print("  FULL RESET — clears all runtime state. Preserves local state/ folder.")
+    print("  FULL RESET — clears all cloud runtime state.")
     print()
     print("  This will delete:")
     print("    - All Cedar policies")
     print("    - All Registry records (published skills)")
     print("    - All Memory records (summaries, blob checkpoints)")
     print("    - DynamoDB data (customers, orders, verifications)")
-    print("    - Local state/ folder")
+    print()
+    print("  Local state/ is preserved (prior runs remain for comparison).")
     print()
     print("  Re-run setup after reset:")
     print("    python scripts/seed_registry.py")
@@ -223,9 +224,6 @@ def main():
     print()
 
     clear_data(region, outputs)
-    print()
-
-    delete_local_state()
     print()
 
     print("=" * 60)

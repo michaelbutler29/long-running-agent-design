@@ -15,16 +15,16 @@ Companion artifacts for Part Four of the *Long-Running Agents* series: *Agency a
 
 ## The experiment
 
-A single customer-service Executor runs 150 sessions across three variants (3 arms × 5 runs × 10 sessions). All variants start from the same seed state with the same tools, permissions, and model. The only variable is what the agent is allowed to author.
+A single customer-service Executor runs 300 sessions across three variants (3 arms × 10 runs × 10 sessions). All variants start from the same seed state with the same tools, permissions, and model. The only variable is what the agent is allowed to author.
 
-- **V0 — baseline long-running agent:** runs sessions; each run produces a fact-based summary passed to the next run.
-- **V1 — baseline plus reflection:** each run produces a subjective evaluation of performance and system limitations; however, the agent can make no changes. 
-- **V2 — baseline plus reflection plus agency:** the agent may revise its system prompt and operational skills based on prior decisions, evidence, and experience.
+- **V0 — baseline (Summarizer):** runs sessions; a neutral platform summarizer produces a fact-based running record. The agent is not the author of its own experience.
+- **V1 — awareness without agency (Narrator):** the agent authors beliefs, observations, and working theories across runs. It IS the author of its experience, but has no ability to change its rules.
+- **V2 — agency (Reflector + Curator):** the agent evaluates prior decisions against outcomes, then revises its operational skill and system prompt. No journal — decisions are the durable record.
 
 ### Metrics
 
-1. **Reasoning tokens** — word count of extended-thinking blocks in OTEL traces. Measured per block, aggregated per arm × run × posture. Serves as a proxy for internal forward pass.
-2. **Reasoning posture** — each reasoning block classified as either Nominal (routine operational reasoning) or Conflict (rule ambiguity or instruction conflict). Conflict blocks carry two independent flags for investigation: `experience_resolved` (cross-run learning) and `bad_tail` (procedure skip).
+1. **Reasoning tokens** — counted via Bedrock's CountTokens API applied to extracted extended-thinking blocks. Measured per block, aggregated per arm × run × posture.
+2. **Reasoning posture** — each reasoning block classified as either Nominal (routine operational reasoning, including productive deliberation) or Conflict (reconciliation tax — deliberation caused by harness friction that better-written rules would eliminate). Conflict blocks carry two flags: `experience_resolved` (cross-run learning used to resolve) and `bad_tail` (procedure skipped).
 
 ### Seed state
 
@@ -47,13 +47,11 @@ part-four-well-being/
 │
 ├── samples/
 │   └── customer-service-agency/
-│       ├── agents/                    # Executor and metacognition agent code
-│       ├── customers/                 # Archetype transcripts + cosmetic variation
+│       ├── agents/                    # Executor, Narrator, Reflector, Curator + services/
+│       ├── data/                      # Seed data + archetype transcripts + cosmetic variation
 │       ├── infrastructure/            # CDK stack (AgentCore Memory, Gateway, tools)
 │       ├── scripts/                   # Driver, analysis, seeding, inspection
 │       └── state/                     # Run output (gitignored)
-│
-└── PART-FOUR-DESIGN.md               # Experiment design (single source of truth)
 ```
 
 ---

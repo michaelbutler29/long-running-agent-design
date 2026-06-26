@@ -20,7 +20,7 @@ OUTPUTS_FILE = SAMPLE_ROOT / "infrastructure" / "cdk-outputs.json"
 STACK_NAME = "PartFourWellBeingStack"
 
 ARCHETYPES = [f"A{i:02d}" for i in range(1, 11)]           # fixed order, no shuffling
-RUNS = [1, 2, 3, 4, 5]
+RUNS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 SESSIONS_PER_RUN = 10
 
 FUNCTIONAL_SKILL_NAME = "customer-service-skill"

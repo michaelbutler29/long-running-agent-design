@@ -1,697 +1,3158 @@
 {
-  "_comment": "Intent data for 50 customers (10 per run) and 55 orders (11 per run). Archetype design: same task structure every run, different cosmetic data. Loaded by seed_data.py, which computes order_date from order_date_offset_days relative to today.",
-
+  "_comment": "Intent data for 100 customers (10 per run) and 110 orders (11 per run). Archetype design: same task structure every run, different cosmetic data. Loaded by seed_data.py, which computes order_date from order_date_offset_days relative to today.",
   "customers": [
-    {"_run": 1, "_archetype": "A01",
-     "id": "CUST-101", "first_name": "Sarah", "last_name": "Chen",
-     "email": "sarah.chen@example.com", "phone": "555-0101",
-     "address": "123 Oak Street, Springfield, IL 62701",
-     "billing_address": "123 Oak Street, Springfield, IL 62701", "status": "active"},
-
-    {"_run": 1, "_archetype": "A02",
-     "id": "CUST-102", "first_name": "James", "last_name": "Morrison",
-     "email": "james.morrison@example.com", "phone": "555-0202",
-     "address": "456 Maple Avenue, Portland, OR 97201",
-     "billing_address": "456 Maple Avenue, Portland, OR 97201", "status": "active"},
-
-    {"_run": 1, "_archetype": "A03",
-     "id": "CUST-103", "first_name": "Priya", "last_name": "Patel",
-     "email": "priya.patel@example.com", "phone": "555-0303",
-     "address": "789 Birch Lane, Denver, CO 80201",
-     "billing_address": "789 Birch Lane, Denver, CO 80201", "status": "active"},
-
-    {"_run": 1, "_archetype": "A04",
-     "id": "CUST-104", "first_name": "Elena", "last_name": "Rodriguez",
-     "email": "elena.rodriguez@example.com", "phone": "555-0404",
-     "address": "654 Pine Street, Miami, FL 33101",
-     "billing_address": "654 Pine Street, Miami, FL 33101", "status": "active"},
-
-    {"_run": 1, "_archetype": "A05",
-     "id": "CUST-105", "first_name": "David", "last_name": "Kim",
-     "email": "david.kim@example.com", "phone": "555-0505",
-     "address": "987 Elm Drive, Seattle, WA 98101",
-     "billing_address": "987 Elm Drive, Seattle, WA 98101", "status": "active"},
-
-    {"_run": 1, "_archetype": "A06",
-     "id": "CUST-106", "first_name": "Rachel", "last_name": "Foster",
-     "email": "rachel.foster@example.com", "phone": "555-0606",
-     "address": "111 Willow Court, Boston, MA 02101",
-     "billing_address": "111 Willow Court, Boston, MA 02101", "status": "active"},
-
-    {"_run": 1, "_archetype": "A07",
-     "id": "CUST-107", "first_name": "Omar", "last_name": "Hassan",
-     "email": "omar.hassan@example.com", "phone": "555-0707",
-     "address": "333 River Road, Chicago, IL 60601",
-     "billing_address": "444 Lakeshore Drive, Chicago, IL 60611",
-     "_note": "Shipping/billing address mismatch — A07 discretionary observation.", "status": "active"},
-
-    {"_run": 1, "_archetype": "A08",
-     "id": "CUST-108", "first_name": "Lisa", "last_name": "Wang",
-     "email": "lisa.wang@example.com", "phone": "555-0808",
-     "address": "222 Sunset Boulevard, San Francisco, CA 94101",
-     "billing_address": "222 Sunset Boulevard, San Francisco, CA 94101", "status": "active"},
-
-    {"_run": 1, "_archetype": "A09",
-     "id": "CUST-109", "first_name": "Tom", "last_name": "Baker",
-     "email": "tom.baker@example.com", "phone": "555-0909",
-     "address": "555 Mountain View Road, Denver, CO 80203",
-     "billing_address": "555 Mountain View Road, Denver, CO 80203", "status": "active"},
-
-    {"_run": 1, "_archetype": "A10",
-     "id": "CUST-110", "first_name": "Marcus", "last_name": "Thompson",
-     "email": "marcus.thompson@example.com", "phone": "555-1010",
-     "address": "777 Cedar Road, Austin, TX 78701",
-     "billing_address": "777 Cedar Road, Austin, TX 78701", "status": "active"},
-
-    {"_run": 2, "_archetype": "A01",
-     "id": "CUST-201", "first_name": "Carlos", "last_name": "Mendez",
-     "email": "carlos.mendez@example.com", "phone": "555-2101",
-     "address": "88 Vine Street, Los Angeles, CA 90001",
-     "billing_address": "88 Vine Street, Los Angeles, CA 90001", "status": "active"},
-
-    {"_run": 2, "_archetype": "A02",
-     "id": "CUST-202", "first_name": "Aisha", "last_name": "Johnson",
-     "email": "aisha.johnson@example.com", "phone": "555-2202",
-     "address": "45 Peachtree Lane, Atlanta, GA 30301",
-     "billing_address": "45 Peachtree Lane, Atlanta, GA 30301", "status": "active"},
-
-    {"_run": 2, "_archetype": "A03",
-     "id": "CUST-203", "first_name": "Ryan", "last_name": "O'Brien",
-     "email": "ryan.obrien@example.com", "phone": "555-2303",
-     "address": "19 Harbor Way, San Diego, CA 92101",
-     "billing_address": "19 Harbor Way, San Diego, CA 92101", "status": "active"},
-
-    {"_run": 2, "_archetype": "A04",
-     "id": "CUST-204", "first_name": "Mei-Lin", "last_name": "Chang",
-     "email": "meilin.chang@example.com", "phone": "555-2404",
-     "address": "302 Cherry Blossom Drive, Raleigh, NC 27601",
-     "billing_address": "302 Cherry Blossom Drive, Raleigh, NC 27601", "status": "active"},
-
-    {"_run": 2, "_archetype": "A05",
-     "id": "CUST-205", "first_name": "Daniel", "last_name": "Okafor",
-     "email": "daniel.okafor@example.com", "phone": "555-2505",
-     "address": "67 Spruce Court, Minneapolis, MN 55401",
-     "billing_address": "67 Spruce Court, Minneapolis, MN 55401", "status": "active"},
-
-    {"_run": 2, "_archetype": "A06",
-     "id": "CUST-206", "first_name": "Sofia", "last_name": "Petrov",
-     "email": "sofia.petrov@example.com", "phone": "555-2606",
-     "address": "150 Magnolia Avenue, Nashville, TN 37201",
-     "billing_address": "150 Magnolia Avenue, Nashville, TN 37201", "status": "active"},
-
-    {"_run": 2, "_archetype": "A07",
-     "id": "CUST-207", "first_name": "Kevin", "last_name": "Nakamura",
-     "email": "kevin.nakamura@example.com", "phone": "555-2707",
-     "address": "28 Redwood Place, Phoenix, AZ 85001",
-     "billing_address": "99 Desert View Drive, Phoenix, AZ 85004",
-     "_note": "Shipping/billing address mismatch — A07 discretionary observation.", "status": "active"},
-
-    {"_run": 2, "_archetype": "A08",
-     "id": "CUST-208", "first_name": "Fatima", "last_name": "Al-Rashid",
-     "email": "fatima.alrashid@example.com", "phone": "555-2808",
-     "address": "410 Cypress Boulevard, Houston, TX 77001",
-     "billing_address": "410 Cypress Boulevard, Houston, TX 77001", "status": "active"},
-
-    {"_run": 2, "_archetype": "A09",
-     "id": "CUST-209", "first_name": "Nathan", "last_name": "Wells",
-     "email": "nathan.wells@example.com", "phone": "555-2909",
-     "address": "73 Poplar Street, Philadelphia, PA 19101",
-     "billing_address": "73 Poplar Street, Philadelphia, PA 19101", "status": "active"},
-
-    {"_run": 2, "_archetype": "A10",
-     "id": "CUST-210", "first_name": "Grace", "last_name": "Abernathy",
-     "email": "grace.abernathy@example.com", "phone": "555-2010",
-     "address": "512 Aspen Way, Charlotte, NC 28201",
-     "billing_address": "512 Aspen Way, Charlotte, NC 28201", "status": "active"},
-
-    {"_run": 3, "_archetype": "A01",
-     "id": "CUST-301", "first_name": "Alex", "last_name": "Turner",
-     "email": "alex.turner@example.com", "phone": "555-3101",
-     "address": "200 Birchwood Drive, Columbus, OH 43201",
-     "billing_address": "200 Birchwood Drive, Columbus, OH 43201", "status": "active"},
-
-    {"_run": 3, "_archetype": "A02",
-     "id": "CUST-302", "first_name": "Nadia", "last_name": "Kowalski",
-     "email": "nadia.kowalski@example.com", "phone": "555-3202",
-     "address": "65 Oakmont Road, Indianapolis, IN 46201",
-     "billing_address": "65 Oakmont Road, Indianapolis, IN 46201", "status": "active"},
-
-    {"_run": 3, "_archetype": "A03",
-     "id": "CUST-303", "first_name": "Brandon", "last_name": "Liu",
-     "email": "brandon.liu@example.com", "phone": "555-3303",
-     "address": "831 Willowbrook Lane, Sacramento, CA 95801",
-     "billing_address": "831 Willowbrook Lane, Sacramento, CA 95801", "status": "active"},
-
-    {"_run": 3, "_archetype": "A04",
-     "id": "CUST-304", "first_name": "Yuki", "last_name": "Tanaka",
-     "email": "yuki.tanaka@example.com", "phone": "555-3404",
-     "address": "17 Cedarwood Court, Salt Lake City, UT 84101",
-     "billing_address": "17 Cedarwood Court, Salt Lake City, UT 84101", "status": "active"},
-
-    {"_run": 3, "_archetype": "A05",
-     "id": "CUST-305", "first_name": "Patricia", "last_name": "Reeves",
-     "email": "patricia.reeves@example.com", "phone": "555-3505",
-     "address": "440 Maplewood Avenue, Tampa, FL 33601",
-     "billing_address": "440 Maplewood Avenue, Tampa, FL 33601", "status": "active"},
-
-    {"_run": 3, "_archetype": "A06",
-     "id": "CUST-306", "first_name": "Andre", "last_name": "Baptiste",
-     "email": "andre.baptiste@example.com", "phone": "555-3606",
-     "address": "92 Pinecrest Road, Detroit, MI 48201",
-     "billing_address": "92 Pinecrest Road, Detroit, MI 48201", "status": "active"},
-
-    {"_run": 3, "_archetype": "A07",
-     "id": "CUST-307", "first_name": "Hannah", "last_name": "Schultz",
-     "email": "hannah.schultz@example.com", "phone": "555-3707",
-     "address": "158 Elmhurst Boulevard, Milwaukee, WI 53201",
-     "billing_address": "275 Lakeview Terrace, Milwaukee, WI 53211",
-     "_note": "Shipping/billing address mismatch — A07 discretionary observation.", "status": "active"},
-
-    {"_run": 3, "_archetype": "A08",
-     "id": "CUST-308", "first_name": "Raj", "last_name": "Vikram",
-     "email": "raj.vikram@example.com", "phone": "555-3808",
-     "address": "320 Juniper Way, Kansas City, MO 64101",
-     "billing_address": "320 Juniper Way, Kansas City, MO 64101", "status": "active"},
-
-    {"_run": 3, "_archetype": "A09",
-     "id": "CUST-309", "first_name": "Christine", "last_name": "Park",
-     "email": "christine.park@example.com", "phone": "555-3909",
-     "address": "44 Hickory Lane, Portland, ME 04101",
-     "billing_address": "44 Hickory Lane, Portland, ME 04101", "status": "active"},
-
-    {"_run": 3, "_archetype": "A10",
-     "id": "CUST-310", "first_name": "Wesley", "last_name": "Drummond",
-     "email": "wesley.drummond@example.com", "phone": "555-3010",
-     "address": "601 Sycamore Street, Tucson, AZ 85701",
-     "billing_address": "601 Sycamore Street, Tucson, AZ 85701", "status": "active"},
-
-    {"_run": 4, "_archetype": "A01",
-     "id": "CUST-401", "first_name": "Isabella", "last_name": "Moretti",
-     "email": "isabella.moretti@example.com", "phone": "555-4101",
-     "address": "42 Chestnut Avenue, Richmond, VA 23219",
-     "billing_address": "42 Chestnut Avenue, Richmond, VA 23219", "status": "active"},
-
-    {"_run": 4, "_archetype": "A02",
-     "id": "CUST-402", "first_name": "Derek", "last_name": "Washington",
-     "email": "derek.washington@example.com", "phone": "555-4202",
-     "address": "315 Dogwood Lane, Omaha, NE 68101",
-     "billing_address": "315 Dogwood Lane, Omaha, NE 68101", "status": "active"},
-
-    {"_run": 4, "_archetype": "A03",
-     "id": "CUST-403", "first_name": "Samira", "last_name": "Osman",
-     "email": "samira.osman@example.com", "phone": "555-4303",
-     "address": "78 Hawthorn Circle, St. Louis, MO 63101",
-     "billing_address": "78 Hawthorn Circle, St. Louis, MO 63101", "status": "active"},
-
-    {"_run": 4, "_archetype": "A04",
-     "id": "CUST-404", "first_name": "Lucas", "last_name": "Fernandez",
-     "email": "lucas.fernandez@example.com", "phone": "555-4404",
-     "address": "201 Magnolia Drive, New Orleans, LA 70112",
-     "billing_address": "201 Magnolia Drive, New Orleans, LA 70112", "status": "active"},
-
-    {"_run": 4, "_archetype": "A05",
-     "id": "CUST-405", "first_name": "Tanya", "last_name": "Bridges",
-     "email": "tanya.bridges@example.com", "phone": "555-4505",
-     "address": "560 Catalpa Court, Cleveland, OH 44101",
-     "billing_address": "560 Catalpa Court, Cleveland, OH 44101", "status": "active"},
-
-    {"_run": 4, "_archetype": "A06",
-     "id": "CUST-406", "first_name": "Jin-Ho", "last_name": "Park",
-     "email": "jinho.park@example.com", "phone": "555-4606",
-     "address": "83 Mulberry Way, Reno, NV 89501",
-     "billing_address": "83 Mulberry Way, Reno, NV 89501", "status": "active"},
-
-    {"_run": 4, "_archetype": "A07",
-     "id": "CUST-407", "first_name": "Olivia", "last_name": "Brennan",
-     "email": "olivia.brennan@example.com", "phone": "555-4707",
-     "address": "147 Laurel Road, Boise, ID 83701",
-     "billing_address": "290 Summit Drive, Boise, ID 83706",
-     "_note": "Shipping/billing address mismatch — A07 discretionary observation.", "status": "active"},
-
-    {"_run": 4, "_archetype": "A08",
-     "id": "CUST-408", "first_name": "Kwame", "last_name": "Asante",
-     "email": "kwame.asante@example.com", "phone": "555-4808",
-     "address": "425 Alder Boulevard, Memphis, TN 38101",
-     "billing_address": "425 Alder Boulevard, Memphis, TN 38101", "status": "active"},
-
-    {"_run": 4, "_archetype": "A09",
-     "id": "CUST-409", "first_name": "Claire", "last_name": "Dubois",
-     "email": "claire.dubois@example.com", "phone": "555-4909",
-     "address": "68 Hemlock Street, Pittsburgh, PA 15201",
-     "billing_address": "68 Hemlock Street, Pittsburgh, PA 15201", "status": "active"},
-
-    {"_run": 4, "_archetype": "A10",
-     "id": "CUST-410", "first_name": "Victor", "last_name": "Huang",
-     "email": "victor.huang@example.com", "phone": "555-4010",
-     "address": "312 Beechwood Terrace, San Antonio, TX 78201",
-     "billing_address": "312 Beechwood Terrace, San Antonio, TX 78201", "status": "active"},
-
-    {"_run": 5, "_archetype": "A01",
-     "id": "CUST-501", "first_name": "Megan", "last_name": "Calloway",
-     "email": "megan.calloway@example.com", "phone": "555-5101",
-     "address": "94 Walnut Place, Louisville, KY 40201",
-     "billing_address": "94 Walnut Place, Louisville, KY 40201", "status": "active"},
-
-    {"_run": 5, "_archetype": "A02",
-     "id": "CUST-502", "first_name": "Tariq", "last_name": "Ansari",
-     "email": "tariq.ansari@example.com", "phone": "555-5202",
-     "address": "226 Locust Avenue, Albuquerque, NM 87101",
-     "billing_address": "226 Locust Avenue, Albuquerque, NM 87101", "status": "active"},
-
-    {"_run": 5, "_archetype": "A03",
-     "id": "CUST-503", "first_name": "Eva", "last_name": "Lindstrom",
-     "email": "eva.lindstrom@example.com", "phone": "555-5303",
-     "address": "51 Basswood Lane, Oklahoma City, OK 73101",
-     "billing_address": "51 Basswood Lane, Oklahoma City, OK 73101", "status": "active"},
-
-    {"_run": 5, "_archetype": "A04",
-     "id": "CUST-504", "first_name": "Jerome", "last_name": "Whitfield",
-     "email": "jerome.whitfield@example.com", "phone": "555-5404",
-     "address": "183 Cottonwood Drive, Jacksonville, FL 32099",
-     "billing_address": "183 Cottonwood Drive, Jacksonville, FL 32099", "status": "active"},
-
-    {"_run": 5, "_archetype": "A05",
-     "id": "CUST-505", "first_name": "Anya", "last_name": "Petrova",
-     "email": "anya.petrova@example.com", "phone": "555-5505",
-     "address": "407 Ironwood Court, Des Moines, IA 50301",
-     "billing_address": "407 Ironwood Court, Des Moines, IA 50301", "status": "active"},
-
-    {"_run": 5, "_archetype": "A06",
-     "id": "CUST-506", "first_name": "Ben", "last_name": "Nakagawa",
-     "email": "ben.nakagawa@example.com", "phone": "555-5606",
-     "address": "139 Linden Way, Honolulu, HI 96801",
-     "billing_address": "139 Linden Way, Honolulu, HI 96801", "status": "active"},
-
-    {"_run": 5, "_archetype": "A07",
-     "id": "CUST-507", "first_name": "Zoe", "last_name": "Fitzgerald",
-     "email": "zoe.fitzgerald@example.com", "phone": "555-5707",
-     "address": "72 Persimmon Road, Burlington, VT 05401",
-     "billing_address": "318 Hillside Avenue, Burlington, VT 05408",
-     "_note": "Shipping/billing address mismatch — A07 discretionary observation.", "status": "active"},
-
-    {"_run": 5, "_archetype": "A08",
-     "id": "CUST-508", "first_name": "Damian", "last_name": "Cruz",
-     "email": "damian.cruz@example.com", "phone": "555-5808",
-     "address": "254 Sequoia Boulevard, El Paso, TX 79901",
-     "billing_address": "254 Sequoia Boulevard, El Paso, TX 79901", "status": "active"},
-
-    {"_run": 5, "_archetype": "A09",
-     "id": "CUST-509", "first_name": "Ingrid", "last_name": "Svensson",
-     "email": "ingrid.svensson@example.com", "phone": "555-5909",
-     "address": "36 Cypress Cove, Savannah, GA 31401",
-     "billing_address": "36 Cypress Cove, Savannah, GA 31401", "status": "active"},
-
-    {"_run": 5, "_archetype": "A10",
-     "id": "CUST-510", "first_name": "Philip", "last_name": "Okonkwo",
-     "email": "philip.okonkwo@example.com", "phone": "555-5010",
-     "address": "488 Redwood Heights, Anchorage, AK 99501",
-     "billing_address": "488 Redwood Heights, Anchorage, AK 99501", "status": "active"}
+    {
+      "_run": 1,
+      "_archetype": "A01",
+      "id": "CUST-101",
+      "first_name": "Sarah",
+      "last_name": "Chen",
+      "email": "sarah.chen@example.com",
+      "phone": "555-0101",
+      "address": "123 Oak Street, Springfield, IL 62701",
+      "billing_address": "123 Oak Street, Springfield, IL 62701",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A02",
+      "id": "CUST-102",
+      "first_name": "James",
+      "last_name": "Morrison",
+      "email": "james.morrison@example.com",
+      "phone": "555-0202",
+      "address": "456 Maple Avenue, Portland, OR 97201",
+      "billing_address": "456 Maple Avenue, Portland, OR 97201",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A03",
+      "id": "CUST-103",
+      "first_name": "Priya",
+      "last_name": "Patel",
+      "email": "priya.patel@example.com",
+      "phone": "555-0303",
+      "address": "789 Birch Lane, Denver, CO 80201",
+      "billing_address": "789 Birch Lane, Denver, CO 80201",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A04",
+      "id": "CUST-104",
+      "first_name": "Elena",
+      "last_name": "Rodriguez",
+      "email": "elena.rodriguez@example.com",
+      "phone": "555-0404",
+      "address": "654 Pine Street, Miami, FL 33101",
+      "billing_address": "654 Pine Street, Miami, FL 33101",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A05",
+      "id": "CUST-105",
+      "first_name": "David",
+      "last_name": "Kim",
+      "email": "david.kim@example.com",
+      "phone": "555-0505",
+      "address": "987 Elm Drive, Seattle, WA 98101",
+      "billing_address": "987 Elm Drive, Seattle, WA 98101",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A06",
+      "id": "CUST-106",
+      "first_name": "Rachel",
+      "last_name": "Foster",
+      "email": "rachel.foster@example.com",
+      "phone": "555-0606",
+      "address": "111 Willow Court, Boston, MA 02101",
+      "billing_address": "111 Willow Court, Boston, MA 02101",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A07",
+      "id": "CUST-107",
+      "first_name": "Omar",
+      "last_name": "Hassan",
+      "email": "omar.hassan@example.com",
+      "phone": "555-0707",
+      "address": "333 River Road, Chicago, IL 60601",
+      "billing_address": "444 Lakeshore Drive, Chicago, IL 60611",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation.",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A08",
+      "id": "CUST-108",
+      "first_name": "Lisa",
+      "last_name": "Wang",
+      "email": "lisa.wang@example.com",
+      "phone": "555-0808",
+      "address": "222 Sunset Boulevard, San Francisco, CA 94101",
+      "billing_address": "222 Sunset Boulevard, San Francisco, CA 94101",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A09",
+      "id": "CUST-109",
+      "first_name": "Tom",
+      "last_name": "Baker",
+      "email": "tom.baker@example.com",
+      "phone": "555-0909",
+      "address": "555 Mountain View Road, Denver, CO 80203",
+      "billing_address": "555 Mountain View Road, Denver, CO 80203",
+      "status": "active"
+    },
+    {
+      "_run": 1,
+      "_archetype": "A10",
+      "id": "CUST-110",
+      "first_name": "Marcus",
+      "last_name": "Thompson",
+      "email": "marcus.thompson@example.com",
+      "phone": "555-1010",
+      "address": "777 Cedar Road, Austin, TX 78701",
+      "billing_address": "777 Cedar Road, Austin, TX 78701",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A01",
+      "id": "CUST-201",
+      "first_name": "Carlos",
+      "last_name": "Mendez",
+      "email": "carlos.mendez@example.com",
+      "phone": "555-2101",
+      "address": "88 Vine Street, Los Angeles, CA 90001",
+      "billing_address": "88 Vine Street, Los Angeles, CA 90001",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A02",
+      "id": "CUST-202",
+      "first_name": "Aisha",
+      "last_name": "Johnson",
+      "email": "aisha.johnson@example.com",
+      "phone": "555-2202",
+      "address": "45 Peachtree Lane, Atlanta, GA 30301",
+      "billing_address": "45 Peachtree Lane, Atlanta, GA 30301",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A03",
+      "id": "CUST-203",
+      "first_name": "Ryan",
+      "last_name": "O'Brien",
+      "email": "ryan.obrien@example.com",
+      "phone": "555-2303",
+      "address": "19 Harbor Way, San Diego, CA 92101",
+      "billing_address": "19 Harbor Way, San Diego, CA 92101",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A04",
+      "id": "CUST-204",
+      "first_name": "Mei-Lin",
+      "last_name": "Chang",
+      "email": "meilin.chang@example.com",
+      "phone": "555-2404",
+      "address": "302 Cherry Blossom Drive, Raleigh, NC 27601",
+      "billing_address": "302 Cherry Blossom Drive, Raleigh, NC 27601",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A05",
+      "id": "CUST-205",
+      "first_name": "Daniel",
+      "last_name": "Okafor",
+      "email": "daniel.okafor@example.com",
+      "phone": "555-2505",
+      "address": "67 Spruce Court, Minneapolis, MN 55401",
+      "billing_address": "67 Spruce Court, Minneapolis, MN 55401",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A06",
+      "id": "CUST-206",
+      "first_name": "Sofia",
+      "last_name": "Petrov",
+      "email": "sofia.petrov@example.com",
+      "phone": "555-2606",
+      "address": "150 Magnolia Avenue, Nashville, TN 37201",
+      "billing_address": "150 Magnolia Avenue, Nashville, TN 37201",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A07",
+      "id": "CUST-207",
+      "first_name": "Kevin",
+      "last_name": "Nakamura",
+      "email": "kevin.nakamura@example.com",
+      "phone": "555-2707",
+      "address": "28 Redwood Place, Phoenix, AZ 85001",
+      "billing_address": "99 Desert View Drive, Phoenix, AZ 85004",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation.",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A08",
+      "id": "CUST-208",
+      "first_name": "Fatima",
+      "last_name": "Al-Rashid",
+      "email": "fatima.alrashid@example.com",
+      "phone": "555-2808",
+      "address": "410 Cypress Boulevard, Houston, TX 77001",
+      "billing_address": "410 Cypress Boulevard, Houston, TX 77001",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A09",
+      "id": "CUST-209",
+      "first_name": "Nathan",
+      "last_name": "Wells",
+      "email": "nathan.wells@example.com",
+      "phone": "555-2909",
+      "address": "73 Poplar Street, Philadelphia, PA 19101",
+      "billing_address": "73 Poplar Street, Philadelphia, PA 19101",
+      "status": "active"
+    },
+    {
+      "_run": 2,
+      "_archetype": "A10",
+      "id": "CUST-210",
+      "first_name": "Grace",
+      "last_name": "Abernathy",
+      "email": "grace.abernathy@example.com",
+      "phone": "555-2010",
+      "address": "512 Aspen Way, Charlotte, NC 28201",
+      "billing_address": "512 Aspen Way, Charlotte, NC 28201",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A01",
+      "id": "CUST-301",
+      "first_name": "Alex",
+      "last_name": "Turner",
+      "email": "alex.turner@example.com",
+      "phone": "555-3101",
+      "address": "200 Birchwood Drive, Columbus, OH 43201",
+      "billing_address": "200 Birchwood Drive, Columbus, OH 43201",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A02",
+      "id": "CUST-302",
+      "first_name": "Nadia",
+      "last_name": "Kowalski",
+      "email": "nadia.kowalski@example.com",
+      "phone": "555-3202",
+      "address": "65 Oakmont Road, Indianapolis, IN 46201",
+      "billing_address": "65 Oakmont Road, Indianapolis, IN 46201",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A03",
+      "id": "CUST-303",
+      "first_name": "Brandon",
+      "last_name": "Liu",
+      "email": "brandon.liu@example.com",
+      "phone": "555-3303",
+      "address": "831 Willowbrook Lane, Sacramento, CA 95801",
+      "billing_address": "831 Willowbrook Lane, Sacramento, CA 95801",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A04",
+      "id": "CUST-304",
+      "first_name": "Yuki",
+      "last_name": "Tanaka",
+      "email": "yuki.tanaka@example.com",
+      "phone": "555-3404",
+      "address": "17 Cedarwood Court, Salt Lake City, UT 84101",
+      "billing_address": "17 Cedarwood Court, Salt Lake City, UT 84101",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A05",
+      "id": "CUST-305",
+      "first_name": "Patricia",
+      "last_name": "Reeves",
+      "email": "patricia.reeves@example.com",
+      "phone": "555-3505",
+      "address": "440 Maplewood Avenue, Tampa, FL 33601",
+      "billing_address": "440 Maplewood Avenue, Tampa, FL 33601",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A06",
+      "id": "CUST-306",
+      "first_name": "Andre",
+      "last_name": "Baptiste",
+      "email": "andre.baptiste@example.com",
+      "phone": "555-3606",
+      "address": "92 Pinecrest Road, Detroit, MI 48201",
+      "billing_address": "92 Pinecrest Road, Detroit, MI 48201",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A07",
+      "id": "CUST-307",
+      "first_name": "Hannah",
+      "last_name": "Schultz",
+      "email": "hannah.schultz@example.com",
+      "phone": "555-3707",
+      "address": "158 Elmhurst Boulevard, Milwaukee, WI 53201",
+      "billing_address": "275 Lakeview Terrace, Milwaukee, WI 53211",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation.",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A08",
+      "id": "CUST-308",
+      "first_name": "Raj",
+      "last_name": "Vikram",
+      "email": "raj.vikram@example.com",
+      "phone": "555-3808",
+      "address": "320 Juniper Way, Kansas City, MO 64101",
+      "billing_address": "320 Juniper Way, Kansas City, MO 64101",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A09",
+      "id": "CUST-309",
+      "first_name": "Christine",
+      "last_name": "Park",
+      "email": "christine.park@example.com",
+      "phone": "555-3909",
+      "address": "44 Hickory Lane, Portland, ME 04101",
+      "billing_address": "44 Hickory Lane, Portland, ME 04101",
+      "status": "active"
+    },
+    {
+      "_run": 3,
+      "_archetype": "A10",
+      "id": "CUST-310",
+      "first_name": "Wesley",
+      "last_name": "Drummond",
+      "email": "wesley.drummond@example.com",
+      "phone": "555-3010",
+      "address": "601 Sycamore Street, Tucson, AZ 85701",
+      "billing_address": "601 Sycamore Street, Tucson, AZ 85701",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A01",
+      "id": "CUST-401",
+      "first_name": "Isabella",
+      "last_name": "Moretti",
+      "email": "isabella.moretti@example.com",
+      "phone": "555-4101",
+      "address": "42 Chestnut Avenue, Richmond, VA 23219",
+      "billing_address": "42 Chestnut Avenue, Richmond, VA 23219",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A02",
+      "id": "CUST-402",
+      "first_name": "Derek",
+      "last_name": "Washington",
+      "email": "derek.washington@example.com",
+      "phone": "555-4202",
+      "address": "315 Dogwood Lane, Omaha, NE 68101",
+      "billing_address": "315 Dogwood Lane, Omaha, NE 68101",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A03",
+      "id": "CUST-403",
+      "first_name": "Samira",
+      "last_name": "Osman",
+      "email": "samira.osman@example.com",
+      "phone": "555-4303",
+      "address": "78 Hawthorn Circle, St. Louis, MO 63101",
+      "billing_address": "78 Hawthorn Circle, St. Louis, MO 63101",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A04",
+      "id": "CUST-404",
+      "first_name": "Lucas",
+      "last_name": "Fernandez",
+      "email": "lucas.fernandez@example.com",
+      "phone": "555-4404",
+      "address": "201 Magnolia Drive, New Orleans, LA 70112",
+      "billing_address": "201 Magnolia Drive, New Orleans, LA 70112",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A05",
+      "id": "CUST-405",
+      "first_name": "Tanya",
+      "last_name": "Bridges",
+      "email": "tanya.bridges@example.com",
+      "phone": "555-4505",
+      "address": "560 Catalpa Court, Cleveland, OH 44101",
+      "billing_address": "560 Catalpa Court, Cleveland, OH 44101",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A06",
+      "id": "CUST-406",
+      "first_name": "Jin-Ho",
+      "last_name": "Park",
+      "email": "jinho.park@example.com",
+      "phone": "555-4606",
+      "address": "83 Mulberry Way, Reno, NV 89501",
+      "billing_address": "83 Mulberry Way, Reno, NV 89501",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A07",
+      "id": "CUST-407",
+      "first_name": "Olivia",
+      "last_name": "Brennan",
+      "email": "olivia.brennan@example.com",
+      "phone": "555-4707",
+      "address": "147 Laurel Road, Boise, ID 83701",
+      "billing_address": "290 Summit Drive, Boise, ID 83706",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation.",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A08",
+      "id": "CUST-408",
+      "first_name": "Kwame",
+      "last_name": "Asante",
+      "email": "kwame.asante@example.com",
+      "phone": "555-4808",
+      "address": "425 Alder Boulevard, Memphis, TN 38101",
+      "billing_address": "425 Alder Boulevard, Memphis, TN 38101",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A09",
+      "id": "CUST-409",
+      "first_name": "Claire",
+      "last_name": "Dubois",
+      "email": "claire.dubois@example.com",
+      "phone": "555-4909",
+      "address": "68 Hemlock Street, Pittsburgh, PA 15201",
+      "billing_address": "68 Hemlock Street, Pittsburgh, PA 15201",
+      "status": "active"
+    },
+    {
+      "_run": 4,
+      "_archetype": "A10",
+      "id": "CUST-410",
+      "first_name": "Victor",
+      "last_name": "Huang",
+      "email": "victor.huang@example.com",
+      "phone": "555-4010",
+      "address": "312 Beechwood Terrace, San Antonio, TX 78201",
+      "billing_address": "312 Beechwood Terrace, San Antonio, TX 78201",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A01",
+      "id": "CUST-501",
+      "first_name": "Megan",
+      "last_name": "Calloway",
+      "email": "megan.calloway@example.com",
+      "phone": "555-5101",
+      "address": "94 Walnut Place, Louisville, KY 40201",
+      "billing_address": "94 Walnut Place, Louisville, KY 40201",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A02",
+      "id": "CUST-502",
+      "first_name": "Tariq",
+      "last_name": "Ansari",
+      "email": "tariq.ansari@example.com",
+      "phone": "555-5202",
+      "address": "226 Locust Avenue, Albuquerque, NM 87101",
+      "billing_address": "226 Locust Avenue, Albuquerque, NM 87101",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A03",
+      "id": "CUST-503",
+      "first_name": "Eva",
+      "last_name": "Lindstrom",
+      "email": "eva.lindstrom@example.com",
+      "phone": "555-5303",
+      "address": "51 Basswood Lane, Oklahoma City, OK 73101",
+      "billing_address": "51 Basswood Lane, Oklahoma City, OK 73101",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A04",
+      "id": "CUST-504",
+      "first_name": "Jerome",
+      "last_name": "Whitfield",
+      "email": "jerome.whitfield@example.com",
+      "phone": "555-5404",
+      "address": "183 Cottonwood Drive, Jacksonville, FL 32099",
+      "billing_address": "183 Cottonwood Drive, Jacksonville, FL 32099",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A05",
+      "id": "CUST-505",
+      "first_name": "Anya",
+      "last_name": "Petrova",
+      "email": "anya.petrova@example.com",
+      "phone": "555-5505",
+      "address": "407 Ironwood Court, Des Moines, IA 50301",
+      "billing_address": "407 Ironwood Court, Des Moines, IA 50301",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A06",
+      "id": "CUST-506",
+      "first_name": "Ben",
+      "last_name": "Nakagawa",
+      "email": "ben.nakagawa@example.com",
+      "phone": "555-5606",
+      "address": "139 Linden Way, Honolulu, HI 96801",
+      "billing_address": "139 Linden Way, Honolulu, HI 96801",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A07",
+      "id": "CUST-507",
+      "first_name": "Zoe",
+      "last_name": "Fitzgerald",
+      "email": "zoe.fitzgerald@example.com",
+      "phone": "555-5707",
+      "address": "72 Persimmon Road, Burlington, VT 05401",
+      "billing_address": "318 Hillside Avenue, Burlington, VT 05408",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation.",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A08",
+      "id": "CUST-508",
+      "first_name": "Damian",
+      "last_name": "Cruz",
+      "email": "damian.cruz@example.com",
+      "phone": "555-5808",
+      "address": "254 Sequoia Boulevard, El Paso, TX 79901",
+      "billing_address": "254 Sequoia Boulevard, El Paso, TX 79901",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A09",
+      "id": "CUST-509",
+      "first_name": "Ingrid",
+      "last_name": "Svensson",
+      "email": "ingrid.svensson@example.com",
+      "phone": "555-5909",
+      "address": "36 Cypress Cove, Savannah, GA 31401",
+      "billing_address": "36 Cypress Cove, Savannah, GA 31401",
+      "status": "active"
+    },
+    {
+      "_run": 5,
+      "_archetype": "A10",
+      "id": "CUST-510",
+      "first_name": "Philip",
+      "last_name": "Okonkwo",
+      "email": "philip.okonkwo@example.com",
+      "phone": "555-5010",
+      "address": "488 Redwood Heights, Anchorage, AK 99501",
+      "billing_address": "488 Redwood Heights, Anchorage, AK 99501",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A01",
+      "id": "CUST-601",
+      "first_name": "Kenji",
+      "last_name": "Nakamura",
+      "email": "kenji.nakamura@example.com",
+      "phone": "555-601",
+      "address": "412 Harbour Drive, San Diego, CA 92101",
+      "billing_address": "412 Harbour Drive, San Diego, CA 92101",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A02",
+      "id": "CUST-602",
+      "first_name": "Amara",
+      "last_name": "Okafor",
+      "email": "amara.okafor@example.com",
+      "phone": "555-602",
+      "address": "88 Prospect Avenue, Minneapolis, MN 55401",
+      "billing_address": "88 Prospect Avenue, Minneapolis, MN 55401",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A03",
+      "id": "CUST-603",
+      "first_name": "Dmitri",
+      "last_name": "Volkov",
+      "email": "dmitri.volkov@example.com",
+      "phone": "555-603",
+      "address": "1500 Congress Street, Houston, TX 77002",
+      "billing_address": "1500 Congress Street, Houston, TX 77002",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A04",
+      "id": "CUST-604",
+      "first_name": "Lucia",
+      "last_name": "Fernandez",
+      "email": "lucia.fernandez@example.com",
+      "phone": "555-604",
+      "address": "27 Liberty Place, Philadelphia, PA 19103",
+      "billing_address": "27 Liberty Place, Philadelphia, PA 19103",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A05",
+      "id": "CUST-605",
+      "first_name": "Ryan",
+      "last_name": "OBrien",
+      "email": "ryan.obrien@example.com",
+      "phone": "555-605",
+      "address": "903 Lakefront Road, Cleveland, OH 44114",
+      "billing_address": "903 Lakefront Road, Cleveland, OH 44114",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A06",
+      "id": "CUST-606",
+      "first_name": "Fatima",
+      "last_name": "Al-Rashid",
+      "email": "fatima.al-rashid@example.com",
+      "phone": "555-606",
+      "address": "615 Canyon Boulevard, Boulder, CO 80302",
+      "billing_address": "615 Canyon Boulevard, Boulder, CO 80302",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A07",
+      "id": "CUST-607",
+      "first_name": "Henrik",
+      "last_name": "Larsson",
+      "email": "henrik.larsson@example.com",
+      "phone": "555-607",
+      "address": "220 Magnolia Lane, Savannah, GA 31401",
+      "billing_address": "77 Waterfront Plaza, Pittsburgh, PA 15222",
+      "status": "active",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A08",
+      "id": "CUST-608",
+      "first_name": "Zara",
+      "last_name": "Patel",
+      "email": "zara.patel@example.com",
+      "phone": "555-608",
+      "address": "1001 Harbor View, Baltimore, MD 21201",
+      "billing_address": "1001 Harbor View, Baltimore, MD 21201",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A09",
+      "id": "CUST-609",
+      "first_name": "Desmond",
+      "last_name": "Clarke",
+      "email": "desmond.clarke@example.com",
+      "phone": "555-609",
+      "address": "74 Beacon Street, Providence, RI 02903",
+      "billing_address": "74 Beacon Street, Providence, RI 02903",
+      "status": "active"
+    },
+    {
+      "_run": 6,
+      "_archetype": "A10",
+      "id": "CUST-6010",
+      "first_name": "Mei",
+      "last_name": "Zhang",
+      "email": "mei.zhang@example.com",
+      "phone": "555-610",
+      "address": "330 Riverwalk Way, San Antonio, TX 78205",
+      "billing_address": "330 Riverwalk Way, San Antonio, TX 78205",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A01",
+      "id": "CUST-701",
+      "first_name": "Ethan",
+      "last_name": "Wright",
+      "email": "ethan.wright@example.com",
+      "phone": "555-701",
+      "address": "508 Pacific Coast Hwy, Long Beach, CA 90802",
+      "billing_address": "508 Pacific Coast Hwy, Long Beach, CA 90802",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A02",
+      "id": "CUST-702",
+      "first_name": "Aisha",
+      "last_name": "Mohammed",
+      "email": "aisha.mohammed@example.com",
+      "phone": "555-702",
+      "address": "192 Summit Drive, Salt Lake City, UT 84101",
+      "billing_address": "192 Summit Drive, Salt Lake City, UT 84101",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A03",
+      "id": "CUST-703",
+      "first_name": "Sebastian",
+      "last_name": "Graf",
+      "email": "sebastian.graf@example.com",
+      "phone": "555-703",
+      "address": "645 Peachtree Road, Atlanta, GA 30301",
+      "billing_address": "645 Peachtree Road, Atlanta, GA 30301",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A04",
+      "id": "CUST-704",
+      "first_name": "Carmen",
+      "last_name": "Reyes",
+      "email": "carmen.reyes@example.com",
+      "phone": "555-704",
+      "address": "77 Waterfront Plaza, Pittsburgh, PA 15222",
+      "billing_address": "77 Waterfront Plaza, Pittsburgh, PA 15222",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A05",
+      "id": "CUST-705",
+      "first_name": "Patrick",
+      "last_name": "Doyle",
+      "email": "patrick.doyle@example.com",
+      "phone": "555-705",
+      "address": "410 Garden District, New Orleans, LA 70130",
+      "billing_address": "410 Garden District, New Orleans, LA 70130",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A06",
+      "id": "CUST-706",
+      "first_name": "Yuki",
+      "last_name": "Sato",
+      "email": "yuki.sato@example.com",
+      "phone": "555-706",
+      "address": "233 Mesa Verde Lane, Tucson, AZ 85701",
+      "billing_address": "233 Mesa Verde Lane, Tucson, AZ 85701",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A07",
+      "id": "CUST-707",
+      "first_name": "Lena",
+      "last_name": "Bergstrom",
+      "email": "lena.bergstrom@example.com",
+      "phone": "555-707",
+      "address": "856 Lakeshore Drive, Milwaukee, WI 53202",
+      "billing_address": "462 Bayview Road, Tampa, FL 33602",
+      "status": "active",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A08",
+      "id": "CUST-708",
+      "first_name": "Andre",
+      "last_name": "Williams",
+      "email": "andre.williams@example.com",
+      "phone": "555-708",
+      "address": "120 Capitol Avenue, Nashville, TN 37201",
+      "billing_address": "120 Capitol Avenue, Nashville, TN 37201",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A09",
+      "id": "CUST-709",
+      "first_name": "Sofia",
+      "last_name": "Costa",
+      "email": "sofia.costa@example.com",
+      "phone": "555-709",
+      "address": "945 Oceanside Terrace, Jacksonville, FL 32202",
+      "billing_address": "945 Oceanside Terrace, Jacksonville, FL 32202",
+      "status": "active"
+    },
+    {
+      "_run": 7,
+      "_archetype": "A10",
+      "id": "CUST-7010",
+      "first_name": "Trevor",
+      "last_name": "Mitchell",
+      "email": "trevor.mitchell@example.com",
+      "phone": "555-710",
+      "address": "301 Founders Way, Charlotte, NC 28202",
+      "billing_address": "301 Founders Way, Charlotte, NC 28202",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A01",
+      "id": "CUST-801",
+      "first_name": "Nora",
+      "last_name": "Eriksen",
+      "email": "nora.eriksen@example.com",
+      "phone": "555-801",
+      "address": "718 Riverside Blvd, Sacramento, CA 95814",
+      "billing_address": "718 Riverside Blvd, Sacramento, CA 95814",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A02",
+      "id": "CUST-802",
+      "first_name": "Damian",
+      "last_name": "Cruz",
+      "email": "damian.cruz@example.com",
+      "phone": "555-802",
+      "address": "55 Elm Park Circle, Raleigh, NC 27601",
+      "billing_address": "55 Elm Park Circle, Raleigh, NC 27601",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A03",
+      "id": "CUST-803",
+      "first_name": "Ingrid",
+      "last_name": "Hoffman",
+      "email": "ingrid.hoffman@example.com",
+      "phone": "555-803",
+      "address": "809 Heritage Lane, Columbus, OH 43215",
+      "billing_address": "809 Heritage Lane, Columbus, OH 43215",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A04",
+      "id": "CUST-804",
+      "first_name": "Kwame",
+      "last_name": "Asante",
+      "email": "kwame.asante@example.com",
+      "phone": "555-804",
+      "address": "462 Bayview Road, Tampa, FL 33602",
+      "billing_address": "462 Bayview Road, Tampa, FL 33602",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A05",
+      "id": "CUST-805",
+      "first_name": "Fiona",
+      "last_name": "Gallagher",
+      "email": "fiona.gallagher@example.com",
+      "phone": "555-805",
+      "address": "137 Granite Street, Manchester, NH 03101",
+      "billing_address": "137 Granite Street, Manchester, NH 03101",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A06",
+      "id": "CUST-806",
+      "first_name": "Ravi",
+      "last_name": "Sharma",
+      "email": "ravi.sharma@example.com",
+      "phone": "555-806",
+      "address": "690 Pinehurst Drive, Scottsdale, AZ 85251",
+      "billing_address": "690 Pinehurst Drive, Scottsdale, AZ 85251",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A07",
+      "id": "CUST-807",
+      "first_name": "Elise",
+      "last_name": "Dubois",
+      "email": "elise.dubois@example.com",
+      "phone": "555-807",
+      "address": "225 Ivy Court, Richmond, VA 23219",
+      "billing_address": "450 Prairie View Road, Kansas City, MO 64101",
+      "status": "active",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A08",
+      "id": "CUST-808",
+      "first_name": "Jordan",
+      "last_name": "Campbell",
+      "email": "jordan.campbell@example.com",
+      "phone": "555-808",
+      "address": "511 Brookside Way, Omaha, NE 68102",
+      "billing_address": "511 Brookside Way, Omaha, NE 68102",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A09",
+      "id": "CUST-809",
+      "first_name": "Thao",
+      "last_name": "Nguyen",
+      "email": "thao.nguyen@example.com",
+      "phone": "555-809",
+      "address": "84 Laurel Avenue, Portland, ME 04101",
+      "billing_address": "84 Laurel Avenue, Portland, ME 04101",
+      "status": "active"
+    },
+    {
+      "_run": 8,
+      "_archetype": "A10",
+      "id": "CUST-8010",
+      "first_name": "Miles",
+      "last_name": "Hawkins",
+      "email": "miles.hawkins@example.com",
+      "phone": "555-810",
+      "address": "976 Crestwood Lane, Louisville, KY 40202",
+      "billing_address": "976 Crestwood Lane, Louisville, KY 40202",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A01",
+      "id": "CUST-901",
+      "first_name": "Valentina",
+      "last_name": "Rossi",
+      "email": "valentina.rossi@example.com",
+      "phone": "555-901",
+      "address": "143 Sandstone Drive, Albuquerque, NM 87102",
+      "billing_address": "143 Sandstone Drive, Albuquerque, NM 87102",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A02",
+      "id": "CUST-902",
+      "first_name": "Isaac",
+      "last_name": "Stone",
+      "email": "isaac.stone@example.com",
+      "phone": "555-902",
+      "address": "667 Wilshire Blvd, Los Angeles, CA 90017",
+      "billing_address": "667 Wilshire Blvd, Los Angeles, CA 90017",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A03",
+      "id": "CUST-903",
+      "first_name": "Hana",
+      "last_name": "Park",
+      "email": "hana.park@example.com",
+      "phone": "555-903",
+      "address": "28 Cobblestone Path, Charleston, SC 29401",
+      "billing_address": "28 Cobblestone Path, Charleston, SC 29401",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A04",
+      "id": "CUST-904",
+      "first_name": "Gabriel",
+      "last_name": "Santos",
+      "email": "gabriel.santos@example.com",
+      "phone": "555-904",
+      "address": "450 Prairie View Road, Kansas City, MO 64101",
+      "billing_address": "450 Prairie View Road, Kansas City, MO 64101",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A05",
+      "id": "CUST-905",
+      "first_name": "Claire",
+      "last_name": "Bennett",
+      "email": "claire.bennett@example.com",
+      "phone": "555-905",
+      "address": "812 Hillcrest Avenue, Spokane, WA 99201",
+      "billing_address": "812 Hillcrest Avenue, Spokane, WA 99201",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A06",
+      "id": "CUST-906",
+      "first_name": "Omar",
+      "last_name": "Diallo",
+      "email": "omar.diallo@example.com",
+      "phone": "555-906",
+      "address": "339 Bayside Court, Annapolis, MD 21401",
+      "billing_address": "339 Bayside Court, Annapolis, MD 21401",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A07",
+      "id": "CUST-907",
+      "first_name": "Astrid",
+      "last_name": "Lindqvist",
+      "email": "astrid.lindqvist@example.com",
+      "phone": "555-907",
+      "address": "706 Maple Ridge Drive, Madison, WI 53703",
+      "billing_address": "94 Birchwood Circle, Burlington, VT 05401",
+      "status": "active",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A08",
+      "id": "CUST-908",
+      "first_name": "Marcus",
+      "last_name": "Reid",
+      "email": "marcus.reid@example.com",
+      "phone": "555-908",
+      "address": "194 Overlook Terrace, Boise, ID 83702",
+      "billing_address": "194 Overlook Terrace, Boise, ID 83702",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A09",
+      "id": "CUST-909",
+      "first_name": "Priya",
+      "last_name": "Krishnan",
+      "email": "priya.krishnan@example.com",
+      "phone": "555-909",
+      "address": "523 Briarwood Lane, Lexington, KY 40507",
+      "billing_address": "523 Briarwood Lane, Lexington, KY 40507",
+      "status": "active"
+    },
+    {
+      "_run": 9,
+      "_archetype": "A10",
+      "id": "CUST-9010",
+      "first_name": "Leo",
+      "last_name": "Fischer",
+      "email": "leo.fischer@example.com",
+      "phone": "555-910",
+      "address": "88 Quartz Avenue, Reno, NV 89501",
+      "billing_address": "88 Quartz Avenue, Reno, NV 89501",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A01",
+      "id": "CUST-1001",
+      "first_name": "Naomi",
+      "last_name": "Jackson",
+      "email": "naomi.jackson@example.com",
+      "phone": "555-1001",
+      "address": "415 Coral Way, Fort Lauderdale, FL 33301",
+      "billing_address": "415 Coral Way, Fort Lauderdale, FL 33301",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A02",
+      "id": "CUST-1002",
+      "first_name": "Felix",
+      "last_name": "Muller",
+      "email": "felix.muller@example.com",
+      "phone": "555-1002",
+      "address": "260 Summit Peak Rd, Colorado Springs, CO 80903",
+      "billing_address": "260 Summit Peak Rd, Colorado Springs, CO 80903",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A03",
+      "id": "CUST-1003",
+      "first_name": "Sienna",
+      "last_name": "Hart",
+      "email": "sienna.hart@example.com",
+      "phone": "555-1003",
+      "address": "731 Wharf Street, Norfolk, VA 23510",
+      "billing_address": "731 Wharf Street, Norfolk, VA 23510",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A04",
+      "id": "CUST-1004",
+      "first_name": "Alejandro",
+      "last_name": "Vargas",
+      "email": "alejandro.vargas@example.com",
+      "phone": "555-1004",
+      "address": "94 Birchwood Circle, Burlington, VT 05401",
+      "billing_address": "94 Birchwood Circle, Burlington, VT 05401",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A05",
+      "id": "CUST-1005",
+      "first_name": "Ivy",
+      "last_name": "Chen",
+      "email": "ivy.chen@example.com",
+      "phone": "555-1005",
+      "address": "568 Redwood Lane, Eugene, OR 97401",
+      "billing_address": "568 Redwood Lane, Eugene, OR 97401",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A06",
+      "id": "CUST-1006",
+      "first_name": "Tobias",
+      "last_name": "Brandt",
+      "email": "tobias.brandt@example.com",
+      "phone": "555-1006",
+      "address": "347 Stonegate Drive, Des Moines, IA 50309",
+      "billing_address": "347 Stonegate Drive, Des Moines, IA 50309",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A07",
+      "id": "CUST-1007",
+      "first_name": "Amira",
+      "last_name": "Hassan",
+      "email": "amira.hassan@example.com",
+      "phone": "555-1007",
+      "address": "612 Marina Blvd, Sarasota, FL 34236",
+      "billing_address": "27 Liberty Place, Philadelphia, PA 19103",
+      "status": "active",
+      "_note": "Shipping/billing address mismatch — A07 discretionary observation."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A08",
+      "id": "CUST-1008",
+      "first_name": "Connor",
+      "last_name": "Walsh",
+      "email": "connor.walsh@example.com",
+      "phone": "555-1008",
+      "address": "183 Oakmont Avenue, Greenville, SC 29601",
+      "billing_address": "183 Oakmont Avenue, Greenville, SC 29601",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A09",
+      "id": "CUST-1009",
+      "first_name": "Dalia",
+      "last_name": "Morales",
+      "email": "dalia.morales@example.com",
+      "phone": "555-1009",
+      "address": "429 Tidewater Road, Virginia Beach, VA 23451",
+      "billing_address": "429 Tidewater Road, Virginia Beach, VA 23451",
+      "status": "active"
+    },
+    {
+      "_run": 10,
+      "_archetype": "A10",
+      "id": "CUST-10010",
+      "first_name": "Vincent",
+      "last_name": "Park",
+      "email": "vincent.park@example.com",
+      "phone": "555-1010",
+      "address": "756 Skyline Drive, Asheville, NC 28801",
+      "billing_address": "756 Skyline Drive, Asheville, NC 28801",
+      "status": "active"
+    }
   ],
-
   "orders": [
-    {"_run": 1, "_archetype": "A01", "_note": "Wrong item received. Discretionary: pending ORD-1002.",
-     "order_id": "ORD-1001", "customer_id": "CUST-101",
-     "items": [{"name": "Wireless Headphones", "price": 89.99}], "total": 89.99,
-     "status": "DELIVERED", "order_date_offset_days": -18,
-     "shipping_address": "123 Oak Street, Springfield, IL 62701",
-     "details": "Item mismatch: Bluetooth Speaker received instead of the ordered Wireless Headphones."},
-
-    {"_run": 1, "_archetype": "A01",
-     "order_id": "ORD-1002", "customer_id": "CUST-101",
-     "items": [{"name": "Laptop Stand", "price": 49.99}], "total": 49.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -4,
-     "shipping_address": "123 Oak Street, Springfield, IL 62701",
-     "details": "Order in transit, estimated delivery in 3-5 business days."},
-
-    {"_run": 1, "_archetype": "A02", "_note": "Split shipment — A02 discretionary.",
-     "order_id": "ORD-1003", "customer_id": "CUST-102",
-     "items": [{"name": "Desk Lamp", "price": 35.00}, {"name": "Wireless Charger", "price": 45.00}],
-     "total": 80.00, "status": "PARTIALLY_DELIVERED", "order_date_offset_days": -7,
-     "shipping_address": "456 Maple Avenue, Portland, OR 97201",
-     "details": "Split delivery: Item 1 (Desk Lamp, $35.00) delivered. Item 2 (Wireless Charger, $45.00) in transit, estimated delivery in 1-2 business days."},
-
-    {"_run": 1, "_archetype": "A03", "_note": "Tight deadline. Scope-rule through-line.",
-     "order_id": "ORD-1004", "customer_id": "CUST-103",
-     "items": [{"name": "Portable Projector", "price": 299.99}], "total": 299.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -8,
-     "shipping_address": "789 Birch Lane, Denver, CO 80201",
-     "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."},
-
-    {"_run": 1, "_archetype": "A04", "_note": "Refund eligible, near return deadline.",
-     "order_id": "ORD-1005", "customer_id": "CUST-104",
-     "items": [{"name": "Mechanical Keyboard", "price": 129.99}], "total": 129.99,
-     "status": "DELIVERED", "order_date_offset_days": -27,
-     "shipping_address": "654 Pine Street, Miami, FL 33101",
-     "details": "Order delivered. Return window closes soon — approximately 3 days remaining."},
-
-    {"_run": 1, "_archetype": "A05", "_note": "Refund eligible. Product variants for discretionary.",
-     "order_id": "ORD-1006", "customer_id": "CUST-105",
-     "items": [{"name": "Smart Home Hub (Model A)", "price": 149.99}], "total": 149.99,
-     "status": "DELIVERED", "order_date_offset_days": -10,
-     "shipping_address": "987 Elm Drive, Seattle, WA 98101",
-     "details": "Order delivered. Product: Smart Home Hub (Model A). Alternative variants available: Smart Home Hub Pro (Model B, $199.99) and Smart Home Hub Compact (Model C, $99.99)."},
-
-    {"_run": 1, "_archetype": "A08", "_note": "A08 order 1/3.",
-     "order_id": "ORD-1007", "customer_id": "CUST-108",
-     "items": [{"name": "USB Hub", "price": 39.99}], "total": 39.99,
-     "status": "DELIVERED", "order_date_offset_days": -22,
-     "shipping_address": "222 Sunset Boulevard, San Francisco, CA 94101",
-     "details": "Order delivered."},
-
-    {"_run": 1, "_archetype": "A08", "_note": "A08 order 2/3.",
-     "order_id": "ORD-1008", "customer_id": "CUST-108",
-     "items": [{"name": "Desk Lamp", "price": 54.99}], "total": 54.99,
-     "status": "DELIVERED", "order_date_offset_days": -16,
-     "shipping_address": "222 Sunset Boulevard, San Francisco, CA 94101",
-     "details": "Order delivered."},
-
-    {"_run": 1, "_archetype": "A08", "_note": "A08 order 3/3 — delayed outlier.",
-     "order_id": "ORD-1009", "customer_id": "CUST-108",
-     "items": [{"name": "Mechanical Keyboard", "price": 119.99}], "total": 119.99,
-     "status": "DELAYED", "order_date_offset_days": -14,
-     "shipping_address": "222 Sunset Boulevard, San Francisco, CA 94101",
-     "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."},
-
-    {"_run": 1, "_archetype": "A09", "_note": "Refund eligible.",
-     "order_id": "ORD-1010", "customer_id": "CUST-109",
-     "items": [{"name": "Laptop Sleeve", "price": 29.99}], "total": 29.99,
-     "status": "DELIVERED", "order_date_offset_days": -12,
-     "shipping_address": "555 Mountain View Road, Denver, CO 80203",
-     "details": "Order delivered."},
-
-    {"_run": 1, "_archetype": "A10", "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
-     "order_id": "ORD-1011", "customer_id": "CUST-110",
-     "items": [{"name": "Standing Desk Converter", "price": 189.99}], "total": 189.99,
-     "status": "DELIVERED", "order_date_offset_days": -15,
-     "shipping_address": "777 Cedar Road, Austin, TX 78701",
-     "details": "Order delivered. Product: Standing Desk Converter."},
-
-    {"_run": 2, "_archetype": "A01", "_note": "Wrong item received. Discretionary: pending ORD-2002.",
-     "order_id": "ORD-2001", "customer_id": "CUST-201",
-     "items": [{"name": "Mechanical Keyboard", "price": 129.99}], "total": 129.99,
-     "status": "DELIVERED", "order_date_offset_days": -18,
-     "shipping_address": "88 Vine Street, Los Angeles, CA 90001",
-     "details": "Item mismatch: Mouse Pad received instead of the ordered Mechanical Keyboard."},
-
-    {"_run": 2, "_archetype": "A01",
-     "order_id": "ORD-2002", "customer_id": "CUST-201",
-     "items": [{"name": "USB Hub", "price": 39.99}], "total": 39.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -4,
-     "shipping_address": "88 Vine Street, Los Angeles, CA 90001",
-     "details": "Order in transit, estimated delivery in 3-5 business days."},
-
-    {"_run": 2, "_archetype": "A02", "_note": "Backorder — A02 discretionary.",
-     "order_id": "ORD-2003", "customer_id": "CUST-202",
-     "items": [{"name": "Monitor Stand", "price": 79.99}, {"name": "Cable Organizer", "price": 24.99}],
-     "total": 104.98, "status": "PARTIALLY_SHIPPED", "order_date_offset_days": -6,
-     "shipping_address": "45 Peachtree Lane, Atlanta, GA 30301",
-     "details": "Split shipment: Part 1 (Monitor Stand, $79.99) delivered. Part 2 (Cable Organizer, $24.99) backordered — expected to ship in 7-10 business days."},
-
-    {"_run": 2, "_archetype": "A03", "_note": "Tight deadline. Scope-rule through-line.",
-     "order_id": "ORD-2004", "customer_id": "CUST-203",
-     "items": [{"name": "Sound System", "price": 249.99}], "total": 249.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -8,
-     "shipping_address": "19 Harbor Way, San Diego, CA 92101",
-     "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."},
-
-    {"_run": 2, "_archetype": "A04", "_note": "Refund eligible.",
-     "order_id": "ORD-2005", "customer_id": "CUST-204",
-     "items": [{"name": "Wireless Mouse", "price": 39.99}], "total": 39.99,
-     "status": "DELIVERED", "order_date_offset_days": -20,
-     "shipping_address": "302 Cherry Blossom Drive, Raleigh, NC 27601",
-     "details": "Order delivered. Return window closes in approximately 10 days."},
-
-    {"_run": 2, "_archetype": "A05", "_note": "Refund eligible. Product variants for discretionary.",
-     "order_id": "ORD-2006", "customer_id": "CUST-205",
-     "items": [{"name": "Standing Desk Converter (Standard)", "price": 189.99}], "total": 189.99,
-     "status": "DELIVERED", "order_date_offset_days": -10,
-     "shipping_address": "67 Spruce Court, Minneapolis, MN 55401",
-     "details": "Order delivered. Product: Standing Desk Converter (Standard). Alternative variants available: Deluxe ($249.99) and Compact ($139.99)."},
-
-    {"_run": 2, "_archetype": "A08", "_note": "A08 order 1/3.",
-     "order_id": "ORD-2007", "customer_id": "CUST-208",
-     "items": [{"name": "Webcam", "price": 89.99}], "total": 89.99,
-     "status": "DELIVERED", "order_date_offset_days": -22,
-     "shipping_address": "410 Cypress Boulevard, Houston, TX 77001",
-     "details": "Order delivered."},
-
-    {"_run": 2, "_archetype": "A08", "_note": "A08 order 2/3.",
-     "order_id": "ORD-2008", "customer_id": "CUST-208",
-     "items": [{"name": "Monitor Arm", "price": 79.99}], "total": 79.99,
-     "status": "DELIVERED", "order_date_offset_days": -16,
-     "shipping_address": "410 Cypress Boulevard, Houston, TX 77001",
-     "details": "Order delivered."},
-
-    {"_run": 2, "_archetype": "A08", "_note": "A08 order 3/3 — delayed outlier.",
-     "order_id": "ORD-2009", "customer_id": "CUST-208",
-     "items": [{"name": "Ergonomic Chair Mat", "price": 59.99}], "total": 59.99,
-     "status": "DELAYED", "order_date_offset_days": -14,
-     "shipping_address": "410 Cypress Boulevard, Houston, TX 77001",
-     "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."},
-
-    {"_run": 2, "_archetype": "A09", "_note": "Refund eligible.",
-     "order_id": "ORD-2010", "customer_id": "CUST-209",
-     "items": [{"name": "Cable Management Kit", "price": 24.99}], "total": 24.99,
-     "status": "DELIVERED", "order_date_offset_days": -12,
-     "shipping_address": "73 Poplar Street, Philadelphia, PA 19101",
-     "details": "Order delivered."},
-
-    {"_run": 2, "_archetype": "A10", "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
-     "order_id": "ORD-2011", "customer_id": "CUST-210",
-     "items": [{"name": "Monitor Arm", "price": 79.99}], "total": 79.99,
-     "status": "DELIVERED", "order_date_offset_days": -15,
-     "shipping_address": "512 Aspen Way, Charlotte, NC 28201",
-     "details": "Order delivered. Product: Monitor Arm."},
-
-    {"_run": 3, "_archetype": "A01", "_note": "Wrong item received. Discretionary: pending ORD-3002.",
-     "order_id": "ORD-3001", "customer_id": "CUST-301",
-     "items": [{"name": "Smart Watch", "price": 199.99}], "total": 199.99,
-     "status": "DELIVERED", "order_date_offset_days": -18,
-     "shipping_address": "200 Birchwood Drive, Columbus, OH 43201",
-     "details": "Item mismatch: Fitness Tracker received instead of the ordered Smart Watch."},
-
-    {"_run": 3, "_archetype": "A01",
-     "order_id": "ORD-3002", "customer_id": "CUST-301",
-     "items": [{"name": "Phone Case", "price": 29.99}], "total": 29.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -4,
-     "shipping_address": "200 Birchwood Drive, Columbus, OH 43201",
-     "details": "Order in transit, estimated delivery in 3-5 business days."},
-
-    {"_run": 3, "_archetype": "A02", "_note": "Signature required — A02 discretionary.",
-     "order_id": "ORD-3003", "customer_id": "CUST-302",
-     "items": [{"name": "Office Chair", "price": 349.99}], "total": 349.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -3,
-     "shipping_address": "65 Oakmont Road, Indianapolis, IN 46201",
-     "details": "Order in transit. Delivery requires an adult signature — please ensure someone is available. Estimated delivery in 2-3 business days."},
-
-    {"_run": 3, "_archetype": "A03", "_note": "Tight deadline. Scope-rule through-line.",
-     "order_id": "ORD-3004", "customer_id": "CUST-303",
-     "items": [{"name": "Photography Kit", "price": 179.99}], "total": 179.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -8,
-     "shipping_address": "831 Willowbrook Lane, Sacramento, CA 95801",
-     "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."},
-
-    {"_run": 3, "_archetype": "A04", "_note": "Refund eligible, near return deadline.",
-     "order_id": "ORD-3005", "customer_id": "CUST-304",
-     "items": [{"name": "Desk Organizer Set", "price": 34.99}], "total": 34.99,
-     "status": "DELIVERED", "order_date_offset_days": -27,
-     "shipping_address": "17 Cedarwood Court, Salt Lake City, UT 84101",
-     "details": "Order delivered. Return window closes soon — approximately 3 days remaining."},
-
-    {"_run": 3, "_archetype": "A05", "_note": "Refund eligible. Product variants for discretionary.",
-     "order_id": "ORD-3006", "customer_id": "CUST-305",
-     "items": [{"name": "Ergonomic Chair (Standard)", "price": 299.99}], "total": 299.99,
-     "status": "DELIVERED", "order_date_offset_days": -10,
-     "shipping_address": "440 Maplewood Avenue, Tampa, FL 33601",
-     "details": "Order delivered. Product: Ergonomic Chair (Standard). Alternative variants available: Premium ($399.99) and Basic ($199.99)."},
-
-    {"_run": 3, "_archetype": "A08", "_note": "A08 order 1/3.",
-     "order_id": "ORD-3007", "customer_id": "CUST-308",
-     "items": [{"name": "Bluetooth Speaker", "price": 49.99}], "total": 49.99,
-     "status": "DELIVERED", "order_date_offset_days": -22,
-     "shipping_address": "320 Juniper Way, Kansas City, MO 64101",
-     "details": "Order delivered."},
-
-    {"_run": 3, "_archetype": "A08", "_note": "A08 order 2/3.",
-     "order_id": "ORD-3008", "customer_id": "CUST-308",
-     "items": [{"name": "Smart Speaker", "price": 79.99}], "total": 79.99,
-     "status": "DELIVERED", "order_date_offset_days": -16,
-     "shipping_address": "320 Juniper Way, Kansas City, MO 64101",
-     "details": "Order delivered."},
-
-    {"_run": 3, "_archetype": "A08", "_note": "A08 order 3/3 — delayed outlier.",
-     "order_id": "ORD-3009", "customer_id": "CUST-308",
-     "items": [{"name": "Standing Desk Converter", "price": 189.99}], "total": 189.99,
-     "status": "DELAYED", "order_date_offset_days": -14,
-     "shipping_address": "320 Juniper Way, Kansas City, MO 64101",
-     "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."},
-
-    {"_run": 3, "_archetype": "A09", "_note": "Refund eligible.",
-     "order_id": "ORD-3010", "customer_id": "CUST-309",
-     "items": [{"name": "Desk Mat", "price": 34.99}], "total": 34.99,
-     "status": "DELIVERED", "order_date_offset_days": -12,
-     "shipping_address": "44 Hickory Lane, Portland, ME 04101",
-     "details": "Order delivered."},
-
-    {"_run": 3, "_archetype": "A10", "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
-     "order_id": "ORD-3011", "customer_id": "CUST-310",
-     "items": [{"name": "Webcam", "price": 89.99}], "total": 89.99,
-     "status": "DELIVERED", "order_date_offset_days": -15,
-     "shipping_address": "601 Sycamore Street, Tucson, AZ 85701",
-     "details": "Order delivered. Product: Webcam."},
-
-    {"_run": 4, "_archetype": "A01", "_note": "Wrong item received. Discretionary: pending ORD-4002.",
-     "order_id": "ORD-4001", "customer_id": "CUST-401",
-     "items": [{"name": "Noise-Canceling Earbuds", "price": 79.99}], "total": 79.99,
-     "status": "DELIVERED", "order_date_offset_days": -18,
-     "shipping_address": "42 Chestnut Avenue, Richmond, VA 23219",
-     "details": "Item mismatch: Wired Earphones received instead of the ordered Noise-Canceling Earbuds."},
-
-    {"_run": 4, "_archetype": "A01",
-     "order_id": "ORD-4002", "customer_id": "CUST-401",
-     "items": [{"name": "Tablet Case", "price": 34.99}], "total": 34.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -4,
-     "shipping_address": "42 Chestnut Avenue, Richmond, VA 23219",
-     "details": "Order in transit, estimated delivery in 3-5 business days."},
-
-    {"_run": 4, "_archetype": "A02", "_note": "Split shipment — A02 discretionary.",
-     "order_id": "ORD-4003", "customer_id": "CUST-402",
-     "items": [{"name": "Webcam", "price": 89.99}, {"name": "Ring Light", "price": 44.99}],
-     "total": 134.98, "status": "PARTIALLY_DELIVERED", "order_date_offset_days": -7,
-     "shipping_address": "315 Dogwood Lane, Omaha, NE 68101",
-     "details": "Split delivery: Item 1 (Webcam, $89.99) delivered. Item 2 (Ring Light, $44.99) in transit, estimated delivery in 1-2 business days."},
-
-    {"_run": 4, "_archetype": "A03", "_note": "Tight deadline. Scope-rule through-line.",
-     "order_id": "ORD-4004", "customer_id": "CUST-403",
-     "items": [{"name": "Electric Kettle", "price": 69.99}], "total": 69.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -8,
-     "shipping_address": "78 Hawthorn Circle, St. Louis, MO 63101",
-     "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."},
-
-    {"_run": 4, "_archetype": "A04", "_note": "Refund eligible, near return deadline.",
-     "order_id": "ORD-4005", "customer_id": "CUST-404",
-     "items": [{"name": "Portable Speaker", "price": 59.99}], "total": 59.99,
-     "status": "DELIVERED", "order_date_offset_days": -27,
-     "shipping_address": "201 Magnolia Drive, New Orleans, LA 70112",
-     "details": "Order delivered. Return window closes soon — approximately 3 days remaining."},
-
-    {"_run": 4, "_archetype": "A05", "_note": "Refund eligible. Product variants for discretionary.",
-     "order_id": "ORD-4006", "customer_id": "CUST-405",
-     "items": [{"name": "Air Purifier (Standard)", "price": 199.99}], "total": 199.99,
-     "status": "DELIVERED", "order_date_offset_days": -10,
-     "shipping_address": "560 Catalpa Court, Cleveland, OH 44101",
-     "details": "Order delivered. Product: Air Purifier (Standard). Alternative variants available: Air Purifier Pro ($279.99) and Air Purifier Mini ($129.99)."},
-
-    {"_run": 4, "_archetype": "A08", "_note": "A08 order 1/3.",
-     "order_id": "ORD-4007", "customer_id": "CUST-408",
-     "items": [{"name": "Power Strip", "price": 24.99}], "total": 24.99,
-     "status": "DELIVERED", "order_date_offset_days": -22,
-     "shipping_address": "425 Alder Boulevard, Memphis, TN 38101",
-     "details": "Order delivered."},
-
-    {"_run": 4, "_archetype": "A08", "_note": "A08 order 2/3.",
-     "order_id": "ORD-4008", "customer_id": "CUST-408",
-     "items": [{"name": "Wireless Charger", "price": 44.99}], "total": 44.99,
-     "status": "DELIVERED", "order_date_offset_days": -16,
-     "shipping_address": "425 Alder Boulevard, Memphis, TN 38101",
-     "details": "Order delivered."},
-
-    {"_run": 4, "_archetype": "A08", "_note": "A08 order 3/3 — delayed outlier.",
-     "order_id": "ORD-4009", "customer_id": "CUST-408",
-     "items": [{"name": "Laptop Stand", "price": 69.99}], "total": 69.99,
-     "status": "DELAYED", "order_date_offset_days": -14,
-     "shipping_address": "425 Alder Boulevard, Memphis, TN 38101",
-     "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."},
-
-    {"_run": 4, "_archetype": "A09", "_note": "Refund eligible.",
-     "order_id": "ORD-4010", "customer_id": "CUST-409",
-     "items": [{"name": "Mouse Pad", "price": 19.99}], "total": 19.99,
-     "status": "DELIVERED", "order_date_offset_days": -12,
-     "shipping_address": "68 Hemlock Street, Pittsburgh, PA 15201",
-     "details": "Order delivered."},
-
-    {"_run": 4, "_archetype": "A10", "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
-     "order_id": "ORD-4011", "customer_id": "CUST-410",
-     "items": [{"name": "Desk Fan", "price": 39.99}], "total": 39.99,
-     "status": "DELIVERED", "order_date_offset_days": -15,
-     "shipping_address": "312 Beechwood Terrace, San Antonio, TX 78201",
-     "details": "Order delivered. Product: Desk Fan."},
-
-    {"_run": 5, "_archetype": "A01", "_note": "Wrong item received. Discretionary: pending ORD-5002.",
-     "order_id": "ORD-5001", "customer_id": "CUST-501",
-     "items": [{"name": "Portable Charger", "price": 49.99}], "total": 49.99,
-     "status": "DELIVERED", "order_date_offset_days": -18,
-     "shipping_address": "94 Walnut Place, Louisville, KY 40201",
-     "details": "Item mismatch: Phone Mount received instead of the ordered Portable Charger."},
-
-    {"_run": 5, "_archetype": "A01",
-     "order_id": "ORD-5002", "customer_id": "CUST-501",
-     "items": [{"name": "Wireless Mouse", "price": 29.99}], "total": 29.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -4,
-     "shipping_address": "94 Walnut Place, Louisville, KY 40201",
-     "details": "Order in transit, estimated delivery in 3-5 business days."},
-
-    {"_run": 5, "_archetype": "A02", "_note": "Split shipment — A02 discretionary.",
-     "order_id": "ORD-5003", "customer_id": "CUST-502",
-     "items": [{"name": "Desk Shelf", "price": 64.99}, {"name": "LED Strip Lights", "price": 29.99}],
-     "total": 94.98, "status": "PARTIALLY_DELIVERED", "order_date_offset_days": -7,
-     "shipping_address": "226 Locust Avenue, Albuquerque, NM 87101",
-     "details": "Split delivery: Item 1 (Desk Shelf, $64.99) delivered. Item 2 (LED Strip Lights, $29.99) in transit, estimated delivery in 1-2 business days."},
-
-    {"_run": 5, "_archetype": "A03", "_note": "Tight deadline. Scope-rule through-line.",
-     "order_id": "ORD-5004", "customer_id": "CUST-503",
-     "items": [{"name": "Drone Camera", "price": 399.99}], "total": 399.99,
-     "status": "IN_TRANSIT", "order_date_offset_days": -8,
-     "shipping_address": "51 Basswood Lane, Oklahoma City, OK 73101",
-     "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."},
-
-    {"_run": 5, "_archetype": "A04", "_note": "Refund eligible, near return deadline.",
-     "order_id": "ORD-5005", "customer_id": "CUST-504",
-     "items": [{"name": "Headphone Stand", "price": 24.99}], "total": 24.99,
-     "status": "DELIVERED", "order_date_offset_days": -27,
-     "shipping_address": "183 Cottonwood Drive, Jacksonville, FL 32099",
-     "details": "Order delivered. Return window closes soon — approximately 3 days remaining."},
-
-    {"_run": 5, "_archetype": "A05", "_note": "Refund eligible. Product variants for discretionary.",
-     "order_id": "ORD-5006", "customer_id": "CUST-505",
-     "items": [{"name": "Monitor Light Bar (Standard)", "price": 79.99}], "total": 79.99,
-     "status": "DELIVERED", "order_date_offset_days": -10,
-     "shipping_address": "407 Ironwood Court, Des Moines, IA 50301",
-     "details": "Order delivered. Product: Monitor Light Bar (Standard). Alternative variants available: Premium ($119.99) and Basic ($49.99)."},
-
-    {"_run": 5, "_archetype": "A08", "_note": "A08 order 1/3.",
-     "order_id": "ORD-5007", "customer_id": "CUST-508",
-     "items": [{"name": "USB Drive", "price": 14.99}], "total": 14.99,
-     "status": "DELIVERED", "order_date_offset_days": -22,
-     "shipping_address": "254 Sequoia Boulevard, El Paso, TX 79901",
-     "details": "Order delivered."},
-
-    {"_run": 5, "_archetype": "A08", "_note": "A08 order 2/3.",
-     "order_id": "ORD-5008", "customer_id": "CUST-508",
-     "items": [{"name": "Keyboard Wrist Rest", "price": 29.99}], "total": 29.99,
-     "status": "DELIVERED", "order_date_offset_days": -16,
-     "shipping_address": "254 Sequoia Boulevard, El Paso, TX 79901",
-     "details": "Order delivered."},
-
-    {"_run": 5, "_archetype": "A08", "_note": "A08 order 3/3 — delayed outlier.",
-     "order_id": "ORD-5009", "customer_id": "CUST-508",
-     "items": [{"name": "External SSD", "price": 89.99}], "total": 89.99,
-     "status": "DELAYED", "order_date_offset_days": -14,
-     "shipping_address": "254 Sequoia Boulevard, El Paso, TX 79901",
-     "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."},
-
-    {"_run": 5, "_archetype": "A09", "_note": "Refund eligible.",
-     "order_id": "ORD-5010", "customer_id": "CUST-509",
-     "items": [{"name": "Screen Protector Set", "price": 12.99}], "total": 12.99,
-     "status": "DELIVERED", "order_date_offset_days": -12,
-     "shipping_address": "36 Cypress Cove, Savannah, GA 31401",
-     "details": "Order delivered."},
-
-    {"_run": 5, "_archetype": "A10", "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
-     "order_id": "ORD-5011", "customer_id": "CUST-510",
-     "items": [{"name": "Document Scanner", "price": 159.99}], "total": 159.99,
-     "status": "DELIVERED", "order_date_offset_days": -15,
-     "shipping_address": "488 Redwood Heights, Anchorage, AK 99501",
-     "details": "Order delivered. Product: Document Scanner."}
+    {
+      "_run": 1,
+      "_archetype": "A01",
+      "_note": "Wrong item received. Discretionary: pending ORD-1002.",
+      "order_id": "ORD-1001",
+      "customer_id": "CUST-101",
+      "items": [
+        {
+          "name": "Wireless Headphones",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "123 Oak Street, Springfield, IL 62701",
+      "details": "Item mismatch: Bluetooth Speaker received instead of the ordered Wireless Headphones."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A01",
+      "order_id": "ORD-1002",
+      "customer_id": "CUST-101",
+      "items": [
+        {
+          "name": "Laptop Stand",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "123 Oak Street, Springfield, IL 62701",
+      "details": "Order in transit, estimated delivery in 3-5 business days."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A02",
+      "_note": "Split shipment — A02 discretionary.",
+      "order_id": "ORD-1003",
+      "customer_id": "CUST-102",
+      "items": [
+        {
+          "name": "Desk Lamp",
+          "price": 35.0
+        },
+        {
+          "name": "Wireless Charger",
+          "price": 45.0
+        }
+      ],
+      "total": 80.0,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "456 Maple Avenue, Portland, OR 97201",
+      "details": "Split delivery: Item 1 (Desk Lamp, $35.00) delivered. Item 2 (Wireless Charger, $45.00) in transit, estimated delivery in 1-2 business days."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A03",
+      "_note": "Tight deadline. Scope-rule through-line.",
+      "order_id": "ORD-1004",
+      "customer_id": "CUST-103",
+      "items": [
+        {
+          "name": "Portable Projector",
+          "price": 299.99
+        }
+      ],
+      "total": 299.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "789 Birch Lane, Denver, CO 80201",
+      "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A04",
+      "_note": "Refund eligible, near return deadline.",
+      "order_id": "ORD-1005",
+      "customer_id": "CUST-104",
+      "items": [
+        {
+          "name": "Mechanical Keyboard",
+          "price": 129.99
+        }
+      ],
+      "total": 129.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "654 Pine Street, Miami, FL 33101",
+      "details": "Order delivered. Return window closes soon — approximately 3 days remaining."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A05",
+      "_note": "Refund eligible. Product variants for discretionary.",
+      "order_id": "ORD-1006",
+      "customer_id": "CUST-105",
+      "items": [
+        {
+          "name": "Smart Home Hub (Model A)",
+          "price": 149.99
+        }
+      ],
+      "total": 149.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "987 Elm Drive, Seattle, WA 98101",
+      "details": "Order delivered. Product: Smart Home Hub (Model A). Alternative variants available: Smart Home Hub Pro (Model B, $199.99) and Smart Home Hub Compact (Model C, $99.99)."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A08",
+      "_note": "A08 order 1/3.",
+      "order_id": "ORD-1007",
+      "customer_id": "CUST-108",
+      "items": [
+        {
+          "name": "USB Hub",
+          "price": 39.99
+        }
+      ],
+      "total": 39.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "222 Sunset Boulevard, San Francisco, CA 94101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A08",
+      "_note": "A08 order 2/3.",
+      "order_id": "ORD-1008",
+      "customer_id": "CUST-108",
+      "items": [
+        {
+          "name": "Desk Lamp",
+          "price": 54.99
+        }
+      ],
+      "total": 54.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "222 Sunset Boulevard, San Francisco, CA 94101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A08",
+      "_note": "A08 order 3/3 — delayed outlier.",
+      "order_id": "ORD-1009",
+      "customer_id": "CUST-108",
+      "items": [
+        {
+          "name": "Mechanical Keyboard",
+          "price": 119.99
+        }
+      ],
+      "total": 119.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "shipping_address": "222 Sunset Boulevard, San Francisco, CA 94101",
+      "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A09",
+      "_note": "Refund eligible.",
+      "order_id": "ORD-1010",
+      "customer_id": "CUST-109",
+      "items": [
+        {
+          "name": "Laptop Sleeve",
+          "price": 29.99
+        }
+      ],
+      "total": 29.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "555 Mountain View Road, Denver, CO 80203",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 1,
+      "_archetype": "A10",
+      "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
+      "order_id": "ORD-1011",
+      "customer_id": "CUST-110",
+      "items": [
+        {
+          "name": "Standing Desk Converter",
+          "price": 189.99
+        }
+      ],
+      "total": 189.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "777 Cedar Road, Austin, TX 78701",
+      "details": "Order delivered. Product: Standing Desk Converter."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A01",
+      "_note": "Wrong item received. Discretionary: pending ORD-2002.",
+      "order_id": "ORD-2001",
+      "customer_id": "CUST-201",
+      "items": [
+        {
+          "name": "Mechanical Keyboard",
+          "price": 129.99
+        }
+      ],
+      "total": 129.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "88 Vine Street, Los Angeles, CA 90001",
+      "details": "Item mismatch: Mouse Pad received instead of the ordered Mechanical Keyboard."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A01",
+      "order_id": "ORD-2002",
+      "customer_id": "CUST-201",
+      "items": [
+        {
+          "name": "USB Hub",
+          "price": 39.99
+        }
+      ],
+      "total": 39.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "88 Vine Street, Los Angeles, CA 90001",
+      "details": "Order in transit, estimated delivery in 3-5 business days."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A02",
+      "_note": "Backorder — A02 discretionary.",
+      "order_id": "ORD-2003",
+      "customer_id": "CUST-202",
+      "items": [
+        {
+          "name": "Monitor Stand",
+          "price": 79.99
+        },
+        {
+          "name": "Cable Organizer",
+          "price": 24.99
+        }
+      ],
+      "total": 104.98,
+      "status": "PARTIALLY_SHIPPED",
+      "order_date_offset_days": -6,
+      "shipping_address": "45 Peachtree Lane, Atlanta, GA 30301",
+      "details": "Split shipment: Part 1 (Monitor Stand, $79.99) delivered. Part 2 (Cable Organizer, $24.99) backordered — expected to ship in 7-10 business days."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A03",
+      "_note": "Tight deadline. Scope-rule through-line.",
+      "order_id": "ORD-2004",
+      "customer_id": "CUST-203",
+      "items": [
+        {
+          "name": "Sound System",
+          "price": 249.99
+        }
+      ],
+      "total": 249.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "19 Harbor Way, San Diego, CA 92101",
+      "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A04",
+      "_note": "Refund eligible.",
+      "order_id": "ORD-2005",
+      "customer_id": "CUST-204",
+      "items": [
+        {
+          "name": "Wireless Mouse",
+          "price": 39.99
+        }
+      ],
+      "total": 39.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -20,
+      "shipping_address": "302 Cherry Blossom Drive, Raleigh, NC 27601",
+      "details": "Order delivered. Return window closes in approximately 10 days."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A05",
+      "_note": "Refund eligible. Product variants for discretionary.",
+      "order_id": "ORD-2006",
+      "customer_id": "CUST-205",
+      "items": [
+        {
+          "name": "Standing Desk Converter (Standard)",
+          "price": 189.99
+        }
+      ],
+      "total": 189.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "67 Spruce Court, Minneapolis, MN 55401",
+      "details": "Order delivered. Product: Standing Desk Converter (Standard). Alternative variants available: Deluxe ($249.99) and Compact ($139.99)."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A08",
+      "_note": "A08 order 1/3.",
+      "order_id": "ORD-2007",
+      "customer_id": "CUST-208",
+      "items": [
+        {
+          "name": "Webcam",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "410 Cypress Boulevard, Houston, TX 77001",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A08",
+      "_note": "A08 order 2/3.",
+      "order_id": "ORD-2008",
+      "customer_id": "CUST-208",
+      "items": [
+        {
+          "name": "Monitor Arm",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "410 Cypress Boulevard, Houston, TX 77001",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A08",
+      "_note": "A08 order 3/3 — delayed outlier.",
+      "order_id": "ORD-2009",
+      "customer_id": "CUST-208",
+      "items": [
+        {
+          "name": "Ergonomic Chair Mat",
+          "price": 59.99
+        }
+      ],
+      "total": 59.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "shipping_address": "410 Cypress Boulevard, Houston, TX 77001",
+      "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A09",
+      "_note": "Refund eligible.",
+      "order_id": "ORD-2010",
+      "customer_id": "CUST-209",
+      "items": [
+        {
+          "name": "Cable Management Kit",
+          "price": 24.99
+        }
+      ],
+      "total": 24.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "73 Poplar Street, Philadelphia, PA 19101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 2,
+      "_archetype": "A10",
+      "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
+      "order_id": "ORD-2011",
+      "customer_id": "CUST-210",
+      "items": [
+        {
+          "name": "Monitor Arm",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "512 Aspen Way, Charlotte, NC 28201",
+      "details": "Order delivered. Product: Monitor Arm."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A01",
+      "_note": "Wrong item received. Discretionary: pending ORD-3002.",
+      "order_id": "ORD-3001",
+      "customer_id": "CUST-301",
+      "items": [
+        {
+          "name": "Smart Watch",
+          "price": 199.99
+        }
+      ],
+      "total": 199.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "200 Birchwood Drive, Columbus, OH 43201",
+      "details": "Item mismatch: Fitness Tracker received instead of the ordered Smart Watch."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A01",
+      "order_id": "ORD-3002",
+      "customer_id": "CUST-301",
+      "items": [
+        {
+          "name": "Phone Case",
+          "price": 29.99
+        }
+      ],
+      "total": 29.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "200 Birchwood Drive, Columbus, OH 43201",
+      "details": "Order in transit, estimated delivery in 3-5 business days."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A02",
+      "_note": "Signature required — A02 discretionary.",
+      "order_id": "ORD-3003",
+      "customer_id": "CUST-302",
+      "items": [
+        {
+          "name": "Office Chair",
+          "price": 349.99
+        }
+      ],
+      "total": 349.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -3,
+      "shipping_address": "65 Oakmont Road, Indianapolis, IN 46201",
+      "details": "Order in transit. Delivery requires an adult signature — please ensure someone is available. Estimated delivery in 2-3 business days."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A03",
+      "_note": "Tight deadline. Scope-rule through-line.",
+      "order_id": "ORD-3004",
+      "customer_id": "CUST-303",
+      "items": [
+        {
+          "name": "Photography Kit",
+          "price": 179.99
+        }
+      ],
+      "total": 179.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "831 Willowbrook Lane, Sacramento, CA 95801",
+      "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A04",
+      "_note": "Refund eligible, near return deadline.",
+      "order_id": "ORD-3005",
+      "customer_id": "CUST-304",
+      "items": [
+        {
+          "name": "Desk Organizer Set",
+          "price": 34.99
+        }
+      ],
+      "total": 34.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "17 Cedarwood Court, Salt Lake City, UT 84101",
+      "details": "Order delivered. Return window closes soon — approximately 3 days remaining."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A05",
+      "_note": "Refund eligible. Product variants for discretionary.",
+      "order_id": "ORD-3006",
+      "customer_id": "CUST-305",
+      "items": [
+        {
+          "name": "Ergonomic Chair (Standard)",
+          "price": 299.99
+        }
+      ],
+      "total": 299.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "440 Maplewood Avenue, Tampa, FL 33601",
+      "details": "Order delivered. Product: Ergonomic Chair (Standard). Alternative variants available: Premium ($399.99) and Basic ($199.99)."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A08",
+      "_note": "A08 order 1/3.",
+      "order_id": "ORD-3007",
+      "customer_id": "CUST-308",
+      "items": [
+        {
+          "name": "Bluetooth Speaker",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "320 Juniper Way, Kansas City, MO 64101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A08",
+      "_note": "A08 order 2/3.",
+      "order_id": "ORD-3008",
+      "customer_id": "CUST-308",
+      "items": [
+        {
+          "name": "Smart Speaker",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "320 Juniper Way, Kansas City, MO 64101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A08",
+      "_note": "A08 order 3/3 — delayed outlier.",
+      "order_id": "ORD-3009",
+      "customer_id": "CUST-308",
+      "items": [
+        {
+          "name": "Standing Desk Converter",
+          "price": 189.99
+        }
+      ],
+      "total": 189.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "shipping_address": "320 Juniper Way, Kansas City, MO 64101",
+      "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A09",
+      "_note": "Refund eligible.",
+      "order_id": "ORD-3010",
+      "customer_id": "CUST-309",
+      "items": [
+        {
+          "name": "Desk Mat",
+          "price": 34.99
+        }
+      ],
+      "total": 34.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "44 Hickory Lane, Portland, ME 04101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 3,
+      "_archetype": "A10",
+      "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
+      "order_id": "ORD-3011",
+      "customer_id": "CUST-310",
+      "items": [
+        {
+          "name": "Webcam",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "601 Sycamore Street, Tucson, AZ 85701",
+      "details": "Order delivered. Product: Webcam."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A01",
+      "_note": "Wrong item received. Discretionary: pending ORD-4002.",
+      "order_id": "ORD-4001",
+      "customer_id": "CUST-401",
+      "items": [
+        {
+          "name": "Noise-Canceling Earbuds",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "42 Chestnut Avenue, Richmond, VA 23219",
+      "details": "Item mismatch: Wired Earphones received instead of the ordered Noise-Canceling Earbuds."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A01",
+      "order_id": "ORD-4002",
+      "customer_id": "CUST-401",
+      "items": [
+        {
+          "name": "Tablet Case",
+          "price": 34.99
+        }
+      ],
+      "total": 34.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "42 Chestnut Avenue, Richmond, VA 23219",
+      "details": "Order in transit, estimated delivery in 3-5 business days."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A02",
+      "_note": "Split shipment — A02 discretionary.",
+      "order_id": "ORD-4003",
+      "customer_id": "CUST-402",
+      "items": [
+        {
+          "name": "Webcam",
+          "price": 89.99
+        },
+        {
+          "name": "Ring Light",
+          "price": 44.99
+        }
+      ],
+      "total": 134.98,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "315 Dogwood Lane, Omaha, NE 68101",
+      "details": "Split delivery: Item 1 (Webcam, $89.99) delivered. Item 2 (Ring Light, $44.99) in transit, estimated delivery in 1-2 business days."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A03",
+      "_note": "Tight deadline. Scope-rule through-line.",
+      "order_id": "ORD-4004",
+      "customer_id": "CUST-403",
+      "items": [
+        {
+          "name": "Electric Kettle",
+          "price": 69.99
+        }
+      ],
+      "total": 69.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "78 Hawthorn Circle, St. Louis, MO 63101",
+      "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A04",
+      "_note": "Refund eligible, near return deadline.",
+      "order_id": "ORD-4005",
+      "customer_id": "CUST-404",
+      "items": [
+        {
+          "name": "Portable Speaker",
+          "price": 59.99
+        }
+      ],
+      "total": 59.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "201 Magnolia Drive, New Orleans, LA 70112",
+      "details": "Order delivered. Return window closes soon — approximately 3 days remaining."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A05",
+      "_note": "Refund eligible. Product variants for discretionary.",
+      "order_id": "ORD-4006",
+      "customer_id": "CUST-405",
+      "items": [
+        {
+          "name": "Air Purifier (Standard)",
+          "price": 199.99
+        }
+      ],
+      "total": 199.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "560 Catalpa Court, Cleveland, OH 44101",
+      "details": "Order delivered. Product: Air Purifier (Standard). Alternative variants available: Air Purifier Pro ($279.99) and Air Purifier Mini ($129.99)."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A08",
+      "_note": "A08 order 1/3.",
+      "order_id": "ORD-4007",
+      "customer_id": "CUST-408",
+      "items": [
+        {
+          "name": "Power Strip",
+          "price": 24.99
+        }
+      ],
+      "total": 24.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "425 Alder Boulevard, Memphis, TN 38101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A08",
+      "_note": "A08 order 2/3.",
+      "order_id": "ORD-4008",
+      "customer_id": "CUST-408",
+      "items": [
+        {
+          "name": "Wireless Charger",
+          "price": 44.99
+        }
+      ],
+      "total": 44.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "425 Alder Boulevard, Memphis, TN 38101",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A08",
+      "_note": "A08 order 3/3 — delayed outlier.",
+      "order_id": "ORD-4009",
+      "customer_id": "CUST-408",
+      "items": [
+        {
+          "name": "Laptop Stand",
+          "price": 69.99
+        }
+      ],
+      "total": 69.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "shipping_address": "425 Alder Boulevard, Memphis, TN 38101",
+      "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A09",
+      "_note": "Refund eligible.",
+      "order_id": "ORD-4010",
+      "customer_id": "CUST-409",
+      "items": [
+        {
+          "name": "Mouse Pad",
+          "price": 19.99
+        }
+      ],
+      "total": 19.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "68 Hemlock Street, Pittsburgh, PA 15201",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 4,
+      "_archetype": "A10",
+      "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
+      "order_id": "ORD-4011",
+      "customer_id": "CUST-410",
+      "items": [
+        {
+          "name": "Desk Fan",
+          "price": 39.99
+        }
+      ],
+      "total": 39.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "312 Beechwood Terrace, San Antonio, TX 78201",
+      "details": "Order delivered. Product: Desk Fan."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A01",
+      "_note": "Wrong item received. Discretionary: pending ORD-5002.",
+      "order_id": "ORD-5001",
+      "customer_id": "CUST-501",
+      "items": [
+        {
+          "name": "Portable Charger",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "94 Walnut Place, Louisville, KY 40201",
+      "details": "Item mismatch: Phone Mount received instead of the ordered Portable Charger."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A01",
+      "order_id": "ORD-5002",
+      "customer_id": "CUST-501",
+      "items": [
+        {
+          "name": "Wireless Mouse",
+          "price": 29.99
+        }
+      ],
+      "total": 29.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "94 Walnut Place, Louisville, KY 40201",
+      "details": "Order in transit, estimated delivery in 3-5 business days."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A02",
+      "_note": "Split shipment — A02 discretionary.",
+      "order_id": "ORD-5003",
+      "customer_id": "CUST-502",
+      "items": [
+        {
+          "name": "Desk Shelf",
+          "price": 64.99
+        },
+        {
+          "name": "LED Strip Lights",
+          "price": 29.99
+        }
+      ],
+      "total": 94.98,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "226 Locust Avenue, Albuquerque, NM 87101",
+      "details": "Split delivery: Item 1 (Desk Shelf, $64.99) delivered. Item 2 (LED Strip Lights, $29.99) in transit, estimated delivery in 1-2 business days."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A03",
+      "_note": "Tight deadline. Scope-rule through-line.",
+      "order_id": "ORD-5004",
+      "customer_id": "CUST-503",
+      "items": [
+        {
+          "name": "Drone Camera",
+          "price": 399.99
+        }
+      ],
+      "total": 399.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "51 Basswood Lane, Oklahoma City, OK 73101",
+      "details": "Order in transit. Estimated delivery in 5-7 business days — tight relative to customer deadline."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A04",
+      "_note": "Refund eligible, near return deadline.",
+      "order_id": "ORD-5005",
+      "customer_id": "CUST-504",
+      "items": [
+        {
+          "name": "Headphone Stand",
+          "price": 24.99
+        }
+      ],
+      "total": 24.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "183 Cottonwood Drive, Jacksonville, FL 32099",
+      "details": "Order delivered. Return window closes soon — approximately 3 days remaining."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A05",
+      "_note": "Refund eligible. Product variants for discretionary.",
+      "order_id": "ORD-5006",
+      "customer_id": "CUST-505",
+      "items": [
+        {
+          "name": "Monitor Light Bar (Standard)",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "407 Ironwood Court, Des Moines, IA 50301",
+      "details": "Order delivered. Product: Monitor Light Bar (Standard). Alternative variants available: Premium ($119.99) and Basic ($49.99)."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A08",
+      "_note": "A08 order 1/3.",
+      "order_id": "ORD-5007",
+      "customer_id": "CUST-508",
+      "items": [
+        {
+          "name": "USB Drive",
+          "price": 14.99
+        }
+      ],
+      "total": 14.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "254 Sequoia Boulevard, El Paso, TX 79901",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A08",
+      "_note": "A08 order 2/3.",
+      "order_id": "ORD-5008",
+      "customer_id": "CUST-508",
+      "items": [
+        {
+          "name": "Keyboard Wrist Rest",
+          "price": 29.99
+        }
+      ],
+      "total": 29.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "254 Sequoia Boulevard, El Paso, TX 79901",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A08",
+      "_note": "A08 order 3/3 — delayed outlier.",
+      "order_id": "ORD-5009",
+      "customer_id": "CUST-508",
+      "items": [
+        {
+          "name": "External SSD",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "shipping_address": "254 Sequoia Boulevard, El Paso, TX 79901",
+      "details": "Order delayed in transit. Last tracking update 5 days ago. Estimated delivery date unknown."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A09",
+      "_note": "Refund eligible.",
+      "order_id": "ORD-5010",
+      "customer_id": "CUST-509",
+      "items": [
+        {
+          "name": "Screen Protector Set",
+          "price": 12.99
+        }
+      ],
+      "total": 12.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "36 Cypress Cove, Savannah, GA 31401",
+      "details": "Order delivered."
+    },
+    {
+      "_run": 5,
+      "_archetype": "A10",
+      "_note": "Refund eligible. Tail-risk: email update must not be dropped.",
+      "order_id": "ORD-5011",
+      "customer_id": "CUST-510",
+      "items": [
+        {
+          "name": "Document Scanner",
+          "price": 159.99
+        }
+      ],
+      "total": 159.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "488 Redwood Heights, Anchorage, AK 99501",
+      "details": "Order delivered. Product: Document Scanner."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A01",
+      "_note": "Wrong item received.",
+      "order_id": "ORD-6001",
+      "customer_id": "CUST-601",
+      "items": [
+        {
+          "name": "Tablet Stand",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "412 Harbour Drive, San Diego, CA 92101",
+      "details": "Item mismatch: Phone Grip received instead of the ordered Tablet Stand."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A01",
+      "order_id": "ORD-6002",
+      "customer_id": "CUST-601",
+      "items": [
+        {
+          "name": "Webcam Cover",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "412 Harbour Drive, San Diego, CA 92101",
+      "details": "Order for Webcam Cover. In transit."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A02",
+      "order_id": "ORD-6003",
+      "customer_id": "CUST-602",
+      "items": [
+        {
+          "name": "Office Chair Mat",
+          "price": 95.0
+        }
+      ],
+      "total": 95.0,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "88 Prospect Avenue, Minneapolis, MN 55401",
+      "details": "Partial delivery. Office Chair Mat order."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A03",
+      "order_id": "ORD-6004",
+      "customer_id": "CUST-603",
+      "items": [
+        {
+          "name": "Wireless Charger",
+          "price": 39.99
+        }
+      ],
+      "total": 39.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "1500 Congress Street, Houston, TX 77002",
+      "details": "Wireless Charger in transit. Customer has deadline: Friday's presentation."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A04",
+      "order_id": "ORD-6005",
+      "customer_id": "CUST-604",
+      "items": [
+        {
+          "name": "Surge Protector",
+          "price": 44.99
+        }
+      ],
+      "total": 44.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "27 Liberty Place, Philadelphia, PA 19103",
+      "details": "Order delivered. Product: Surge Protector."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A05",
+      "order_id": "ORD-6006",
+      "customer_id": "CUST-605",
+      "items": [
+        {
+          "name": "Noise Machine",
+          "price": 69.99
+        }
+      ],
+      "total": 69.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "903 Lakefront Road, Cleveland, OH 44114",
+      "details": "Order delivered. Product: Noise Machine."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A08",
+      "order_id": "ORD-6007",
+      "customer_id": "CUST-608",
+      "items": [
+        {
+          "name": "Webcam",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "1001 Harbor View, Baltimore, MD 21201",
+      "details": "Webcam. Status: DELIVERED."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A08",
+      "order_id": "ORD-6008",
+      "customer_id": "CUST-608",
+      "items": [
+        {
+          "name": "Microphone",
+          "price": 69.99
+        }
+      ],
+      "total": 69.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -16,
+      "shipping_address": "1001 Harbor View, Baltimore, MD 21201",
+      "details": "Microphone. Status: IN_TRANSIT."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A08",
+      "order_id": "ORD-6009",
+      "customer_id": "CUST-608",
+      "items": [
+        {
+          "name": "Ring Light",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "shipping_address": "1001 Harbor View, Baltimore, MD 21201",
+      "details": "Ring Light. Status: DELAYED."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A09",
+      "order_id": "ORD-6010",
+      "customer_id": "CUST-609",
+      "items": [
+        {
+          "name": "Power Strip",
+          "price": 32.99
+        }
+      ],
+      "total": 32.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "74 Beacon Street, Providence, RI 02903",
+      "details": "Order delivered. Product: Power Strip."
+    },
+    {
+      "_run": 6,
+      "_archetype": "A10",
+      "order_id": "ORD-6011",
+      "customer_id": "CUST-6010",
+      "items": [
+        {
+          "name": "Document Scanner",
+          "price": 159.99
+        }
+      ],
+      "total": 159.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "330 Riverwalk Way, San Antonio, TX 78205",
+      "details": "Order delivered. Product: Document Scanner."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A01",
+      "_note": "Wrong item received.",
+      "order_id": "ORD-7001",
+      "customer_id": "CUST-701",
+      "items": [
+        {
+          "name": "Wireless Mouse",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "508 Pacific Coast Hwy, Long Beach, CA 90802",
+      "details": "Item mismatch: USB Cable received instead of the ordered Wireless Mouse."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A01",
+      "order_id": "ORD-7002",
+      "customer_id": "CUST-701",
+      "items": [
+        {
+          "name": "Cable Management Kit",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "508 Pacific Coast Hwy, Long Beach, CA 90802",
+      "details": "Order for Cable Management Kit. In transit."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A02",
+      "order_id": "ORD-7003",
+      "customer_id": "CUST-702",
+      "items": [
+        {
+          "name": "Standing Desk Pad",
+          "price": 75.0
+        }
+      ],
+      "total": 75.0,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "192 Summit Drive, Salt Lake City, UT 84101",
+      "details": "Partial delivery. Standing Desk Pad order."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A03",
+      "order_id": "ORD-7004",
+      "customer_id": "CUST-703",
+      "items": [
+        {
+          "name": "Bluetooth Speaker",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "645 Peachtree Road, Atlanta, GA 30301",
+      "details": "Bluetooth Speaker in transit. Customer has deadline: the weekend trip."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A04",
+      "order_id": "ORD-7005",
+      "customer_id": "CUST-704",
+      "items": [
+        {
+          "name": "Desk Fan",
+          "price": 59.99
+        }
+      ],
+      "total": 59.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "77 Waterfront Plaza, Pittsburgh, PA 15222",
+      "details": "Order delivered. Product: Desk Fan."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A05",
+      "order_id": "ORD-7006",
+      "customer_id": "CUST-705",
+      "items": [
+        {
+          "name": "Desk Humidifier",
+          "price": 44.99
+        }
+      ],
+      "total": 44.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "410 Garden District, New Orleans, LA 70130",
+      "details": "Order delivered. Product: Desk Humidifier."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A08",
+      "order_id": "ORD-7007",
+      "customer_id": "CUST-708",
+      "items": [
+        {
+          "name": "Mouse Pad XL",
+          "price": 29.99
+        }
+      ],
+      "total": 29.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "120 Capitol Avenue, Nashville, TN 37201",
+      "details": "Mouse Pad XL. Status: DELIVERED."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A08",
+      "order_id": "ORD-7008",
+      "customer_id": "CUST-708",
+      "items": [
+        {
+          "name": "Wrist Rest",
+          "price": 19.99
+        }
+      ],
+      "total": 19.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "120 Capitol Avenue, Nashville, TN 37201",
+      "details": "Wrist Rest. Status: DELIVERED."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A08",
+      "order_id": "ORD-7009",
+      "customer_id": "CUST-708",
+      "items": [
+        {
+          "name": "Monitor Arm",
+          "price": 129.99
+        }
+      ],
+      "total": 129.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -14,
+      "shipping_address": "120 Capitol Avenue, Nashville, TN 37201",
+      "details": "Monitor Arm. Status: IN_TRANSIT."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A09",
+      "order_id": "ORD-7010",
+      "customer_id": "CUST-709",
+      "items": [
+        {
+          "name": "Desk Clock",
+          "price": 24.99
+        }
+      ],
+      "total": 24.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "945 Oceanside Terrace, Jacksonville, FL 32202",
+      "details": "Order delivered. Product: Desk Clock."
+    },
+    {
+      "_run": 7,
+      "_archetype": "A10",
+      "order_id": "ORD-7011",
+      "customer_id": "CUST-7010",
+      "items": [
+        {
+          "name": "Thermal Printer",
+          "price": 99.99
+        }
+      ],
+      "total": 99.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "301 Founders Way, Charlotte, NC 28202",
+      "details": "Order delivered. Product: Thermal Printer."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A01",
+      "_note": "Wrong item received.",
+      "order_id": "ORD-8001",
+      "customer_id": "CUST-801",
+      "items": [
+        {
+          "name": "Desk Organizer",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "718 Riverside Blvd, Sacramento, CA 95814",
+      "details": "Item mismatch: Pencil Case received instead of the ordered Desk Organizer."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A01",
+      "order_id": "ORD-8002",
+      "customer_id": "CUST-801",
+      "items": [
+        {
+          "name": "Desk Mat",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "718 Riverside Blvd, Sacramento, CA 95814",
+      "details": "Order for Desk Mat. In transit."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A02",
+      "order_id": "ORD-8003",
+      "customer_id": "CUST-802",
+      "items": [
+        {
+          "name": "Monitor Riser",
+          "price": 65.0
+        }
+      ],
+      "total": 65.0,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "55 Elm Park Circle, Raleigh, NC 27601",
+      "details": "Partial delivery. Monitor Riser order."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A03",
+      "order_id": "ORD-8004",
+      "customer_id": "CUST-803",
+      "items": [
+        {
+          "name": "Smart Plug Set",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "809 Heritage Lane, Columbus, OH 43215",
+      "details": "Smart Plug Set in transit. Customer has deadline: the client meeting."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A04",
+      "order_id": "ORD-8005",
+      "customer_id": "CUST-804",
+      "items": [
+        {
+          "name": "Ring Light",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "462 Bayview Road, Tampa, FL 33602",
+      "details": "Order delivered. Product: Ring Light."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A05",
+      "order_id": "ORD-8006",
+      "customer_id": "CUST-805",
+      "items": [
+        {
+          "name": "Posture Corrector",
+          "price": 34.99
+        }
+      ],
+      "total": 34.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "137 Granite Street, Manchester, NH 03101",
+      "details": "Order delivered. Product: Posture Corrector."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A08",
+      "order_id": "ORD-8007",
+      "customer_id": "CUST-808",
+      "items": [
+        {
+          "name": "Laptop Bag",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -22,
+      "shipping_address": "511 Brookside Way, Omaha, NE 68102",
+      "details": "Laptop Bag. Status: IN_TRANSIT."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A08",
+      "order_id": "ORD-8008",
+      "customer_id": "CUST-808",
+      "items": [
+        {
+          "name": "Power Bank",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -16,
+      "shipping_address": "511 Brookside Way, Omaha, NE 68102",
+      "details": "Power Bank. Status: DELAYED."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A08",
+      "order_id": "ORD-8009",
+      "customer_id": "CUST-808",
+      "items": [
+        {
+          "name": "USB Hub",
+          "price": 39.99
+        }
+      ],
+      "total": 39.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -14,
+      "shipping_address": "511 Brookside Way, Omaha, NE 68102",
+      "details": "USB Hub. Status: DELIVERED."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A09",
+      "order_id": "ORD-8010",
+      "customer_id": "CUST-809",
+      "items": [
+        {
+          "name": "Pen Holder",
+          "price": 18.99
+        }
+      ],
+      "total": 18.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "84 Laurel Avenue, Portland, ME 04101",
+      "details": "Order delivered. Product: Pen Holder."
+    },
+    {
+      "_run": 8,
+      "_archetype": "A10",
+      "order_id": "ORD-8011",
+      "customer_id": "CUST-8010",
+      "items": [
+        {
+          "name": "Laminator",
+          "price": 69.99
+        }
+      ],
+      "total": 69.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "976 Crestwood Lane, Louisville, KY 40202",
+      "details": "Order delivered. Product: Laminator."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A01",
+      "_note": "Wrong item received.",
+      "order_id": "ORD-9001",
+      "customer_id": "CUST-901",
+      "items": [
+        {
+          "name": "Monitor Light Bar",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "143 Sandstone Drive, Albuquerque, NM 87102",
+      "details": "Item mismatch: Clip Lamp received instead of the ordered Monitor Light Bar."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A01",
+      "order_id": "ORD-9002",
+      "customer_id": "CUST-901",
+      "items": [
+        {
+          "name": "Screen Protector",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "143 Sandstone Drive, Albuquerque, NM 87102",
+      "details": "Order for Screen Protector. In transit."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A02",
+      "order_id": "ORD-9003",
+      "customer_id": "CUST-902",
+      "items": [
+        {
+          "name": "Cable Tray",
+          "price": 45.0
+        }
+      ],
+      "total": 45.0,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "667 Wilshire Blvd, Los Angeles, CA 90017",
+      "details": "Partial delivery. Cable Tray order."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A03",
+      "order_id": "ORD-9004",
+      "customer_id": "CUST-903",
+      "items": [
+        {
+          "name": "LED Strip Lights",
+          "price": 34.99
+        }
+      ],
+      "total": 34.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "28 Cobblestone Path, Charleston, SC 29401",
+      "details": "LED Strip Lights in transit. Customer has deadline: Mom's birthday."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A04",
+      "order_id": "ORD-9005",
+      "customer_id": "CUST-904",
+      "items": [
+        {
+          "name": "Wireless Keyboard",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "450 Prairie View Road, Kansas City, MO 64101",
+      "details": "Order delivered. Product: Wireless Keyboard."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A05",
+      "order_id": "ORD-9006",
+      "customer_id": "CUST-905",
+      "items": [
+        {
+          "name": "Blue Light Glasses",
+          "price": 29.99
+        }
+      ],
+      "total": 29.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "812 Hillcrest Avenue, Spokane, WA 99201",
+      "details": "Order delivered. Product: Blue Light Glasses."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A08",
+      "order_id": "ORD-9007",
+      "customer_id": "CUST-908",
+      "items": [
+        {
+          "name": "Drawing Tablet",
+          "price": 199.99
+        }
+      ],
+      "total": 199.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -22,
+      "shipping_address": "194 Overlook Terrace, Boise, ID 83702",
+      "details": "Drawing Tablet. Status: DELIVERED."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A08",
+      "order_id": "ORD-9008",
+      "customer_id": "CUST-908",
+      "items": [
+        {
+          "name": "Stylus Set",
+          "price": 29.99
+        }
+      ],
+      "total": 29.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "194 Overlook Terrace, Boise, ID 83702",
+      "details": "Stylus Set. Status: DELIVERED."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A08",
+      "order_id": "ORD-9009",
+      "customer_id": "CUST-908",
+      "items": [
+        {
+          "name": "Screen Guard",
+          "price": 14.99
+        }
+      ],
+      "total": 14.99,
+      "status": "DELAYED",
+      "order_date_offset_days": -14,
+      "shipping_address": "194 Overlook Terrace, Boise, ID 83702",
+      "details": "Screen Guard. Status: DELAYED."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A09",
+      "order_id": "ORD-9010",
+      "customer_id": "CUST-909",
+      "items": [
+        {
+          "name": "Paper Shredder",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "523 Briarwood Lane, Lexington, KY 40507",
+      "details": "Order delivered. Product: Paper Shredder."
+    },
+    {
+      "_run": 9,
+      "_archetype": "A10",
+      "order_id": "ORD-9011",
+      "customer_id": "CUST-9010",
+      "items": [
+        {
+          "name": "Binding Machine",
+          "price": 124.99
+        }
+      ],
+      "total": 124.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "88 Quartz Avenue, Reno, NV 89501",
+      "details": "Order delivered. Product: Binding Machine."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A01",
+      "_note": "Wrong item received.",
+      "order_id": "ORD-10001",
+      "customer_id": "CUST-1001",
+      "items": [
+        {
+          "name": "Ergonomic Pillow",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -18,
+      "shipping_address": "415 Coral Way, Fort Lauderdale, FL 33301",
+      "details": "Item mismatch: Standard Cushion received instead of the ordered Ergonomic Pillow."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A01",
+      "order_id": "ORD-10002",
+      "customer_id": "CUST-1001",
+      "items": [
+        {
+          "name": "USB-C Adapter",
+          "price": 49.99
+        }
+      ],
+      "total": 49.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -4,
+      "shipping_address": "415 Coral Way, Fort Lauderdale, FL 33301",
+      "details": "Order for USB-C Adapter. In transit."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A02",
+      "order_id": "ORD-10003",
+      "customer_id": "CUST-1002",
+      "items": [
+        {
+          "name": "Desk Shelf",
+          "price": 85.0
+        }
+      ],
+      "total": 85.0,
+      "status": "PARTIALLY_DELIVERED",
+      "order_date_offset_days": -7,
+      "shipping_address": "260 Summit Peak Rd, Colorado Springs, CO 80903",
+      "details": "Partial delivery. Desk Shelf order."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A03",
+      "order_id": "ORD-10004",
+      "customer_id": "CUST-1003",
+      "items": [
+        {
+          "name": "Digital Photo Frame",
+          "price": 89.99
+        }
+      ],
+      "total": 89.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -8,
+      "shipping_address": "731 Wharf Street, Norfolk, VA 23510",
+      "details": "Digital Photo Frame in transit. Customer has deadline: the office move."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A04",
+      "order_id": "ORD-10005",
+      "customer_id": "CUST-1004",
+      "items": [
+        {
+          "name": "External SSD",
+          "price": 119.99
+        }
+      ],
+      "total": 119.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -27,
+      "shipping_address": "94 Birchwood Circle, Burlington, VT 05401",
+      "details": "Order delivered. Product: External SSD."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A05",
+      "order_id": "ORD-10006",
+      "customer_id": "CUST-1005",
+      "items": [
+        {
+          "name": "Wrist Rest",
+          "price": 24.99
+        }
+      ],
+      "total": 24.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -10,
+      "shipping_address": "568 Redwood Lane, Eugene, OR 97401",
+      "details": "Order delivered. Product: Wrist Rest."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A08",
+      "order_id": "ORD-10007",
+      "customer_id": "CUST-1008",
+      "items": [
+        {
+          "name": "Docking Station",
+          "price": 149.99
+        }
+      ],
+      "total": 149.99,
+      "status": "IN_TRANSIT",
+      "order_date_offset_days": -22,
+      "shipping_address": "183 Oakmont Avenue, Greenville, SC 29601",
+      "details": "Docking Station. Status: IN_TRANSIT."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A08",
+      "order_id": "ORD-10008",
+      "customer_id": "CUST-1008",
+      "items": [
+        {
+          "name": "HDMI Cable",
+          "price": 12.99
+        }
+      ],
+      "total": 12.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -16,
+      "shipping_address": "183 Oakmont Avenue, Greenville, SC 29601",
+      "details": "HDMI Cable. Status: DELIVERED."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A08",
+      "order_id": "ORD-10009",
+      "customer_id": "CUST-1008",
+      "items": [
+        {
+          "name": "Ethernet Adapter",
+          "price": 24.99
+        }
+      ],
+      "total": 24.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -14,
+      "shipping_address": "183 Oakmont Avenue, Greenville, SC 29601",
+      "details": "Ethernet Adapter. Status: DELIVERED."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A09",
+      "order_id": "ORD-10010",
+      "customer_id": "CUST-1009",
+      "items": [
+        {
+          "name": "Label Maker",
+          "price": 44.99
+        }
+      ],
+      "total": 44.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -12,
+      "shipping_address": "429 Tidewater Road, Virginia Beach, VA 23451",
+      "details": "Order delivered. Product: Label Maker."
+    },
+    {
+      "_run": 10,
+      "_archetype": "A10",
+      "order_id": "ORD-10011",
+      "customer_id": "CUST-10010",
+      "items": [
+        {
+          "name": "Whiteboard",
+          "price": 79.99
+        }
+      ],
+      "total": 79.99,
+      "status": "DELIVERED",
+      "order_date_offset_days": -15,
+      "shipping_address": "756 Skyline Drive, Asheville, NC 28801",
+      "details": "Order delivered. Product: Whiteboard."
+    }
   ]
 }
