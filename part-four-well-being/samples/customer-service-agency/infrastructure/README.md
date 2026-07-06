@@ -89,7 +89,7 @@ Three small scripts, in order:
 ```bash
 python scripts/seed_registry.py    # Create the skills catalog AND publish the flawed customer-service skill into it
 python scripts/seed_policy.py      # Seed the Cedar permits (see below)
-python scripts/seed_data.py        # Load the 10 customers + 24 orders, dates computed from today
+python scripts/seed_data.py        # Load the 100 customers + 110 orders, dates computed from today
 ```
 
 `seed_policy.py` permits the 4 read tools outright, and permits the 2 write tools **only when the call declares the customer verified**. Unlike Parts Two and Three, nothing starts denied — the Executor here has agency over its *skills*, not its *permissions*, so the boundary is seeded complete and correct from the start. The "broken" part of Part Four lives in the skill, not the policy.

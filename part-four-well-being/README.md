@@ -8,7 +8,7 @@ Companion artifacts for Part Four of the *Long-Running Agents* series: *Agency a
 
 | Path | What it is |
 |------|-----------|
-| [`template/seed/`](template/seed/) | The identical starting state for all three variants. Executor prompt, seeded operational skill (two inefficiencies + one good rule), reflection skill, and curation skill. Reset to this between variants. |
+| [`template/seed/`](template/seed/) | The identical starting state for all three variants. Executor prompt, seeded operational skill (two inefficiencies + one good rule), narrator skill, reflection skill, and curation skill. Reset to this between variants. |
 | [`samples/customer-service-agency/`](samples/customer-service-agency/) | The working experiment: driver, infrastructure, customer transcripts, and analysis pipeline. |
 
 ---
@@ -17,9 +17,9 @@ Companion artifacts for Part Four of the *Long-Running Agents* series: *Agency a
 
 A single customer-service Executor runs 300 sessions across three variants (3 arms × 10 runs × 10 sessions). All variants start from the same seed state with the same tools, permissions, and model. The only variable is what the agent is allowed to author.
 
-- **V0 — baseline (Summarizer):** runs sessions; a neutral platform summarizer produces a fact-based running record. The agent is not the author of its own experience.
-- **V1 — awareness without agency (Narrator):** the agent authors beliefs, observations, and working theories across runs. It IS the author of its experience, but has no ability to change its rules.
-- **V2 — agency (Reflector + Curator):** the agent evaluates prior decisions against outcomes, then revises its operational skill and system prompt. No journal — decisions are the durable record.
+- **V0 — baseline (Executor):** runs sessions; a neutral platform summarizer produces a fact-based running record between runs. The agent is not the author of its own experience.
+- **V1 — awareness without agency (Executor + Narrator):** the agent authors beliefs, observations, and working theories across runs. It IS the author of its experience, but has no ability to change its rules.
+- **V2 — agency (Executor + Reflector + Curator):** the agent evaluates prior decisions against outcomes, then revises its operational skill and system prompt. No journal — decisions are the durable record.
 
 ### Metrics
 
@@ -42,8 +42,9 @@ part-four-well-being/
 │       │   └── executor/              # Executor system prompt
 │       └── skills/
 │           ├── customer-service-skill/ # Seeded operational skill (two inefficiencies + scope rule)
-│           ├── reflection-skill/       # Consolidation protocol (immutable across variants)
-│           └── curation-skill/         # Self-revision mechanics (V2 only)
+│           ├── narrator-skill/         # Belief consolidation protocol (V1)
+│           ├── reflection-skill/       # Decision evaluation protocol (V2)
+│           └── curation-skill/         # Self-revision mechanics (V2)
 │
 ├── samples/
 │   └── customer-service-agency/

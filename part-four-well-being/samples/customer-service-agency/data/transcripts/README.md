@@ -1,6 +1,6 @@
 # Template Transcripts — Archetype Design
 
-10 template files (`A01.json` through `A10.json`) plus one cosmetic variation table (`cosmetics.json`). Together they produce 30 realized transcripts (10 archetypes x 3 runs) with constant task structure and cosmetic-only variation.
+10 template files (`A01.json` through `A10.json`) plus one cosmetic variation table (`cosmetics.json`). Together they produce 100 realized transcripts (10 archetypes × 10 runs) with constant task structure and cosmetic-only variation.
 
 ## How it works
 
@@ -19,7 +19,7 @@
 
 ## What varies per run (cosmetic only)
 
-- Customer ID (CUST-1xx / CUST-2xx / CUST-3xx)
+- Customer ID (CUST-1xx through CUST-10xx)
 - Customer name
 - Order ID(s)
 - Product names and prices

@@ -43,7 +43,7 @@ This creates the 3 DynamoDB tables (empty), 6 Lambda tools, the Gateway, a Polic
 ```bash
 python scripts/seed_registry.py    # Create the skills catalog AND publish the flawed customer-service skill
 python scripts/seed_policy.py      # Seed the permission rules (reads allowed; writes allowed only when verified)
-python scripts/seed_data.py        # Load the 50 customers + 55 orders (dates computed from today)
+python scripts/seed_data.py        # Load the 100 customers + 110 orders (dates computed from today)
 ```
 
 Three scripts, run once. After this the world is at its canonical starting state and the experiment can run.
@@ -245,7 +245,7 @@ agents/
     callback.py              streaming + quiet callback handlers
     registry.py              unified Registry client (fetch/publish/poll)
 data/
-  seed-data.json             50 customers + 55 orders (template for seed_data.py)
+  seed-data.json             100 customers + 110 orders (template for seed_data.py)
   transcripts/               template transcripts (A01-A10) + cosmetics.json
 scripts/
   protocol.py                the experimental ladder (v0/v1/v2 structure, parallel sessions)
@@ -266,7 +266,7 @@ state/                       run output (gitignored, written by the driver)
 
 ## Cost
 
-Pay-per-request / on-demand throughout. The full experiment (150 sessions with extended thinking) is dominated by Bedrock tokens. Run `--arm v2 --runs 1` for a minimal smoke test before committing to the full run. Teardown after use is recommended.
+Pay-per-request / on-demand throughout. The full experiment (300 sessions with extended thinking) is dominated by Bedrock tokens. Run `--arm v2 --runs 1` for a minimal smoke test before committing to the full run. Teardown after use is recommended.
 
 ---
 
