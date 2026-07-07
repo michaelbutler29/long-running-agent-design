@@ -1,6 +1,6 @@
 # Part Four: Designed Well-being
 
-Companion artifacts for Part Four of the *Long-Running Agents* series: *Agency and the Functional State of a Long-Running Agent*.
+Companion artifacts for Part Four of the *Long-Running Agents* series: *[Agentic Well-Being: Does Agency Actually Matter?](https://www.linkedin.com/pulse/agentic-well-being-does-agency-actually-matter-michael-butler-vt27e)*
 
 ---
 

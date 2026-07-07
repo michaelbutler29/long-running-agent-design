@@ -12,7 +12,7 @@ A four-part series on designing long-running agents, exploring human nature as a
 | One  | [The Reconciliation Tax](https://www.linkedin.com/pulse/reconciliation-tax-what-happens-when-agents-nature-fights-butler-kstge) | [Stack Alignment Diagnostic](stack-alignment-diagnostic.md) |
 | Two  | [Reasoning About Boundaries: The Policy Skill Pattern](https://www.linkedin.com/pulse/reasoning-boundaries-policy-skill-pattern-michael-butler-dfiwe) | [Policy Skill Pattern](part-two-policy-skill-pattern/) |
 | Three | [From Recall to Insight: An Agent Development Model](https://www.linkedin.com/pulse/from-recall-insight-agent-development-model-michael-butler-a661e) | [Skills & Growth](part-three-skills-growth/) |
-| Four | Designed Well-being | Coming soon |
+| Four | [Agentic Well-Being: Does Agency Actually Matter?](https://www.linkedin.com/pulse/agentic-well-being-does-agency-actually-matter-michael-butler-vt27e) | [Designed Well-Being](part-four-well-being/) |
 
 ## What's in this Repo
 

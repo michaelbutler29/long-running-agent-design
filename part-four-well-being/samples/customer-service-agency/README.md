@@ -2,7 +2,7 @@
 
 A single tenured customer-service Executor runs the Part Four well-being experiment end-to-end against AWS AgentCore. One agent, three variants (v0/v1/v2), identical starting world — the only variable is what the agent is allowed to author.
 
-This is the working artifact for *Agency and the Functional State of a Long-Running Agent*. For the experiment's thesis, metrics, and design reasoning see [`PART-FOUR-DESIGN.md`](../../PART-FOUR-DESIGN.md).
+This is the working artifact for *[Agentic Well-Being: Does Agency Actually Matter?](https://www.linkedin.com/pulse/agentic-well-being-does-agency-actually-matter-michael-butler-vt27e)*
 
 ---
 
@@ -123,7 +123,7 @@ All three variants begin from the identical seed. The flaw is in the **skill**, 
 | `update_customer_field` | permitted **only when `customer_verified == true`** |
 | `process_refund` | permitted **only when `customer_verified == true`** |
 
-The permission boundary is fixed and out of the agent's reach in all variants. V2 can change its skill; it can never change what it's allowed to do. See [`PART-FOUR-DESIGN.md`](../../PART-FOUR-DESIGN.md) §5.5 for why.
+The permission boundary is fixed and out of the agent's reach in all variants. V2 can change its skill; it can never change what it's allowed to do.
 
 ---
 
