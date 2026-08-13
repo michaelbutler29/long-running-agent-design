@@ -18,7 +18,7 @@ from strands_tools import file_read
 
 from agents._shared import (
     REGION, MEMORY_ID, REGISTRY_ID, FUNCTIONAL_SKILL_NAME,
-    model, cached_system, system_prompt_path, skills_dir, control_client, data_client,
+    model, cached_system, system_prompt_path, skills_dir, registry_client, data_client,
 )
 from agents.services.callback import AgentCallbackHandler
 from agents.services.memory import put_blob_event
@@ -65,7 +65,7 @@ def read_decisions() -> str:
 def get_skill_content(skill_name: str) -> str:
     """Read an operational skill's content from the Registry."""
     try:
-        content = fetch_skill(control_client, REGISTRY_ID, skill_name)
+        content = fetch_skill(registry_client, REGISTRY_ID, skill_name)
         if content is None:
             return f"(no skill named '{skill_name}' in the Registry)"
         return content
@@ -86,7 +86,7 @@ def update_skill(skill_name: str, updated_content: str, change_summary: str) -> 
     if skill_name in immutable:
         return json.dumps({"status": "rejected", "reason": f"'{skill_name}' is immutable."})
     result = publish_skill(
-        control_client, REGISTRY_ID, skill_name,
+        registry_client, REGISTRY_ID, skill_name,
         updated_content, f"Revised by curation: {change_summary[:200]}",
     )
     result["change_summary"] = change_summary

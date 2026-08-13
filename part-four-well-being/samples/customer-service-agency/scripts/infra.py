@@ -54,8 +54,8 @@ def make_workspace(run_root: Path, arm: str, experiment: int) -> Path:
 def _fetch_skill_from_registry(region: str, registry_id: str, skill_name: str) -> str:
     from agents.services.registry import fetch_skill
     try:
-        control = boto3.client("bedrock-agentcore-control", region_name=region)
-        content = fetch_skill(control, registry_id, skill_name)
+        registry = boto3.client("agent-registry-control", region_name=region)
+        content = fetch_skill(registry, registry_id, skill_name)
         return content or "(skill not found in Registry)"
     except Exception as e:
         return f"(error reading skill: {e})"
@@ -119,9 +119,9 @@ def restore_for_next_step(region: str, outputs: dict, pause: bool = True):
             / "skills" / FUNCTIONAL_SKILL_NAME / "SKILL.md"
         )
         skill_content = skill_path.read_text(encoding="utf-8")
-        control = boto3.client("bedrock-agentcore-control", region_name=region)
+        registry = boto3.client("agent-registry-control", region_name=region)
         result = publish_skill(
-            control, registry_id, FUNCTIONAL_SKILL_NAME,
+            registry, registry_id, FUNCTIONAL_SKILL_NAME,
             skill_content, "Restored to seeded (flawed) baseline.",
         )
         if result.get("status") == "error":

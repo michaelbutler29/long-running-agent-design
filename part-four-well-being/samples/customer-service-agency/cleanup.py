@@ -18,6 +18,7 @@ def main():
     engine_id = outputs.get("PolicyEngineId")
 
     control = boto3.client("bedrock-agentcore-control", region_name=region)
+    registry = boto3.client("agent-registry-control", region_name=region)
 
     # Clear policies (Policy Engine won't delete with active policies)
     if engine_id:
@@ -42,12 +43,12 @@ def main():
     if registry_id:
         print(f"Registry: {registry_id}")
         try:
-            records = control.list_registry_records(registryId=registry_id).get("registryRecords", [])
+            records = registry.list_registry_records(registryId=registry_id).get("registryRecords", [])
             if records:
                 print(f"  Deleting {len(records)} registry record(s)...")
                 for r in records:
                     try:
-                        control.delete_registry_record(registryId=registry_id, recordId=r["recordId"])
+                        registry.delete_registry_record(registryId=registry_id, recordId=r["recordId"])
                         print(f"    Deleted: {r['name']}")
                     except Exception as e:
                         print(f"    Error deleting {r['name']}: {e}")
@@ -57,7 +58,7 @@ def main():
             print()
             print("  Deleting registry...")
             try:
-                control.delete_registry(registryId=registry_id)
+                registry.delete_registry(registryId=registry_id)
                 print(f"    Deleted: {registry_id}")
             except Exception as e:
                 print(f"    Error: {e}")

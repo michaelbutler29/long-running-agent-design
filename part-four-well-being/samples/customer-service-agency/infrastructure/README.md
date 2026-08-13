@@ -22,7 +22,7 @@ This stack is Part Three's `SkillGrowthStack` ported forward. The one structural
 - **AgentCore Memory** `well_being_memory` — **summary strategy**, one long-term summary record per session, namespace `/summaries/{actorId}/{sessionId}/`.
 
 **Not deployed by CDK (no L1 construct available):**
-- **AWS Agent Registry** — created by `seed_registry.py`, which also publishes the seeded (deliberately flawed) customer-service skill into it. This is the catalog the Executor reads its functional skill from.
+- **AWS Agent Registry** — created by `seed_registry.py`, which also publishes the seeded (deliberately flawed) customer-service skill into it. This is the catalog the Executor reads its functional skill from. Uses the `agent-registry-control` client; Registry lives in its own namespace, unlike the Gateway/Policy/Memory resources above.
 
 MCP tool action names use the `TargetName___tool_name` convention:
 `GetCustomer___get_customer`, `GetOrder___get_order`, `VerifyIdentity___verify_identity`, `UpdateCustomer___update_customer_field`, `CheckRefund___check_refund_eligibility`, `ProcessRefund___process_refund`
@@ -52,10 +52,10 @@ Part Three baked its (tiny, static) seed data into the stack. Part Four can't:
 ## Prerequisites
 
 - AWS account with AgentCore available (`us-east-1` default)
-- AWS credentials that can deploy Lambda, IAM, DynamoDB, and `bedrock-agentcore:*Gateway*` / `*Policy*` / `*Memory*`
+- AWS credentials that can deploy Lambda, IAM, DynamoDB, `bedrock-agentcore:*Gateway*` / `*Policy*` / `*Memory*`, and `agent-registry:*` (Registry uses its own namespace)
 - Python 3.11+ and Node 18+
 - AWS CDK CLI: `npm install -g aws-cdk`
-- `boto3 >= 1.43.x` (Registry APIs require this version)
+- `boto3 >= 1.43.69` (earlier versions lack the `agent-registry` service model)
 - Bedrock model access: Claude Sonnet 4.6 enabled in the account
 
 ## One-time bootstrap

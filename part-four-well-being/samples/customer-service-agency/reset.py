@@ -29,16 +29,16 @@ def clear_policies(control, engine_id: str):
     print(f"  {len(policies)} policies deleted.")
 
 
-def clear_registry(control, registry_id: str):
+def clear_registry(registry, registry_id: str):
     print("── Registry ───────────────────────────────────────────────────")
     try:
-        records = control.list_registry_records(registryId=registry_id).get("registryRecords", [])
+        records = registry.list_registry_records(registryId=registry_id).get("registryRecords", [])
         if not records:
             print("  No records.")
             return
         for r in records:
             try:
-                control.delete_registry_record(registryId=registry_id, recordId=r["recordId"])
+                registry.delete_registry_record(registryId=registry_id, recordId=r["recordId"])
                 print(f"  Deleted: {r['name']}")
             except Exception as e:
                 print(f"  Error deleting {r['name']}: {e}")
@@ -204,6 +204,7 @@ def main():
     print()
     control = boto3.client("bedrock-agentcore-control", region_name=region)
     data = boto3.client("bedrock-agentcore", region_name=region)
+    registry = boto3.client("agent-registry-control", region_name=region)
 
     if engine_id:
         clear_policies(control, engine_id)
@@ -212,7 +213,7 @@ def main():
     print()
 
     if registry_id:
-        clear_registry(control, registry_id)
+        clear_registry(registry, registry_id)
     else:
         print("No RegistryId — skipping registry cleanup.")
     print()

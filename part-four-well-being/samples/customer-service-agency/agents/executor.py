@@ -11,7 +11,7 @@ from bedrock_agentcore.memory.integrations.strands.session_manager import (
 
 from agents._shared import (
     REGION, GATEWAY_URL, MEMORY_ID, REGISTRY_ID, FUNCTIONAL_SKILL_NAME,
-    model, cached_system, system_prompt_path, skills_dir, control_client,
+    model, cached_system, system_prompt_path, skills_dir, registry_client,
 )
 from agents.services.callback import AgentCallbackHandler, QuietCallbackHandler
 from agents.services.registry import fetch_skill
@@ -20,7 +20,7 @@ from agents.services.registry import fetch_skill
 def materialize_functional_skill() -> str | None:
     """Fetch skill from Registry and write to workspace for AgentSkills plugin."""
     try:
-        skill_text = fetch_skill(control_client, REGISTRY_ID, FUNCTIONAL_SKILL_NAME)
+        skill_text = fetch_skill(registry_client, REGISTRY_ID, FUNCTIONAL_SKILL_NAME)
     except Exception as e:
         print(f"  WARNING: could not fetch skill from Registry: {e}")
         return None

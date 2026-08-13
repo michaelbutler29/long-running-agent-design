@@ -5,29 +5,30 @@ import time
 from botocore.exceptions import ClientError
 
 
-def fetch_skill(control_client, registry_id: str, skill_name: str) -> str | None:
+def fetch_skill(registry_client, registry_id: str, skill_name: str) -> str | None:
     """Fetch a skill's markdown content from the Registry. Returns None if not found."""
-    records = control_client.list_registry_records(
+    records = registry_client.list_registry_records(
         registryId=registry_id
     ).get("registryRecords", [])
     record = next((r for r in records if r["name"] == skill_name), None)
     if not record:
         return None
-    detail = control_client.get_registry_record(
+    detail = registry_client.get_registry_record(
         registryId=registry_id, recordId=record["recordId"],
     )
     return (
         detail.get("descriptors", {})
-        .get("agentSkills", {})
+        .get("agentSkillsDefinition", {})
+        .get("additionalData", {})
         .get("skillMd", {})
-        .get("inlineContent", "")
+        .get("data", "")
     ) or None
 
 
-def publish_skill(control_client, registry_id: str,
+def publish_skill(registry_client, registry_id: str,
                   skill_name: str, skill_content: str, description: str) -> dict:
     """Create or update a skill in the Registry, then submit for approval."""
-    records = control_client.list_registry_records(
+    records = registry_client.list_registry_records(
         registryId=registry_id
     ).get("registryRecords", [])
     existing = next((r for r in records if r["name"] == skill_name), None)
@@ -35,30 +36,36 @@ def publish_skill(control_client, registry_id: str,
 
     if existing:
         record_id = existing["recordId"]
-        control_client.update_registry_record(
+        registry_client.update_registry_record(
             registryId=registry_id,
             recordId=record_id,
             description={"optionalValue": description[:4096]},
             descriptors={"optionalValue": {
-                "agentSkills": {"optionalValue": {
-                    "skillMd": {"optionalValue": {"inlineContent": skill_content}},
+                "agentSkillsDefinition": {"optionalValue": {
+                    "additionalData": {"optionalValue": {
+                        "skillMd": {"optionalValue": {
+                            "data": {"optionalValue": skill_content},
+                        }},
+                    }},
                 }},
             }},
         )
     else:
-        control_client.create_registry_record(
+        registry_client.create_registry_record(
             registryId=registry_id,
             name=skill_name,
             description=description[:4096],
-            descriptorType="AGENT_SKILLS",
+            recordType="SKILL",
             descriptors={
-                "agentSkills": {
-                    "skillMd": {"inlineContent": skill_content},
+                "agentSkillsDefinition": {
+                    "additionalData": {
+                        "skillMd": {"data": skill_content},
+                    },
                 }
             },
             recordVersion="1.0.0",
         )
-        fresh = _poll(control_client, registry_id,
+        fresh = _poll(registry_client, registry_id,
                       lambda r: r if r["name"] == skill_name else None)
         if not fresh:
             return {"status": "error", "message": "Record not found after creation"}
@@ -66,7 +73,7 @@ def publish_skill(control_client, registry_id: str,
 
     for attempt in range(6):
         try:
-            control_client.submit_registry_record_for_approval(
+            registry_client.submit_registry_record_for_approval(
                 registryId=registry_id, recordId=record_id,
             )
             break
@@ -78,7 +85,7 @@ def publish_skill(control_client, registry_id: str,
                 time.sleep(3)
                 continue
             raise
-    record = _poll(control_client, registry_id,
+    record = _poll(registry_client, registry_id,
                    lambda r: r if r.get("recordId") == record_id else None)
     return {
         "status": (record or {}).get("status", "unknown").lower(),
@@ -88,11 +95,11 @@ def publish_skill(control_client, registry_id: str,
     }
 
 
-def _poll(control_client, registry_id: str, match, attempts=5, interval=2):
+def _poll(registry_client, registry_id: str, match, attempts=5, interval=2):
     """Poll list_registry_records until match(record) returns a truthy value."""
     for _ in range(attempts):
         time.sleep(interval)
-        records = control_client.list_registry_records(
+        records = registry_client.list_registry_records(
             registryId=registry_id
         ).get("registryRecords", [])
         for r in records:

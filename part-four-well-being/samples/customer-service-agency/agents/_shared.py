@@ -16,8 +16,10 @@ MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "global.anthropic.claude-sonnet-4-
 
 FUNCTIONAL_SKILL_NAME = "customer-service-skill"
 
+# Memory and Gateway stay on the bedrock-agentcore namespace; only Registry
+# moved to its own agent-registry namespace (old namespace closes 2026-09-17).
 data_client = boto3.client("bedrock-agentcore", region_name=REGION)
-control_client = boto3.client("bedrock-agentcore-control", region_name=REGION)
+registry_client = boto3.client("agent-registry-control", region_name=REGION)
 
 
 def system_prompt_path() -> Path:

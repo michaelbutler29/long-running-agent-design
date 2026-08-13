@@ -31,7 +31,7 @@ def main():
 
     outputs = load_outputs()
     region = outputs.get("Region", "us-east-1")
-    control = boto3.client("bedrock-agentcore-control", region_name=region)
+    control = boto3.client("agent-registry-control", region_name=region)
 
     print(f"Region: {region}")
     print()
@@ -48,7 +48,7 @@ def main():
         control.create_registry(
             name=REGISTRY_NAME,
             description="Skill catalog for the Part Four well-being experiment. Executor reads its functional skill from here.",
-            approvalConfiguration={"autoApproval": True},
+            approvalConfiguration={"autoApprovalRules": ["APPROVE_ALL"]},
         )
         time.sleep(2)
         registries = control.list_registries().get("registries", [])
@@ -86,8 +86,12 @@ def main():
             recordId=record_id,
             description={"optionalValue": SKILL_DESCRIPTION},
             descriptors={"optionalValue": {
-                "agentSkills": {"optionalValue": {
-                    "skillMd": {"optionalValue": {"inlineContent": skill_content}},
+                "agentSkillsDefinition": {"optionalValue": {
+                    "additionalData": {"optionalValue": {
+                        "skillMd": {"optionalValue": {
+                            "data": {"optionalValue": skill_content},
+                        }},
+                    }},
                 }},
             }},
         )
@@ -97,10 +101,12 @@ def main():
             registryId=registry_id,
             name=SKILL_NAME,
             description=SKILL_DESCRIPTION,
-            descriptorType="AGENT_SKILLS",
+            recordType="SKILL",
             descriptors={
-                "agentSkills": {
-                    "skillMd": {"inlineContent": skill_content},
+                "agentSkillsDefinition": {
+                    "additionalData": {
+                        "skillMd": {"data": skill_content},
+                    },
                 }
             },
             recordVersion="1.0.0",
@@ -129,7 +135,7 @@ def main():
     sts = boto3.client("sts", region_name=region)
     account_id = sts.get_caller_identity()["Account"]
     outputs["RegistryArn"] = (
-        f"arn:aws:bedrock-agentcore:{region}:{account_id}:registry/{registry_id}"
+        f"arn:aws:agent-registry:{region}:{account_id}:registry/{registry_id}"
     )
     all_outputs = json.loads(OUTPUTS_FILE.read_text())
     all_outputs[STACK_NAME] = outputs

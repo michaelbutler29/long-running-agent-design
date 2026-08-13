@@ -328,7 +328,10 @@ class WellBeingStack(Stack):
         )
 
         # ── AWS Agent Registry ─────────────────────────────────────────────────
-        # No L1 construct (CfnRegistry) in CDK as of 2.1124.0.
+        # No L1 construct (CfnRegistry) in CDK as of aws-cdk-lib 2.264.0.
+        # L1s are generated from the CloudFormation resource spec, and
+        # CloudFormation does not yet support the Registry resource — so
+        # there is no L2/L3 either. Not a CDK lag; upstream.
         # Created by seed_registry.py, which also publishes the seeded
         # customer-service skill (with the deliberate inefficiencies) into it.
 
