@@ -1,8 +1,9 @@
 """
 Create the AWS Agent Registry for the skill-growth POC.
 
-No L1 CDK construct exists for Registry (as of CDK 2.1124.0), so this
-script creates it via the SDK after the CDK stack is deployed.
+No L1 CDK construct exists for Registry (as of aws-cdk-lib 2.264.0) because
+CloudFormation does not yet support the resource, so this script creates it
+via the SDK after the CDK stack is deployed.
 
 Run after: cdk deploy --outputs-file cdk-outputs.json
 Run before: main.py (the scenario runner)
@@ -21,7 +22,7 @@ STACK_NAME = "SkillGrowthStack"
 REGION = json.loads(OUTPUTS_FILE.read_text())[STACK_NAME].get("Region", "us-east-1")
 REGISTRY_NAME = "skill_growth_registry"
 
-control = boto3.client("bedrock-agentcore-control", region_name=REGION)
+control = boto3.client("agent-registry-control", region_name=REGION)
 
 
 def main():
@@ -37,7 +38,7 @@ def main():
         response = control.create_registry(
             name=REGISTRY_NAME,
             description="Shared skill commons for the customer-service Executor class.",
-            approvalConfiguration={"autoApproval": True},
+            approvalConfiguration={"autoApprovalRules": ["APPROVE_ALL"]},
         )
         # Get ID from list (create response only returns ARN)
         time.sleep(2)
@@ -66,7 +67,7 @@ def main():
 
     outputs.setdefault(STACK_NAME, {})["RegistryId"] = registry_id
     outputs[STACK_NAME]["RegistryArn"] = (
-        f"arn:aws:bedrock-agentcore:{REGION}:{boto3.client('sts').get_caller_identity()['Account']}:registry/{registry_id}"
+        f"arn:aws:agent-registry:{REGION}:{boto3.client('sts').get_caller_identity()['Account']}:registry/{registry_id}"
     )
     OUTPUTS_FILE.write_text(json.dumps(outputs, indent=2))
     print(f"Registry ID written to {OUTPUTS_FILE}")

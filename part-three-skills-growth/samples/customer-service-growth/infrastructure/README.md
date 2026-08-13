@@ -20,7 +20,7 @@ Single AWS CDK (Python) stack deploying the enforcement layer, tools, memory, an
 - **AgentCore Memory** `skill_growth_memory` — episodic strategy with fleet-wide reflections
 
 **Not deployed by CDK (no L1 construct available):**
-- **AWS Agent Registry** — created by `seed_registry.py` via boto3
+- **AWS Agent Registry** — created by `seed_registry.py` via boto3 (uses the `agent-registry-control` client, not `bedrock-agentcore-control`)
 
 MCP tool names use the `TargetName___tool_name` convention:
 `GetCustomer___get_customer`, `GetOrder___get_order`, `VerifyIdentity___verify_identity`, `UpdateCustomer___update_customer_field`, `CheckRefund___check_refund_eligibility`, `ProcessRefund___process_refund`
@@ -43,7 +43,7 @@ If you modify the stack and see creation failures, the most common cause is the 
 ## Prerequisites
 
 - AWS account with AgentCore available (`us-east-1` default)
-- AWS credentials with permission to deploy: Lambda, IAM, DynamoDB, `bedrock-agentcore:*Gateway*`, `bedrock-agentcore:*Policy*`, `bedrock-agentcore:*Memory*`
+- AWS credentials with permission to deploy: Lambda, IAM, DynamoDB, `bedrock-agentcore:*Gateway*`, `bedrock-agentcore:*Policy*`, `bedrock-agentcore:*Memory*`, and `agent-registry:*` (Registry uses its own namespace)
 - Python 3.11+ and Node 18+
 - AWS CDK CLI: `npm install -g aws-cdk`
 
@@ -102,7 +102,7 @@ Removes everything the stack created: Gateway + 6 targets, Policy Engine, 6 Lamb
 
 **What survives `cdk destroy`:**
 
-- **Agent Registry** — created by `seed_registry.py`, not CDK. Delete manually if needed: `aws bedrock-agentcore-control delete-registry --registry-id <id>`
+- **Agent Registry** — created by `seed_registry.py`, not CDK. Delete manually if needed: `aws agent-registry-control delete-registry --registry-id <id>`
 - **`cdk-outputs.json`** — local file, not an AWS resource
 - **CDK bootstrap stack** (`CDKToolkit`) — shared across CDK deployments; leave it alone
 

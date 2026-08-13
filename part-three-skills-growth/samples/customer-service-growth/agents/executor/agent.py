@@ -38,8 +38,12 @@ REGISTRY_ID = os.environ["AGENTCORE_REGISTRY_ID"]
 MEMORY_ID = os.environ["AGENTCORE_MEMORY_ID"]
 MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "global.anthropic.claude-sonnet-4-6")
 
+# NOTE: the migration guide documents the MCP search tool rename but not the
+# MCP endpoint host. This follows the new data plane host (agent-registry
+# .{region}.api.aws) and keeps the /registry/{id}/mcp path. Verify against a
+# live registry before relying on it; the request is signed for agent-registry.
 REGISTRY_MCP_ENDPOINT = (
-    f"https://bedrock-agentcore.{REGION}.amazonaws.com/registry/{REGISTRY_ID}/mcp"
+    f"https://agent-registry.{REGION}.api.aws/registry/{REGISTRY_ID}/mcp"
 )
 
 
@@ -58,7 +62,7 @@ def _search_registry_for_skills(task_description: str) -> str:
         "id": 1,
         "method": "tools/call",
         "params": {
-            "name": "search_registry_records",
+            "name": "search_discoverable_registry_records",
             "arguments": {
                 "searchQuery": task_description,
                 "maxResults": 3,
@@ -72,7 +76,7 @@ def _search_registry_for_skills(task_description: str) -> str:
         data=body,
         headers={"Content-Type": "application/json"},
     )
-    SigV4Auth(credentials, "bedrock-agentcore", REGION).add_auth(request)
+    SigV4Auth(credentials, "agent-registry", REGION).add_auth(request)
 
     req = urllib.request.Request(
         REGISTRY_MCP_ENDPOINT,
@@ -98,7 +102,12 @@ def _search_registry_for_skills(task_description: str) -> str:
             skills = []
             for r in records:
                 descriptors = r.get("descriptors", {})
-                skill_md = descriptors.get("agentSkills", {}).get("skillMd", {}).get("inlineContent", "")
+                skill_md = (
+                    descriptors.get("agentSkillsDefinition", {})
+                    .get("additionalData", {})
+                    .get("skillMd", {})
+                    .get("data", "")
+                )
                 if skill_md:
                     skills.append(skill_md)
             return "\n\n---\n\n".join(skills)

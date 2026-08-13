@@ -33,6 +33,8 @@ REGION = json.loads(OUTPUTS_FILE.read_text())[STACK_NAME].get("Region", "us-east
 
 control = boto3.client("bedrock-agentcore-control", region_name=REGION)
 data = boto3.client("bedrock-agentcore", region_name=REGION)
+# Only Registry moved namespaces; Policy Engine and Memory stay put.
+registry = boto3.client("agent-registry-control", region_name=REGION)
 dynamodb = boto3.client("dynamodb", region_name=REGION)
 
 
@@ -60,13 +62,13 @@ def cleanup_registry(registry_id: str):
     """Delete all records from the registry."""
     print("── Registry ────────────────────────────────────────────────")
     try:
-        records = control.list_registry_records(registryId=registry_id).get("registryRecords", [])
+        records = registry.list_registry_records(registryId=registry_id).get("registryRecords", [])
         if not records:
             print("  No records to delete.")
             return
         for r in records:
             try:
-                control.delete_registry_record(registryId=registry_id, recordId=r["recordId"])
+                registry.delete_registry_record(registryId=registry_id, recordId=r["recordId"])
                 print(f"  Deleted: {r['name']}")
             except Exception as e:
                 print(f"  Error deleting {r['name']}: {e}")

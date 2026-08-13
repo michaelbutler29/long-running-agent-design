@@ -166,13 +166,13 @@ def inspect_memory_stats(data_client, memory_id, strategy_id):
 
 def inspect_registry(region, registry_id):
     """Query Registry for published skills."""
-    control_client = boto3.client("bedrock-agentcore-control", region_name=region)
+    registry_client = boto3.client("agent-registry-control", region_name=region)
 
     print("── Registry ────────────────────────────────────────────────")
     print()
 
     try:
-        records = control_client.list_registry_records(registryId=registry_id).get("registryRecords", [])
+        records = registry_client.list_registry_records(registryId=registry_id).get("registryRecords", [])
         approved = [r for r in records if r.get("status") == "APPROVED"]
 
         print(f"  {len(approved)} skill(s) discoverable by Executors:")

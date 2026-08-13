@@ -420,12 +420,17 @@ class SkillGrowthStack(Stack):
         )
 
         # ── AWS Agent Registry ─────────────────────────────────────────────────
-        # No L1 construct (CfnRegistry) in CDK as of 2.1124.0.
+        # No L1 construct (CfnRegistry) in CDK as of aws-cdk-lib 2.264.0.
+        # L1s are generated from the CloudFormation resource spec, and
+        # CloudFormation does not yet support the Registry resource — so
+        # there is no L2/L3 either. Not a CDK lag; upstream.
         # Registry is created via setup script: seed_registry.py
-        # Uses boto3 bedrock-agentcore-control: create_registry(
+        # Uses boto3 agent-registry-control: create_registry(
         #     name="skill_growth_registry",
-        #     approvalConfiguration={"autoApproval": True},
+        #     approvalConfiguration={"autoApprovalRules": ["APPROVE_ALL"]},
         # )
+        # Registry lives in its own agent-registry namespace; the Gateway,
+        # Policy Engine, and Memory resources above stay on bedrock-agentcore.
 
         # ── Outputs ────────────────────────────────────────────────────────────
         CfnOutput(self, "GatewayUrl",            value=gateway.attr_gateway_url)

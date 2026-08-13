@@ -15,7 +15,7 @@ This extends Part Two's customer-service-assistant with skill authoring, permiss
 - **Python 3.11+**
 - **Node 18+** (CDK CLI dependency)
 - **AWS CDK CLI**: `npm install -g aws-cdk`
-- **boto3 >= 1.43.x** (Registry APIs require this version; older versions lack the operations)
+- **boto3 >= 1.43.69** (earlier versions lack the `agent-registry` service model — see [Registry namespace migration](#registry-namespace-migration))
 - **Bedrock model access**: Claude Sonnet 4.6 enabled in the account
 
 ### 1. Install dependencies
@@ -26,6 +26,22 @@ From this directory (`samples/customer-service-growth/`):
 python -m venv .venv
 source .venv/bin/activate          # PowerShell: .venv\Scripts\Activate.ps1
 pip install -e .
+```
+
+**Already have a `.venv` from before the Registry namespace migration?** Delete and rebuild it. Bumping the boto3 floor in `pyproject.toml` does not upgrade an existing environment, and a stale botocore fails at `seed_registry.py` with `UnknownServiceError: Unknown service: 'agent-registry-control'`. Deactivate first — you cannot delete a virtualenv you are inside of:
+
+```bash
+deactivate
+rm -rf .venv                       # PowerShell: Remove-Item -Recurse -Force .venv
+python -m venv .venv
+source .venv/bin/activate          # PowerShell: .venv\Scripts\Activate.ps1
+pip install -e .
+```
+
+Then confirm the new service model is present before seeding:
+
+```bash
+python -c "import boto3; boto3.client('agent-registry-control', region_name='us-east-1'); print('OK')"
 ```
 
 ### 2. Deploy infrastructure
@@ -321,6 +337,29 @@ This sample extends Part Two's `customer-service-assistant`:
 | Agent learns within a session | System develops between sessions |
 
 The Security Adjudicator reuses Part Two's `policy-evaluation-skill` unchanged. The evaluation criteria and independence guarantees carry forward.
+
+## Registry namespace migration
+
+AWS Agent Registry moved out of the `bedrock-agentcore` namespace into its own `agent-registry` namespace on **August 6, 2026**. The old namespace stops serving Registry traffic on **September 17, 2026**. This sample has been updated to the new namespace, so the code here differs from what the published article shows.
+
+**Only Registry moved.** Gateway, Policy Engine, Memory, and Identity all remain on `bedrock-agentcore` — which is why the scripts now build two control-plane clients side by side rather than renaming one.
+
+What changed in this sample:
+
+| Surface | Before | After |
+|---|---|---|
+| Control-plane client | `bedrock-agentcore-control` | `agent-registry-control` |
+| Data-plane client (skill search) | `bedrock-agentcore` | `agent-registry` |
+| Search operation | `search_registry_records` | `search_discoverable_registry_records` |
+| Auto-approval | `approvalConfiguration={"autoApproval": True}` | `approvalConfiguration={"autoApprovalRules": ["APPROVE_ALL"]}` |
+| Record classification | `descriptorType="AGENT_SKILLS"` | `recordType="SKILL"` |
+| Skill content path | `descriptors.agentSkills.skillMd.inlineContent` | `descriptors.agentSkillsDefinition.additionalData.skillMd.data` |
+| Registry ARN | `arn:aws:bedrock-agentcore:…:registry/…` | `arn:aws:agent-registry:…:registry/…` |
+| IAM actions | `bedrock-agentcore:*Registry*` | `agent-registry:*` |
+
+Two practical notes. `boto3 >= 1.43.69` is a hard floor — earlier versions have no `agent-registry` service model at all, so `boto3.client("agent-registry-control")` raises `UnknownServiceError: Unknown service: 'agent-registry-control'`. **If you set this sample up before the migration, delete `.venv` and rebuild it** — raising the floor in `pyproject.toml` does not upgrade an environment that already exists, and this is the most likely reason `seed_registry.py` fails after pulling these changes (see [Install dependencies](#1-install-dependencies)). And if you used the `BedrockAgentCoreFullAccess` managed policy for Registry access, switch to `AgentRegistryFullAccess`; the old policy is not being updated to cover the new namespace.
+
+Because this sample creates its registry from scratch with `seed_registry.py` and tears it down with `cleanup.py`, there is nothing to migrate — recreate rather than migrate. If you have registries you need to preserve, AWS provides [migration tooling](https://github.com/awslabs/agentcore-samples/tree/main/01-features/07-centralize-and-govern-your-ai-infrastructure/03-registry/04-migrate-to-new-namespace) and a [full migration guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/registry-faq.html).
 
 ---
 

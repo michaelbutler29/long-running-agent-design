@@ -37,6 +37,10 @@ SKILLS_DIR = Path(__file__).parent.parent.parent / "skills"
 
 data_client = boto3.client("bedrock-agentcore", region_name=REGION)
 control_client = boto3.client("bedrock-agentcore-control", region_name=REGION)
+# Registry moved to its own namespace; Memory, Gateway, and Policy Engine did
+# not. The old bedrock-agentcore Registry APIs close on 2026-09-17.
+registry_control_client = boto3.client("agent-registry-control", region_name=REGION)
+registry_data_client = boto3.client("agent-registry", region_name=REGION)
 
 
 _CACHED_STRATEGY_ID = None
@@ -164,7 +168,7 @@ def read_decisions(query: str = "curation decision", max_results: int = 20) -> s
 def search_existing_skills(query: str) -> str:
     """Search the Registry for existing skills similar to a query.
     Returns skill names, descriptions, and record IDs."""
-    response = data_client.search_registry_records(
+    response = registry_data_client.search_discoverable_registry_records(
         registryIds=[REGISTRY_ID],
         searchQuery=query,
         maxResults=10,
@@ -185,15 +189,16 @@ def get_skill_content(record_id: str) -> str:
     """Retrieve the full SKILL.md content of a Registry skill by record ID.
     Use this BEFORE modifying any skill — you must read the current content
     to make a targeted revision rather than a blind rewrite."""
-    record = control_client.get_registry_record(
+    record = registry_control_client.get_registry_record(
         registryId=REGISTRY_ID,
         recordId=record_id,
     )
     skill_md = (
         record.get("descriptors", {})
-        .get("agentSkills", {})
+        .get("agentSkillsDefinition", {})
+        .get("additionalData", {})
         .get("skillMd", {})
-        .get("inlineContent", "")
+        .get("data", "")
     )
     return skill_md or "(no skill content found)"
 
@@ -266,49 +271,55 @@ def publish_skill(skill_content: str, name: str, description: str) -> str:
     revision stays active in search until the new one is approved.
 
     If no record exists, creates a new one."""
-    records = control_client.list_registry_records(registryId=REGISTRY_ID).get("registryRecords", [])
+    records = registry_control_client.list_registry_records(registryId=REGISTRY_ID).get("registryRecords", [])
     existing = next((r for r in records if r["name"] == name), None)
     is_update = existing is not None
 
     if existing:
         record_id = existing["recordId"]
-        control_client.update_registry_record(
+        registry_control_client.update_registry_record(
             registryId=REGISTRY_ID,
             recordId=record_id,
             description={"optionalValue": description[:4096]},
             descriptors={"optionalValue": {
-                "agentSkills": {"optionalValue": {
-                    "skillMd": {"optionalValue": {"inlineContent": skill_content}},
+                "agentSkillsDefinition": {"optionalValue": {
+                    "additionalData": {"optionalValue": {
+                        "skillMd": {"optionalValue": {
+                            "data": {"optionalValue": skill_content},
+                        }},
+                    }},
                 }},
             }},
         )
     else:
-        control_client.create_registry_record(
+        registry_control_client.create_registry_record(
             registryId=REGISTRY_ID,
             name=name,
             description=description[:4096],
-            descriptorType="AGENT_SKILLS",
+            recordType="SKILL",
             descriptors={
-                "agentSkills": {
-                    "skillMd": {"inlineContent": skill_content},
+                "agentSkillsDefinition": {
+                    "additionalData": {
+                        "skillMd": {"data": skill_content},
+                    },
                 }
             },
             recordVersion="1.0.0",
         )
         time.sleep(2)
-        records = control_client.list_registry_records(registryId=REGISTRY_ID)["registryRecords"]
+        records = registry_control_client.list_registry_records(registryId=REGISTRY_ID)["registryRecords"]
         fresh = next((r for r in records if r["name"] == name), None)
         if not fresh:
             return json.dumps({"status": "error", "message": "Record not found after creation"})
         record_id = fresh["recordId"]
 
     time.sleep(2)
-    control_client.submit_registry_record_for_approval(
+    registry_control_client.submit_registry_record_for_approval(
         registryId=REGISTRY_ID,
         recordId=record_id,
     )
     time.sleep(2)
-    records = control_client.list_registry_records(registryId=REGISTRY_ID)["registryRecords"]
+    records = registry_control_client.list_registry_records(registryId=REGISTRY_ID)["registryRecords"]
     record = next(r for r in records if r["recordId"] == record_id)
     return json.dumps({
         "status": record["status"].lower(),
